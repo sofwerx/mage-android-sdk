@@ -8,6 +8,12 @@ public class LocalAuthLoginTask extends AbstractAccountTask {
 		super(delegate, applicationContext);
 	}
 
+	/**
+	 * Called from execute
+	 * 
+	 * @param params
+	 *            Should contain username and password; in that order.
+	 */
 	@Override
 	protected AccountStatus doInBackground(String... params) {
 

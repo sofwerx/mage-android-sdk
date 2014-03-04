@@ -30,6 +30,7 @@ public class LoginTaskFactory {
 	public AbstractAccountTask getLoginTask(AccountDelegate delegate, Context context) {
 		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
 		String className = sharedPreferences.getString("loginTask", FormAuthLoginTask.class.getCanonicalName());
+		
 		try {
 			Class<?> c = Class.forName(className);
 			Constructor[] constructors = c.getConstructors();

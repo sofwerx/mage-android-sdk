@@ -33,11 +33,19 @@ import android.content.Context;
  */
 public class SignupTask extends AbstractAccountTask {
 
-
 	public SignupTask(AccountDelegate delegate, Context applicationContext) {
 		super(delegate, applicationContext);
 	}
 
+	/**
+	 * Called from execute
+	 * 
+	 * @param params
+	 *            Should contain firstname, lastname, username, email, password,
+	 *            and serverURL; in that order.
+	 * @return On success, {@link AccountStatus#getAccountInformation()}
+	 *         contains the username
+	 */
 	@Override
 	protected AccountStatus doInBackground(String... params) {
 
@@ -95,8 +103,9 @@ public class SignupTask extends AbstractAccountTask {
 
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-				System.out.println(json.getString("firstname"));
-				return new AccountStatus(Boolean.TRUE);
+				List<String> accountInformation = new ArrayList<String>();
+				accountInformation.add(json.getString("username"));
+				return new AccountStatus(Boolean.TRUE, new ArrayList<Integer>(), new ArrayList<String>(), accountInformation);
 			}
 		} catch (MalformedURLException e) {
 			// already checked for this!

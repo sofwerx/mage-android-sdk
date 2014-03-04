@@ -29,14 +29,23 @@ import android.content.Context;
  * Performs login to specified server with username and password
  * 
  * @author wiedemannse
- *
+ * 
  */
 public class FormAuthLoginTask extends AbstractAccountTask {
-	
+
 	public FormAuthLoginTask(AccountDelegate delegate, Context context) {
 		super(delegate, context);
 	}
 
+	/**
+	 * Called from execute
+	 * 
+	 * @param params
+	 *            Should contain username, password, and serverURL; in that
+	 *            order.
+	 * @return On success, {@link AccountStatus#getAccountInformation()}
+	 *         contains the user's token
+	 */
 	@Override
 	protected AccountStatus doInBackground(String... params) {
 		// get inputs
@@ -72,7 +81,7 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 			errorMessages.add("Bad URL");
 			return new AccountStatus(Boolean.FALSE, errorIndices, errorMessages);
 		}
-		
+
 		try {
 			DefaultHttpClient httpclient = new DefaultHttpClient();
 			HttpPost post = new HttpPost(new URL(new URL(serverURL), "api/login").toURI());
@@ -88,7 +97,7 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 				JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
 				List<String> accountInformation = new ArrayList<String>();
 				accountInformation.add(json.getString("token"));
-				return new AccountStatus(Boolean.TRUE, new ArrayList<Integer>(),new ArrayList<String>(), accountInformation);  
+				return new AccountStatus(Boolean.TRUE, new ArrayList<Integer>(), new ArrayList<String>(), accountInformation);
 			}
 		} catch (MalformedURLException e) {
 			// already checked for this!
