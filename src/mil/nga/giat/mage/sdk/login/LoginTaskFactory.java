@@ -8,6 +8,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+/**
+ * Deals with login tasks and their configuration.
+ * 
+ * @author wiedemannse
+ *
+ */
 public class LoginTaskFactory {
 
 	private LoginTaskFactory() {
@@ -27,6 +33,13 @@ public class LoginTaskFactory {
 		return loginTaskFactory;
 	}
 
+	/**
+	 * Retrieves the correct login module from the configuration.
+	 * 
+	 * @param delegate
+	 * @param context
+	 * @return
+	 */
 	public AbstractAccountTask getLoginTask(AccountDelegate delegate, Context context) {
 		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
 		String className = sharedPreferences.getString("loginTask", FormAuthLoginTask.class.getCanonicalName());

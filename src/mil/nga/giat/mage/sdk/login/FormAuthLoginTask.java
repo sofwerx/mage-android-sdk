@@ -26,7 +26,8 @@ import org.json.JSONObject;
 import android.content.Context;
 
 /**
- * Performs login to specified server with username and password
+ * Performs login to specified server with username and password. TODO: SHould
+ * this also handle device registration?
  * 
  * @author wiedemannse
  * 

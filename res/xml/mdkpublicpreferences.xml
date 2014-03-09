@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="DATA FETCH FREQUENCY" >
+        <ListPreference
+            android:defaultValue="30000"
+            android:entries="@array/userFetchFrequencies"
+            android:entryValues="@array/userFetchFrequencyValues"
+            android:key="userFetchFrequency"
+            android:title="Users" />
+        <ListPreference
+            android:defaultValue="30000"
+            android:entries="@array/observationFetchFrequencies"
+            android:entryValues="@array/observationFetchFrequencyValues"
+            android:key="observationFetchFrequency"
+            android:title="Observations" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="DATA REPORTING FREQUENCY" >
+        <ListPreference
+            android:defaultValue="15000"
+            android:entries="@array/userReportingFrequencies"
+            android:entryValues="@array/userReportingFrequencyValues"
+            android:key="userReportingFrequency"
+            android:title="My Location" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="GPS AND BATTERY" >
+        <ListPreference
+            android:defaultValue="2"
+            android:entries="@array/gpsSensitivities"
+            android:entryValues="@array/gpsSensitivityValues"
+            android:key="gpsSensitivity"
+            android:title="GPS Sensitivity" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

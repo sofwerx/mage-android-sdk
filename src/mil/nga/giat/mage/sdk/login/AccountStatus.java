@@ -29,6 +29,8 @@ public class AccountStatus {
 	private List<String> errorMessages = new ArrayList<String>();
 
 	/**
+	 * TODO: Should this be replaced with JSON object?
+	 * 
 	 * If status was true, contains information relevant to the
 	 * {@link AbstractAccountTask}, such as a user's token
 	 */

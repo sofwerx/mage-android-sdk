@@ -21,8 +21,8 @@ public class LocalAuthLoginTask extends AbstractAccountTask {
 		String username = params[0];
 		String password = params[1];
 
-		// TODO: actual local authorization implementation
-		if (!username.isEmpty() && password.equals("12345")) {
+		// TODO: add actual local authorization implementation
+		if (!username.isEmpty() && password.startsWith("12345")) {
 			return new AccountStatus(Boolean.TRUE);
 		}
 
