@@ -11,6 +11,13 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
+/**
+ * This is an implementation of OrmLite android database Helper.
+ * Go here to get daos that you may need.  Manage your table
+ * creation and update strategies here as well.
+ * @author travis
+ *
+ */
 public class DBHelper extends OrmLiteSqliteOpenHelper {
 
 	private static DBHelper helperInstance;
@@ -26,10 +33,12 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	private Dao<GeometryType, Integer> geometryTypeDao = null;
 	private Dao<Property, Integer> propertyDao = null;
 	private Dao<Attachment, Integer> attachmentDao = null;
-
 	
-	
-	
+	/**
+	 * Singleton implementation.
+	 * @param context
+	 * @return
+	 */
 	public static DBHelper getInstance(Context context) {
 		if (helperInstance == null) {
 			helperInstance = new DBHelper(context);
@@ -37,7 +46,12 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		return helperInstance;
 	}
 
-	public DBHelper(Context context) {
+	/**
+	 * Constructor that takes an android Context.
+	 * @param context
+	 * @return
+	 */
+	private DBHelper(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
 	}
 
@@ -58,8 +72,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 
 	@Override
 	public void onUpgrade(SQLiteDatabase database, ConnectionSource connectionSource, int oldVersion, int newVersion) {
-		//drop tables
-		
+		//TODO drop tables		
 	}
 
 	@Override
@@ -68,6 +81,11 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		helperInstance = null;
 	}
 	
+	/**
+	 * Getter for the ObservationDao.
+	 * @return This instance's ObservationDao
+	 * @throws SQLException
+	 */
 	public Dao<Observation, Integer> getObservationDao() throws SQLException {
 		if (observationDao == null) {
 			observationDao = getDao(Observation.class);
@@ -75,6 +93,11 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		return observationDao;
 	}
 	
+	/**
+	 * Getter for the StateDao.
+	 * @return This instance's StateDao
+	 * @throws SQLException
+	 */
 	public Dao<State, Integer> getStateDao() throws SQLException {
 		if (stateDao == null) {
 			stateDao = getDao(State.class);
@@ -82,6 +105,11 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		return stateDao;
 	}
 	
+	/**
+	 * Getter for the GeometryDao
+	 * @return This instance's GeometryDao
+	 * @throws SQLException
+	 */
 	public Dao<Geometry, Integer> getGeometryDao() throws SQLException {
 		if (geometryDao == null) {
 			geometryDao = getDao(Geometry.class);
@@ -89,6 +117,11 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		return geometryDao;
 	}
 	
+	/**
+	 * Getter for the GeometryTypeDao
+	 * @return This instance's GeometryTypeDao
+	 * @throws SQLException
+	 */
 	public Dao<GeometryType, Integer> getGeometryTypeDao() throws SQLException {
 		if (geometryTypeDao == null) {
 			geometryTypeDao = getDao(GeometryType.class);
@@ -96,6 +129,11 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		return geometryTypeDao;
 	}
 	
+	/**
+	 * Getter for the PropertyDao
+	 * @return This instance's PropertyDao
+	 * @throws SQLException
+	 */
 	public Dao<Property, Integer> getPropertyDao() throws SQLException {
 		if (propertyDao == null) {
 			propertyDao = getDao(Property.class);
@@ -103,6 +141,11 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		return propertyDao;
 	}
 	
+	/**
+	 * Getter for the AttachmentDao
+	 * @return This instance's AttachmentDao
+	 * @throws SQLException
+	 */
 	public Dao<Attachment, Integer> getAttachmentDao() throws SQLException {
 		if (attachmentDao == null) {
 			attachmentDao = getDao(Attachment.class);
