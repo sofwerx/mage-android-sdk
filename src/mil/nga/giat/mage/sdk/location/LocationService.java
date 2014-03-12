@@ -1,6 +1,7 @@
 package mil.nga.giat.mage.sdk.location;
 
 import java.util.Date;
+import java.util.List;
 
 import android.app.AlertDialog;
 import android.app.Service;
@@ -19,27 +20,25 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 
 /**
- * Query the device for the device's location
+ * Query the device for the device's location. If userReportingFrequency is set
+ * to never, the Service will listen for changes to userReportingFrequency.
  */
 public class LocationService extends Service implements LocationListener {
 
 	private final Context mContext;
-
-	// flag for GPS status
-	boolean isGPSEnabled = false;
 
 	// TODO: The two settings below should be configured in a low medium high fashion from the user
 	// Minimum meters between updates
 	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0;
 
 	// Minimum milliseconds between updates
-	private static final long MIN_TIME_BW_UPDATES = 10 * 1000;
+	private static final long MIN_TIME_BW_UPDATES = 1 * 1000;
 
 	protected final LocationManager locationManager;
 	
-	protected Boolean pollingRunning = Boolean.FALSE;
+	protected boolean pollingRunning = false;
 	
-	public synchronized Boolean isPolling() {
+	public synchronized boolean isPolling() {
 		return pollingRunning;
 	}
 
@@ -55,8 +54,14 @@ public class LocationService extends Service implements LocationListener {
 	public synchronized void setLastLocationPullTime(long lastLocationPullTime) {
 		this.lastLocationPullTime = lastLocationPullTime;
 	}
+	
+	protected boolean locationUpdatesEnabled = false;
 
-	// How often should the serivce check the settings to see if there's been a change.  Will go away if event driven!
+	public synchronized boolean getLocationUpdatesEnabled() {
+		return locationUpdatesEnabled;
+	}
+	
+	// How often should the service check the settings to see if there's been a change.  Will go away if event driven!
 	private static final long checkSettingsFrequencyMilliseconds = 12000;
 	
 	private final Handler mHandler = new Handler();
@@ -69,37 +74,46 @@ public class LocationService extends Service implements LocationListener {
 	public LocationService(Context context) {
 		this.mContext = context;
 		this.locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
-		this.locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-		getLocation();
+		//requestLocationUpdates();
+		//getLocation();
+	}
+	
+	private void requestLocationUpdates() {
+		if (locationManager != null) {
+			final List<String> providers = locationManager.getAllProviders();
+			if (providers != null) {
+				
+				if (providers.contains(LocationManager.GPS_PROVIDER)) {
+					locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+					locationUpdatesEnabled = true;
+				}
+			}
+		}
+	}
+
+	private void removeLocationUpdates() {
+		locationManager.removeUpdates(this);
+		locationUpdatesEnabled = false;
 	}
 
 	/**
-	 * Return a location or <code>null</code> is no location is avaliable.
+	 * Return a location or <code>null</code> is no location is available.
 	 * 
 	 * @return A {@link Location}.
 	 */
 	public Location getLocation() {
 		Location location = null;
 
-		// getting GPS status
-		isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-
 		// if GPS Enabled get Location using GPS Services
-		if (isGPSEnabled) {
+		if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 			location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		} else if(locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+			location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 		}
 		setLastLocationPullTime(System.currentTimeMillis());
 		return location;
 	}
 
-	/**
-	 * Method to check if GPS is enabled
-	 * 
-	 * @return Is GSP enabled?
-	 */
-	public boolean isGPSEnabled() {
-		return this.isGPSEnabled;
-	}
 
 	/**
 	 * Method to show settings alert dialog On pressing Settings button will
@@ -126,8 +140,7 @@ public class LocationService extends Service implements LocationListener {
 	@Override
 	public void onLocationChanged(Location location) {
 		setLastLocationPullTime(System.currentTimeMillis());
-		// TODO : save location
-		System.out.println("EVENT: " + location.getLatitude() + ", " + location.getLongitude() + ", " + location.getTime());
+		saveLocation(location, "ACTIVE");
 	}
 
 	@Override
@@ -140,7 +153,6 @@ public class LocationService extends Service implements LocationListener {
 
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
-		System.out.println("GPS status: " + status);
 	}
 
 	@Override
@@ -165,34 +177,47 @@ public class LocationService extends Service implements LocationListener {
 	public void stop() {
 		pollingRunning = Boolean.FALSE;
 		if (locationManager != null) {
-			locationManager.removeUpdates(this);
+			removeLocationUpdates();
 		}
 	}
 	
-	// FIXME : make this smarter. 
+	protected Long getUserReportingFrequency() {
+		final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+		return Long.parseLong(sharedPreferences.getString("userReportingFrequency", "15000"));
+	}
+	
+	private void saveLocation(Location location, String state) {
+		long reportedTime = System.currentTimeMillis();
+		System.out.println(state + " " + location.getLatitude() + ", " + location.getLongitude() + ", " + location.getTime() + ", " + location.getProvider() + ", " + reportedTime);
+	}
+	
 	private Thread createLocationPollingThread() {
 		return new Thread(new Runnable() {
 			public void run() {
 				Looper.prepare();
-				final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+				
 				while (isPolling()) {
 					try {
-						
 						// FIXME: userReportingFrequency might change. make event driven?
-						long pollingInterval = Long.parseLong(sharedPreferences.getString("userReportingFrequency", "15000"));
-						
+						long userReportingFrequency = getUserReportingFrequency();
 						// if we should pull, then do it.
-						if(pollingInterval > 0) {
+						if(userReportingFrequency > 0) {
+							
+							// make sure the service is configured to report locations
+							if(!getLocationUpdatesEnabled()) {
+								mHandler.post(new Runnable() {
+									public void run() {
+										requestLocationUpdates();
+									}
+								});
+							}
 							
 							final Location location = getLocation();
 							
 							if (location != null) {
 								mHandler.post(new Runnable() {
 									public void run() {
-										long systemTime = System.currentTimeMillis();
-										long gpsTime = location.getTime();
-										// TODO : save location
-										System.out.println("LOOP:  " + location.getLatitude() + ", " + location.getLongitude() + ", " + location.getTime());
+										saveLocation(location, "STALE");
 									}
 								});
 							}
@@ -201,12 +226,18 @@ public class LocationService extends Service implements LocationListener {
 							// we only need to pull if a location has not been saved in the last 'pollingInterval' seconds.
 							// the location could have been saved from a motion event, or from the last time the parent loop ran
 							// use local variables in order to maintain data integrity across instructions. 
-							while ((lLPullTime = getLastLocationPullTime()) + (pollingInterval = Long.parseLong(sharedPreferences.getString("userReportingFrequency", "15000"))) > (currentTime = new Date().getTime())) {
+							while (((lLPullTime = getLastLocationPullTime()) + (userReportingFrequency = getUserReportingFrequency()) > (currentTime = new Date().getTime())) && isPolling()) {
 								// check every 12 seconds at most to check the settings
-								Thread.sleep(Math.min(lLPullTime + pollingInterval - currentTime, checkSettingsFrequencyMilliseconds));
+								Thread.sleep(Math.min(lLPullTime + userReportingFrequency - currentTime, checkSettingsFrequencyMilliseconds));
 							}
 						} else {
-							// otherwise sleep for 12 seconds
+							// disable location updates
+							mHandler.post(new Runnable() {
+								public void run() {
+									removeLocationUpdates();
+								}
+							});
+							// sleep for 12 seconds
 							Thread.sleep(checkSettingsFrequencyMilliseconds);
 						}
 					} catch (InterruptedException e) {
