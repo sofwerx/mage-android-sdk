@@ -26,13 +26,13 @@ public class ObservationHelper {
 	private static final String LOG_NAME = "mage.observation.log";
 
 	// required DBHelper and DAOs for handing CRUD operations for Observations
-	DBHelper helper;
-	Dao<Observation, Long> observationDao;
-	Dao<State, ?> stateDao;
-	Dao<Geometry, ?> geometryDao;
-	Dao<GeometryType, ?> geometryTypeDao;
-	Dao<Property, ?> propertyDao;
-	Dao<Attachment, ?> attachmentDao;
+	private DBHelper helper;
+	private Dao<Observation, Long> observationDao;
+	private Dao<State, Long> stateDao;
+	private Dao<Geometry, Long> geometryDao;
+	private Dao<GeometryType, Long> geometryTypeDao;
+	private Dao<Property, Long> propertyDao;
+	private Dao<Attachment, Long> attachmentDao;
 
 	/**
 	 * This Map can be used to ensure that a valid STATE is used when performing CRUD 
@@ -177,16 +177,6 @@ public class ObservationHelper {
 		return createdObservation;
 		
 	}
-
-	/**
-	 * Read an Observation from the local data-store.
-	 * @param pObservation An Observation with a set pk_id.
-	 * @return A fully constructed Observation.
-	 * @throws OrmException If there was an error reading the Observation from the database.
-	 */
-	public Observation readObservation(Observation pObservation) throws OrmException {
-		return readObservation(pObservation.getPk_id());
-	}
 	
 	/**
 	 * Read an Observation from the data-store
@@ -206,6 +196,46 @@ public class ObservationHelper {
 			throw new OrmException("Unable to read Observation: " + pPrimaryKey,sqle);
 		}
 		return observation;
+	}
+
+	/**
+	 * Deletes an Observation.  This will also delete an Observation's child Attachments,
+	 * child Properties and Geometry data.
+	 * @param pPrimaryKey
+	 * @throws OrmException
+	 */
+	public void deleteObservation(Long pPrimaryKey) throws OrmException {
+		try {
+			
+			//read the full Observation in
+			Observation observation = observationDao.queryForId(pPrimaryKey);
+			
+			//delete Observation properties.
+			Collection<Property> properties = observation.getProperties();
+			if (properties != null) {
+				for (Property property : properties) {					
+					propertyDao.deleteById(property.getPk_id());
+				}
+			}
+			
+			//delete Observation attachments.
+			Collection<Attachment> attachments = observation.getAttachments();
+			if (attachments != null) {
+				for (Attachment attachment : attachments) {					
+					attachmentDao.deleteById(attachment.getPk_id());
+				}
+			}
+			
+			//delete Geometry (but not corresponding GeometryType).
+			geometryDao.deleteById(observation.getGeometry().getPk_id());
+			
+			//finally, delete the Observation.
+			observationDao.deleteById(pPrimaryKey);
+		}
+		catch(SQLException sqle) {
+			Log.e(LOG_NAME,"Unable to delete Observation: " + pPrimaryKey,sqle);
+			throw new OrmException("Unable to delete Observation: " + pPrimaryKey,sqle);
+		}
 	}
 	
 }
