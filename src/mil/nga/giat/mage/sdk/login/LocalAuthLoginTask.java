@@ -17,15 +17,15 @@ public class LocalAuthLoginTask extends AbstractAccountTask {
 	@Override
 	protected AccountStatus doInBackground(String... params) {
 
-		// get inputs
-		String username = params[0];
-		String password = params[1];
+//		// get inputs
+//		String username = params[0];
+//		String password = params[1];
+//
+//		// TODO: add actual local authorization implementation
+//		if (!username.isEmpty() && password.startsWith("12345")) {
+//			return new AccountStatus(Boolean.TRUE);
+//		}
 
-		// TODO: add actual local authorization implementation
-		if (!username.isEmpty() && password.startsWith("12345")) {
-			return new AccountStatus(Boolean.TRUE);
-		}
-
-		return new AccountStatus(Boolean.FALSE);
+		return new AccountStatus(Boolean.TRUE);
 	}
 }
