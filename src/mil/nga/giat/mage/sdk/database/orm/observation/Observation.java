@@ -1,4 +1,4 @@
-package mil.nga.giat.mage.sdk.database.orm;
+package mil.nga.giat.mage.sdk.database.orm.observation;
 
 import java.util.Collection;
 
@@ -22,10 +22,10 @@ public class Observation {
     @DatabaseField(canBeNull = false,foreign = true)
     private Geometry geometry;
     
-    @ForeignCollectionField
+    @ForeignCollectionField(eager = true)
     Collection<Property> properties;
     
-    @ForeignCollectionField
+    @ForeignCollectionField(eager = true)
     Collection<Attachment> attachments;
     
 	public Observation() {
@@ -79,6 +79,14 @@ public class Observation {
 	}
 	public void setAttachments(Collection<Attachment> attachments) {
 		this.attachments = attachments;
+	}
+	
+	@Override
+	public String toString() {
+		return "Observation [pk_id=" + pk_id + ", remote_id=" + remote_id
+				+ ", state=" + state + ", geometry=" + geometry
+				+ ", properties=" + properties + ", attachments=" + attachments
+				+ "]";
 	}
 	
 }

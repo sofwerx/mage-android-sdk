@@ -2,6 +2,12 @@ package mil.nga.giat.mage.sdk.database.orm;
 
 import java.sql.SQLException;
 
+import mil.nga.giat.mage.sdk.database.orm.observation.Attachment;
+import mil.nga.giat.mage.sdk.database.orm.observation.Geometry;
+import mil.nga.giat.mage.sdk.database.orm.observation.GeometryType;
+import mil.nga.giat.mage.sdk.database.orm.observation.Observation;
+import mil.nga.giat.mage.sdk.database.orm.observation.Property;
+import mil.nga.giat.mage.sdk.database.orm.observation.State;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
@@ -27,12 +33,12 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	private static final int DATABASE_VERSION = 1;
 
 	//DAOS
-	private Dao<Observation, Integer> observationDao = null;
-	private Dao<State, Integer> stateDao = null;
-	private Dao<Geometry, Integer> geometryDao = null;
-	private Dao<GeometryType, Integer> geometryTypeDao = null;
-	private Dao<Property, Integer> propertyDao = null;
-	private Dao<Attachment, Integer> attachmentDao = null;
+	private Dao<Observation, Long> observationDao = null;
+	private Dao<State, Long> stateDao = null;
+	private Dao<Geometry, Long> geometryDao = null;
+	private Dao<GeometryType, Long> geometryTypeDao = null;
+	private Dao<Property, Long> propertyDao = null;
+	private Dao<Attachment, Long> attachmentDao = null;
 	
 	/**
 	 * Singleton implementation.
@@ -64,6 +70,19 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 			TableUtils.createTable(connectionSource, GeometryType.class);
 			TableUtils.createTable(connectionSource, Property.class);
 			TableUtils.createTable(connectionSource, Attachment.class);
+			
+			//seed State data.
+			//TODO: This should be config file driven.
+			stateDao.create(new State("active"));
+			stateDao.create(new State("complete"));
+			stateDao.create(new State("archive"));
+			
+			//seed GeometryType data
+			//TODO: This should be config file driven.
+			geometryTypeDao.create(new GeometryType("point"));
+			geometryTypeDao.create(new GeometryType("line"));
+			geometryTypeDao.create(new GeometryType("polygon"));
+			
 		} 
 		catch (Exception e) {
 			Log.e(LOG_NAME, "could not create table Observation", e);
@@ -86,7 +105,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	 * @return This instance's ObservationDao
 	 * @throws SQLException
 	 */
-	public Dao<Observation, Integer> getObservationDao() throws SQLException {
+	public Dao<Observation, Long> getObservationDao() throws SQLException {
 		if (observationDao == null) {
 			observationDao = getDao(Observation.class);
 		}
@@ -98,7 +117,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	 * @return This instance's StateDao
 	 * @throws SQLException
 	 */
-	public Dao<State, Integer> getStateDao() throws SQLException {
+	public Dao<State, Long> getStateDao() throws SQLException {
 		if (stateDao == null) {
 			stateDao = getDao(State.class);
 		}
@@ -110,7 +129,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	 * @return This instance's GeometryDao
 	 * @throws SQLException
 	 */
-	public Dao<Geometry, Integer> getGeometryDao() throws SQLException {
+	public Dao<Geometry, Long> getGeometryDao() throws SQLException {
 		if (geometryDao == null) {
 			geometryDao = getDao(Geometry.class);
 		}
@@ -122,7 +141,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	 * @return This instance's GeometryTypeDao
 	 * @throws SQLException
 	 */
-	public Dao<GeometryType, Integer> getGeometryTypeDao() throws SQLException {
+	public Dao<GeometryType, Long> getGeometryTypeDao() throws SQLException {
 		if (geometryTypeDao == null) {
 			geometryTypeDao = getDao(GeometryType.class);
 		}
@@ -134,7 +153,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	 * @return This instance's PropertyDao
 	 * @throws SQLException
 	 */
-	public Dao<Property, Integer> getPropertyDao() throws SQLException {
+	public Dao<Property, Long> getPropertyDao() throws SQLException {
 		if (propertyDao == null) {
 			propertyDao = getDao(Property.class);
 		}
@@ -146,7 +165,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	 * @return This instance's AttachmentDao
 	 * @throws SQLException
 	 */
-	public Dao<Attachment, Integer> getAttachmentDao() throws SQLException {
+	public Dao<Attachment, Long> getAttachmentDao() throws SQLException {
 		if (attachmentDao == null) {
 			attachmentDao = getDao(Attachment.class);
 		}

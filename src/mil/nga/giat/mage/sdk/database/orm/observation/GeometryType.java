@@ -1,4 +1,4 @@
-package mil.nga.giat.mage.sdk.database.orm;
+package mil.nga.giat.mage.sdk.database.orm.observation;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -30,6 +30,11 @@ public class GeometryType {
 	}
 	public void setType(String type) {
 		this.type = type;
+	}
+	
+	@Override
+	public String toString() {
+		return "GeometryType [pk_id=" + pk_id + ", type=" + type + "]";
 	}
 	
 }

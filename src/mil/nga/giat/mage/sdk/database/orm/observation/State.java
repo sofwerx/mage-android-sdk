@@ -1,4 +1,4 @@
-package mil.nga.giat.mage.sdk.database.orm;
+package mil.nga.giat.mage.sdk.database.orm.observation;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -30,6 +30,11 @@ public class State {
 	}
 	public void setState(String state) {
 		this.state = state;
+	}
+	
+	@Override
+	public String toString() {
+		return "State [pk_id=" + pk_id + ", state=" + state + "]";
 	}
 
 }

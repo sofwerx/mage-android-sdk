@@ -1,4 +1,4 @@
-package mil.nga.giat.mage.sdk.database.orm;
+package mil.nga.giat.mage.sdk.database.orm.observation;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -56,6 +56,12 @@ public class Property {
 	}
 	public void setObservation(Observation observation) {
 		this.observation = observation;
+	}
+
+	@Override
+	public String toString() {
+		return "Property [pk_id=" + pk_id + ", key=" + key + ", value=" + value
+				+ ", observation=" + observation.getPk_id() + "]";
 	}
 	
 }

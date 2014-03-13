@@ -1,4 +1,4 @@
-package mil.nga.giat.mage.sdk.database.orm;
+package mil.nga.giat.mage.sdk.database.orm.observation;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -93,6 +93,14 @@ public class Attachment {
 
 	public void setObservation(Observation observation) {
 		this.observation = observation;
+	}
+
+	@Override
+	public String toString() {
+		return "Attachment [pk_id=" + pk_id + ", content_type=" + content_type
+				+ ", size=" + size + ", name=" + name + ", local_path="
+				+ local_path + ", remote_path=" + remote_path
+				+ ", observation=" + observation.getPk_id() + "]";
 	}
 	
 }
