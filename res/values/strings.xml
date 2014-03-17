@@ -1,5 +1,9 @@
 <resources>
 
     <string name="app_name">MAGE SDK</string>
+    <string name="gpsSensitivityKey">gpsSensitivity</string>
+    <string name="gpsSensitivityDefaultValue">0</string>
+    <string name="userReportingFrequencyKey">userReportingFrequency</string>
+    <string name="userReportingFrequencyDefaultValue">15000</string>
 
 </resources>

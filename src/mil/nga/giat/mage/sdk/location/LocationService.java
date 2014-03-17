@@ -2,6 +2,9 @@ package mil.nga.giat.mage.sdk.location;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import mil.nga.giat.mage.sdk.R;
 
 import android.app.AlertDialog;
 import android.app.Service;
@@ -9,6 +12,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -23,36 +27,53 @@ import android.provider.Settings;
  * Query the device for the device's location. If userReportingFrequency is set
  * to never, the Service will listen for changes to userReportingFrequency.
  */
-public class LocationService extends Service implements LocationListener {
+public class LocationService extends Service implements LocationListener, OnSharedPreferenceChangeListener {
 
 	private final Context mContext;
 
-	// TODO: The two settings below should be configured in a low medium high fashion from the user
-	// Minimum meters between updates
-	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0;
-
 	// Minimum milliseconds between updates
-	private static final long MIN_TIME_BW_UPDATES = 1 * 1000;
+	private static final long MIN_TIME_BW_UPDATES = 0 * 1000;
 
 	protected final LocationManager locationManager;
 	
 	protected boolean pollingRunning = false;
 	
-	public synchronized boolean isPolling() {
+	protected synchronized boolean isPolling() {
 		return pollingRunning;
 	}
-
-	protected Thread locationPollingThread = null;
+	
+	// False means don't re-read gps settings.  True means re-read gps settings.  Gets triggered from preference change
+	protected AtomicBoolean preferenceSemaphore= new AtomicBoolean(false);
 
 	// the last time a location was pulled form the phone.
-	private long lastLocationPullTime = 0;
+	protected long lastLocationPullTime = 0;
 	
-	public synchronized long getLastLocationPullTime() {
+	protected synchronized long getLastLocationPullTime() {
 		return lastLocationPullTime;
 	}
 
-	public synchronized void setLastLocationPullTime(long lastLocationPullTime) {
+	protected synchronized void setLastLocationPullTime(long lastLocationPullTime) {
 		this.lastLocationPullTime = lastLocationPullTime;
+	}
+	
+	/**
+	 * GPS Sensitivity Setting
+	 * 
+	 * @return
+	 */
+	private final synchronized long getMinimumDistanceChangeForUpdates() {
+		final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+		return Long.parseLong(sharedPreferences.getString(mContext.getString(R.string.gpsSensitivityKey), mContext.getString(R.string.gpsSensitivityDefaultValue)));
+	}
+	
+	/**
+	 * User Reporting Frequency Setting
+	 * 
+	 * @return
+	 */
+	protected final synchronized long getUserReportingFrequency() {
+		final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+		return Long.parseLong(sharedPreferences.getString(mContext.getString(R.string.userReportingFrequencyKey), mContext.getString(R.string.userReportingFrequencyDefaultValue)));
 	}
 	
 	protected boolean locationUpdatesEnabled = false;
@@ -60,9 +81,6 @@ public class LocationService extends Service implements LocationListener {
 	public synchronized boolean getLocationUpdatesEnabled() {
 		return locationUpdatesEnabled;
 	}
-	
-	// How often should the service check the settings to see if there's been a change.  Will go away if event driven!
-	private static final long checkSettingsFrequencyMilliseconds = 12000;
 	
 	private final Handler mHandler = new Handler();
 
@@ -74,8 +92,8 @@ public class LocationService extends Service implements LocationListener {
 	public LocationService(Context context) {
 		this.mContext = context;
 		this.locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
-		//requestLocationUpdates();
-		//getLocation();
+		PreferenceManager.getDefaultSharedPreferences(mContext).registerOnSharedPreferenceChangeListener(this);
+		preferenceSemaphore.set(false);
 	}
 	
 	private void requestLocationUpdates() {
@@ -84,7 +102,12 @@ public class LocationService extends Service implements LocationListener {
 			if (providers != null) {
 				
 				if (providers.contains(LocationManager.GPS_PROVIDER)) {
-					locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+					locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_BW_UPDATES, getMinimumDistanceChangeForUpdates(), this);
+					locationUpdatesEnabled = true;
+				}
+				
+				if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
+					locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME_BW_UPDATES, getMinimumDistanceChangeForUpdates(), this);
 					locationUpdatesEnabled = true;
 				}
 			}
@@ -139,8 +162,10 @@ public class LocationService extends Service implements LocationListener {
 
 	@Override
 	public void onLocationChanged(Location location) {
-		setLastLocationPullTime(System.currentTimeMillis());
-		saveLocation(location, "ACTIVE");
+		if(location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
+			setLastLocationPullTime(System.currentTimeMillis());
+			saveLocation(location, "ACTIVE");
+		}
 	}
 
 	@Override
@@ -166,8 +191,7 @@ public class LocationService extends Service implements LocationListener {
 	public void start() {
 		if(!isPolling()) {
 			pollingRunning = Boolean.TRUE;
-			locationPollingThread = createLocationPollingThread();
-			locationPollingThread.start();
+			createLocationPollingThread().start();
 		}
 	}
 	
@@ -181,14 +205,10 @@ public class LocationService extends Service implements LocationListener {
 		}
 	}
 	
-	protected Long getUserReportingFrequency() {
-		final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-		return Long.parseLong(sharedPreferences.getString("userReportingFrequency", "15000"));
-	}
-	
+	// TODO: Actually save location
 	private void saveLocation(Location location, String state) {
 		long reportedTime = System.currentTimeMillis();
-		System.out.println(state + " " + location.getLatitude() + ", " + location.getLongitude() + ", " + location.getTime() + ", " + location.getProvider() + ", " + reportedTime);
+		System.out.println("SEW: " + state + " " + location.getLatitude() + ", " + location.getLongitude() + ", " + location.getTime() + ", " + location.getProvider() + ", " + reportedTime);
 	}
 	
 	private Thread createLocationPollingThread() {
@@ -198,7 +218,6 @@ public class LocationService extends Service implements LocationListener {
 				
 				while (isPolling()) {
 					try {
-						// FIXME: userReportingFrequency might change. make event driven?
 						long userReportingFrequency = getUserReportingFrequency();
 						// if we should pull, then do it.
 						if(userReportingFrequency > 0) {
@@ -207,6 +226,7 @@ public class LocationService extends Service implements LocationListener {
 							if(!getLocationUpdatesEnabled()) {
 								mHandler.post(new Runnable() {
 									public void run() {
+										removeLocationUpdates();
 										requestLocationUpdates();
 									}
 								});
@@ -228,7 +248,16 @@ public class LocationService extends Service implements LocationListener {
 							// use local variables in order to maintain data integrity across instructions. 
 							while (((lLPullTime = getLastLocationPullTime()) + (userReportingFrequency = getUserReportingFrequency()) > (currentTime = new Date().getTime())) && isPolling()) {
 								// check every 12 seconds at most to check the settings
-								Thread.sleep(Math.min(lLPullTime + userReportingFrequency - currentTime, checkSettingsFrequencyMilliseconds));
+								synchronized (preferenceSemaphore) {
+									preferenceSemaphore.wait(lLPullTime + userReportingFrequency - currentTime);
+									// this means we need to re-read the gps sensitivity
+									if(preferenceSemaphore.get() == true) {
+										break;
+									}
+								}
+							}
+							synchronized (preferenceSemaphore) {
+								preferenceSemaphore.set(false);
 							}
 						} else {
 							// disable location updates
@@ -237,8 +266,10 @@ public class LocationService extends Service implements LocationListener {
 									removeLocationUpdates();
 								}
 							});
-							// sleep for 12 seconds
-							Thread.sleep(checkSettingsFrequencyMilliseconds);
+							
+							synchronized (preferenceSemaphore) {
+								preferenceSemaphore.wait();
+							}
 						}
 					} catch (InterruptedException e) {
 						e.printStackTrace();
@@ -248,6 +279,22 @@ public class LocationService extends Service implements LocationListener {
 			}
 		});
 
+	}
+
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+		if (key.equalsIgnoreCase(mContext.getString(R.string.gpsSensitivityKey))) {
+			synchronized (preferenceSemaphore) {
+				// this will cause the polling-thread to reset the gps sensitivity
+				locationUpdatesEnabled = false;
+				preferenceSemaphore.set(true);
+				preferenceSemaphore.notifyAll();
+			}
+		} else if (key.equalsIgnoreCase(mContext.getString(R.string.userReportingFrequencyKey))) {
+			synchronized (preferenceSemaphore) {
+				preferenceSemaphore.notifyAll();
+			}
+		}
 	}
 
 }
