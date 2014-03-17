@@ -112,7 +112,7 @@ public class ObservationHelper {
 	 * appropriate setters.
 	 * @param pObservation A constructed Observation.
 	 * @return A fully constructed Observation complete with database primary keys.
-	 * @throws OrmException If the Observation being created violates any database
+	 * @throws ObservationException If the Observation being created violates any database
 	 *                      constraints.
 	 */
 	public Observation createObservation(Observation pObservation) throws ObservationException {
