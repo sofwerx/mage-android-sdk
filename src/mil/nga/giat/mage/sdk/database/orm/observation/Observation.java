@@ -16,10 +16,10 @@ public class Observation {
     @DatabaseField
     private String remote_id;
 
-    @DatabaseField(canBeNull = false,foreign = true)
+    @DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
     private State state;
     
-    @DatabaseField(canBeNull = false,foreign = true)
+    @DatabaseField(canBeNull = false,foreign = true, foreignAutoRefresh = true)
     private Geometry geometry;
     
     @ForeignCollectionField(eager = true)
