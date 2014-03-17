@@ -1,13 +1,13 @@
-package mil.nga.giat.mage.sdk.database.orm;
+package mil.nga.giat.mage.sdk.datastore;
 
 import java.sql.SQLException;
 
-import mil.nga.giat.mage.sdk.database.orm.observation.Attachment;
-import mil.nga.giat.mage.sdk.database.orm.observation.Geometry;
-import mil.nga.giat.mage.sdk.database.orm.observation.GeometryType;
-import mil.nga.giat.mage.sdk.database.orm.observation.Observation;
-import mil.nga.giat.mage.sdk.database.orm.observation.Property;
-import mil.nga.giat.mage.sdk.database.orm.observation.State;
+import mil.nga.giat.mage.sdk.datastore.common.Geometry;
+import mil.nga.giat.mage.sdk.datastore.common.GeometryType;
+import mil.nga.giat.mage.sdk.datastore.common.Property;
+import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
+import mil.nga.giat.mage.sdk.datastore.observation.Observation;
+import mil.nga.giat.mage.sdk.datastore.observation.State;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;

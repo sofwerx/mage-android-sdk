@@ -1,4 +1,4 @@
-package mil.nga.giat.mage.sdk.database.orm.observation;
+package mil.nga.giat.mage.sdk.datastore.common;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;

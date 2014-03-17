@@ -17,18 +17,18 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="DATA REPORTING FREQUENCY" >
         <ListPreference
-            android:defaultValue="15000"
+            android:defaultValue="@string/userReportingFrequencyDefaultValue"
             android:entries="@array/userReportingFrequencies"
             android:entryValues="@array/userReportingFrequencyValues"
-            android:key="userReportingFrequency"
+            android:key="@string/userReportingFrequencyKey"
             android:title="My Location" />
     </PreferenceCategory>
     <PreferenceCategory android:title="GPS AND BATTERY" >
         <ListPreference
-            android:defaultValue="2"
+            android:defaultValue="@string/gpsSensitivityDefaultValue"
             android:entries="@array/gpsSensitivities"
             android:entryValues="@array/gpsSensitivityValues"
-            android:key="gpsSensitivity"
+            android:key="@string/gpsSensitivityKey"
             android:title="GPS Sensitivity" />
     </PreferenceCategory>
 
