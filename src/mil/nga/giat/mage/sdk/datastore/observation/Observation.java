@@ -1,6 +1,9 @@
-package mil.nga.giat.mage.sdk.database.orm.observation;
+package mil.nga.giat.mage.sdk.datastore.observation;
 
 import java.util.Collection;
+
+import mil.nga.giat.mage.sdk.datastore.common.Geometry;
+import mil.nga.giat.mage.sdk.datastore.common.Property;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;

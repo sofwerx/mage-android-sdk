@@ -1,4 +1,4 @@
-package mil.nga.giat.mage.sdk.database.orm.observation;
+package mil.nga.giat.mage.sdk.datastore.observation;
 
 import java.sql.SQLException;
 import java.util.Collection;
@@ -6,7 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import mil.nga.giat.mage.sdk.database.orm.DBHelper;
+import mil.nga.giat.mage.sdk.datastore.DBHelper;
+import mil.nga.giat.mage.sdk.datastore.common.Geometry;
+import mil.nga.giat.mage.sdk.datastore.common.GeometryType;
+import mil.nga.giat.mage.sdk.datastore.common.Property;
 import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import android.content.Context;
 import android.util.Log;
