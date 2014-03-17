@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import mil.nga.giat.mage.sdk.database.orm.DBHelper;
-import mil.nga.giat.mage.sdk.database.orm.OrmException;
+import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import android.content.Context;
 import android.util.Log;
 
@@ -112,7 +112,7 @@ public class ObservationHelper {
 	 * @throws OrmException If the Observation being created violates any database
 	 *                      constraints.
 	 */
-	public Observation createObservation(Observation pObservation) throws OrmException {
+	public Observation createObservation(Observation pObservation) throws ObservationException {
 				
 		Observation createdObservation;
 		
@@ -171,7 +171,7 @@ public class ObservationHelper {
 		}
 		catch(SQLException sqle) {
 			Log.e(LOG_NAME,"There was a problem creating the observation: " + pObservation + ".",sqle);
-			throw new OrmException("There was a problem creating the observation: " + pObservation + ".",sqle);
+			throw new ObservationException("There was a problem creating the observation: " + pObservation + ".",sqle);
 		}
 		
 		return createdObservation;
@@ -184,7 +184,7 @@ public class ObservationHelper {
 	 * @return A fully constructed Observation.
 	 * @throws OrmException If there was an error reading the Observation from the database.
 	 */
-	public Observation readObservation(Long pPrimaryKey) throws OrmException {
+	public Observation readObservation(Long pPrimaryKey) throws ObservationException {
 		Observation observation;
 		try {
 			//NOTE: Observation Collections are set up to be 'eager'.  Any future collections
@@ -193,7 +193,7 @@ public class ObservationHelper {
 		}
 		catch(SQLException sqle) {
 			Log.e(LOG_NAME,"Unable to read Observation: " + pPrimaryKey,sqle);
-			throw new OrmException("Unable to read Observation: " + pPrimaryKey,sqle);
+			throw new ObservationException("Unable to read Observation: " + pPrimaryKey,sqle);
 		}
 		return observation;
 	}
@@ -204,7 +204,7 @@ public class ObservationHelper {
 	 * @param pPrimaryKey
 	 * @throws OrmException
 	 */
-	public void deleteObservation(Long pPrimaryKey) throws OrmException {
+	public void deleteObservation(Long pPrimaryKey) throws ObservationException {
 		try {
 			
 			//read the full Observation in
@@ -234,7 +234,7 @@ public class ObservationHelper {
 		}
 		catch(SQLException sqle) {
 			Log.e(LOG_NAME,"Unable to delete Observation: " + pPrimaryKey,sqle);
-			throw new OrmException("Unable to delete Observation: " + pPrimaryKey,sqle);
+			throw new ObservationException("Unable to delete Observation: " + pPrimaryKey,sqle);
 		}
 	}
 	
