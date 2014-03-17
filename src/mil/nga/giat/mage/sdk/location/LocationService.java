@@ -207,6 +207,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 	
 	// TODO: Actually save location
 	private void saveLocation(Location location, String state) {
+		// TODO: check that location timestamp is not 0! 
 		long reportedTime = System.currentTimeMillis();
 		System.out.println("SEW: " + state + " " + location.getLatitude() + ", " + location.getLongitude() + ", " + location.getTime() + ", " + location.getProvider() + ", " + reportedTime);
 	}
