@@ -24,7 +24,7 @@ public class MediaUtils {
         else return k;
     }
 	
-	public static String getFilename(Uri uri, Context c) 
+	public static String getFileAbsolutePath(Uri uri, Context c) 
 	{
 	    String fileName = null;
 	    String scheme = uri.getScheme();
@@ -48,9 +48,14 @@ public class MediaUtils {
 	    return fileName;
 	}
 	
+	public static Bitmap getFullSizeOrientedBitmap(Uri uri, Context c) throws FileNotFoundException, IOException {
+		InputStream is = c.getContentResolver().openInputStream(uri);
+		return MediaUtils.orientBitmap(BitmapFactory.decodeStream(is, null, null), getFileAbsolutePath(uri, c));
+	}
+	
 	public static Bitmap getThumbnailFromContent(Uri uri, int thumbsize, Context c) throws FileNotFoundException, IOException {
 		InputStream is = c.getContentResolver().openInputStream(uri);
-		return MediaUtils.getThumbnail(is, thumbsize, getFilename(uri, c));
+		return MediaUtils.getThumbnail(is, thumbsize, getFileAbsolutePath(uri, c));
 	}
 	
 	public static Bitmap getThumbnail(File file, int thumbsize) throws FileNotFoundException, IOException {
@@ -67,7 +72,7 @@ public class MediaUtils {
         onlyBoundsOptions.inDither=true;//optional
         onlyBoundsOptions.inPreferredConfig=Bitmap.Config.ARGB_8888;//optional
         BitmapFactory.decodeStream(input, null, onlyBoundsOptions);
-        //input.close();
+        input.close();
         if ((onlyBoundsOptions.outWidth == -1) || (onlyBoundsOptions.outHeight == -1))
             return null;
 
