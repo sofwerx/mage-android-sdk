@@ -17,24 +17,32 @@ public class User {
     
     @DatabaseField
     private String lastname;
+    
+    @DatabaseField
+    private String username;
+    
+    @DatabaseField
+    private Boolean isCurrentUser;
         
-    @DatabaseField(canBeNull = false,foreign = true, foreignAutoRefresh = true)
+    @DatabaseField(canBeNull = true, foreign = true, foreignAutoRefresh = true)
     private Role role;
     
-    @DatabaseField(canBeNull = false,foreign = true, foreignAutoRefresh = true)
+    @DatabaseField(canBeNull = true, foreign = true, foreignAutoRefresh = true)
     private Location location;
 
 	public User() {
         // ORMLite needs a no-arg constructor 
     }
-	public User(String email, String firstname, String lastname, Role role,
-			Location location) {
+	public User(String email, String firstname, String lastname, String username,  
+			Role role, Location location, Boolean isCurrentUser) {
 		super();
 		this.email = email;
 		this.firstname = firstname;
 		this.lastname = lastname;
+		this.username = username;
 		this.role = role;
 		this.location = location;
+		this.isCurrentUser = isCurrentUser;
 	}
 
 	public Long getPk_id() {
@@ -84,6 +92,14 @@ public class User {
 	public void setLocation(Location location) {
 		this.location = location;
 	}
+	
+	public Boolean getIsCurrentUser() {
+		return isCurrentUser;
+	}
+	public void setIsCurrentUser(Boolean isCurrentUser) {
+		this.isCurrentUser = isCurrentUser;
+	}
     
+	
 	
 }

@@ -20,20 +20,20 @@ public class Location {
     private String type;
 	
 	@ForeignCollectionField(eager = true)
-    Collection<Property> properties;
+    Collection<LocationProperty> properties;
 	
     @DatabaseField(canBeNull = false,foreign = true, foreignAutoRefresh = true)
-    private Geometry geometry;
+    private LocationGeometry locationGeometry;
     
     public Location() {
     	// ORMLite needs a no-arg constructor 
     }
-	public Location(String type, Collection<Property> properties,
-			Geometry geometry) {
+	public Location(String type, Collection<LocationProperty> properties,
+			LocationGeometry locationGeometry) {
 		super();
 		this.type = type;
 		this.properties = properties;
-		this.geometry = geometry;
+		this.locationGeometry = locationGeometry;
 	}
 
 	public Long getPk_id() {
@@ -52,20 +52,20 @@ public class Location {
 		this.type = type;
 	}
 
-	public Collection<Property> getProperties() {
+	public Collection<LocationProperty> getProperties() {
 		return properties;
 	}
 
-	public void setProperties(Collection<Property> properties) {
+	public void setProperties(Collection<LocationProperty> properties) {
 		this.properties = properties;
 	}
 
-	public Geometry getGeometry() {
-		return geometry;
+	public LocationGeometry getGeometry() {
+		return locationGeometry;
 	}
 
-	public void setGeometry(Geometry geometry) {
-		this.geometry = geometry;
+	public void setGeometry(LocationGeometry geometry) {
+		this.locationGeometry = geometry;
 	}
     
 }

@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import mil.nga.giat.mage.sdk.datastore.common.Geometry;
 import mil.nga.giat.mage.sdk.datastore.common.GeometryType;
 import mil.nga.giat.mage.sdk.datastore.common.Property;
+import mil.nga.giat.mage.sdk.datastore.location.User;
 import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.State;
@@ -32,13 +33,16 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	private static final String LOG_NAME = "mage.log";
 	private static final int DATABASE_VERSION = 1;
 
-	//DAOS
-	private Dao<Observation, Long> observationDao = null;
-	private Dao<State, Long> stateDao = null;
-	private Dao<Geometry, Long> geometryDao = null;
-	private Dao<GeometryType, Long> geometryTypeDao = null;
-	private Dao<Property, Long> propertyDao = null;
-	private Dao<Attachment, Long> attachmentDao = null;
+	//Observation DAOS
+	private Dao<Observation, Long> observationDao;
+	private Dao<State, Long> stateDao;
+	private Dao<Geometry, Long> geometryDao;
+	private Dao<GeometryType, Long> geometryTypeDao;
+	private Dao<Property, Long> propertyDao;
+	private Dao<Attachment, Long> attachmentDao;
+	
+	//User and Location DAOS
+	private Dao<User, Long> userDao = null;
 	
 	/**
 	 * Singleton implementation.
@@ -59,6 +63,22 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	 */
 	private DBHelper(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
+		
+		//initialize DAOs
+		try {
+			getObservationDao();
+			getStateDao();
+			getGeometryDao();
+			getGeometryTypeDao();
+			getPropertyDao();
+			getAttachmentDao();
+			getUserDao();
+		}
+		catch(SQLException sqle) {
+			//TODO: handle this...
+			sqle.printStackTrace();
+		}
+		
 	}
 
 	@Override
@@ -70,6 +90,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 			TableUtils.createTable(connectionSource, GeometryType.class);
 			TableUtils.createTable(connectionSource, Property.class);
 			TableUtils.createTable(connectionSource, Attachment.class);
+			TableUtils.createTable(connectionSource, User.class);
 			
 			//seed State data.
 			//TODO: This should be config file driven.
@@ -170,6 +191,18 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 			attachmentDao = getDao(Attachment.class);
 		}
 		return attachmentDao;
+	}
+	
+	/**
+	 * Getter for the UserDao
+	 * @return This instance's UserDao
+	 * @throws SQLException
+	 */
+	public Dao<User, Long> getUserDao() throws SQLException {
+		if (userDao == null) {
+			userDao = getDao(User.class);
+		}
+		return userDao;
 	}
 
 }

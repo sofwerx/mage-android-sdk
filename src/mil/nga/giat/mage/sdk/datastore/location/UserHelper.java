@@ -1,8 +1,20 @@
 package mil.nga.giat.mage.sdk.datastore.location;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import mil.nga.giat.mage.sdk.datastore.DBHelper;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
 import android.content.Context;
+import android.util.Log;
+
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.DeleteBuilder;
+import com.j256.ormlite.stmt.PreparedQuery;
+import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.Where;
 
 /**
  * A utility class for accessing User data from the physical data model.
@@ -18,6 +30,9 @@ public class UserHelper {
 
 	// required DBHelper and DAOs for handing CRUD operations for Users
 	private DBHelper helper;
+	private Dao<User, Long> userDao;
+
+	
 	
 	/**
 	 * Singleton.
@@ -44,6 +59,17 @@ public class UserHelper {
 
 		helper = DBHelper.getInstance(pContext);
 		
+		try {
+			userDao = helper.getUserDao();
+		} 
+		catch (SQLException sqle) {
+			Log.e(LOG_NAME, "Unable to communicate "
+					+ "with User/Location database.", sqle);
+
+			//Fatal Error!
+			throw new IllegalStateException("Unable to communicate "
+					+ "with User/Location database.", sqle);
+		}
 
 	}
 
@@ -58,9 +84,85 @@ public class UserHelper {
 	 */
 	public User createUser(User pUser) throws UserException {
 		
-		return null;
+		User createdUser;
+		
+		try {
+			createdUser = userDao.createIfNotExists(pUser);
+		} 
+		catch (SQLException sqle) {
+			Log.e(LOG_NAME, "There was a problem creating user: " + pUser);
+			throw new UserException("There was a problem creating user: "
+					+ pUser, sqle);
+		}
+		
+		return createdUser;
 		
 	}
+	
+	
+	public List<User> readActiveUsers() throws UserException {
+		
+		List<User> currentUsers = null;
+		
+		try {
+			QueryBuilder<User, Long> qb = userDao.queryBuilder();
+			Where<User, Long> where = qb.where();
+			where.eq("isCurrentUser", Boolean.TRUE);
+			PreparedQuery<User> preparedQuery = qb.prepare();
+			currentUsers = userDao.query(preparedQuery);
+		} 
+		catch (SQLException sqle) {
+			Log.e(LOG_NAME, "There was a problem reading active users.");
+			throw new UserException(
+					"There was a problem reading active users.", sqle);
+		}
+		finally {
+			if(currentUsers == null) {
+				currentUsers = new ArrayList<User>();
+			}
+		}
+		
+		return currentUsers;
+		
+	}
+	
+	
+	/**
+	 * Delete all users that are flagged as isCurrentUser.
+	 * 
+	 * @throws UserException If current users can't be deleted.
+	 */
+	public void deleteCurrentUsers() throws UserException {
+
+		try {
+			DeleteBuilder<User, Long> db = userDao.deleteBuilder();
+			db.where().eq("isCurrentUser", Boolean.TRUE);
+			userDao.delete(db.prepare());
+		} 
+		catch (SQLException sqle) {
+			Log.e(LOG_NAME, "There was a problem deleting active users.");
+			throw new UserException(
+					"There was a problem deleting active users.", sqle);
+		}
+
+		
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 }

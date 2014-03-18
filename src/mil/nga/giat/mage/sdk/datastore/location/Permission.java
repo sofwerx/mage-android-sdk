@@ -12,11 +12,15 @@ public class Permission {
     @DatabaseField
     private String permission;
 
+    @DatabaseField(canBeNull = false,foreign = true)
+    private Role role;
+    
 	public Permission() {
         // ORMLite needs a no-arg constructor 
     }
-	public Permission(String permission) {
+	public Permission(String permission, Role role) {
 		this.permission = permission;
+		this.role = role;
 	}
 
 	public Long getPk_id() {
@@ -34,5 +38,15 @@ public class Permission {
 	public void setPermission(String permission) {
 		this.permission = permission;
 	}
+	
+	public Role getRole() {
+		return role;
+	}
+	
+	public void setRole(Role role) {
+		this.role = role;
+	}
     
+	
+	
 }
