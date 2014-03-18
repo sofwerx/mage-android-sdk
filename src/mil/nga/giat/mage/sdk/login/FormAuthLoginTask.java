@@ -75,6 +75,8 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 		// is server a valid URL? (already checked username and password)
 		try {
 			new URL(serverURL);
+			// TODO: reinitialize remote settings
+			
 		} catch (MalformedURLException e) {
 			List<Integer> errorIndices = new ArrayList<Integer>();
 			errorIndices.add(2);
