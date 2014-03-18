@@ -100,26 +100,27 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 				accountInformation.add(json.getString("token"));
 				return new AccountStatus(Boolean.TRUE, new ArrayList<Integer>(), new ArrayList<String>(), accountInformation);
 			}
-		} catch (MalformedURLException e) {
+		} catch (MalformedURLException mue) {
 			// already checked for this!
-		} catch (URISyntaxException e) {
+			mue.printStackTrace();
+		} catch (URISyntaxException use) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
+			use.printStackTrace();
+		} catch (UnsupportedEncodingException uee) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
+			uee.printStackTrace();
+		} catch (ClientProtocolException cpe) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
+			cpe.printStackTrace();
+		} catch (IOException ioe) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParseException e) {
+			ioe.printStackTrace();
+		} catch (ParseException pe) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JSONException e) {
+			pe.printStackTrace();
+		} catch (JSONException je) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			je.printStackTrace();
 		}
 
 		return new AccountStatus(Boolean.FALSE);

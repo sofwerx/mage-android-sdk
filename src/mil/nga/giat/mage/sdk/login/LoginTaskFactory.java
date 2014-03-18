@@ -53,16 +53,16 @@ public class LoginTaskFactory {
 					return (AbstractAccountTask) constructor.newInstance(delegate, context);
 				}
 			}
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
+		} catch (ClassNotFoundException cnfe) {
+			cnfe.printStackTrace();
+		} catch (InstantiationException ie) {
+			ie.printStackTrace();
+		} catch (IllegalAccessException iae) {
+			iae.printStackTrace();
+		} catch (IllegalArgumentException iae) {
+			iae.printStackTrace();
+		} catch (InvocationTargetException ite) {
+			ite.printStackTrace();
 		}
 		return new FormAuthLoginTask(delegate, context);
 	}
