@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import mil.nga.giat.mage.sdk.preferences.PreferenceColonization;
 import mil.nga.giat.mage.sdk.utils.ConnectivityUtility;
 
 import org.apache.http.HttpResponse;
@@ -74,9 +75,8 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 
 		// is server a valid URL? (already checked username and password)
 		try {
-			new URL(serverURL);
-			// TODO: reinitialize remote settings
-			
+			URL sURL = new URL(serverURL);
+			PreferenceColonization.getInstance(mApplicationContext).initializeRemote(sURL);
 		} catch (MalformedURLException e) {
 			List<Integer> errorIndices = new ArrayList<Integer>();
 			errorIndices.add(2);

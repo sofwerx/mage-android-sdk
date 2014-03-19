@@ -7,6 +7,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.login.FormAuthLoginTask;
@@ -56,18 +58,27 @@ public class PreferenceColonization {
 	}
 
 	/**
-	 * Should probably be called only once to initialize the settings and properties.
+	 * Should probably be called only once to initialize the settings and
+	 * properties.
 	 * 
 	 */
-	public synchronized void initializeAll(int ... xmlFiles) {
+	public synchronized void initializeAll(int... xmlFiles) {
 		// load preferences from mdk xml files first
-		initializeLocal(new int[] {R.xml.mdkprivatepreferences, R.xml.mdkpublicpreferences});
+		initializeLocal(new int[] { R.xml.mdkprivatepreferences, R.xml.mdkpublicpreferences });
+
+		// add programmatic preferences
+		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+		Editor editor = sharedPreferences.edit();
+		try {
+			editor.putString("appVersion", mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionName).commit();
+		} catch (NameNotFoundException nnfe) {
+			nnfe.printStackTrace();
+		}
 
 		// load other xml files
 		initializeLocal(xmlFiles);
-		
+
 		// see if we need to load preferences from a server
-		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
 		String serverURLString = sharedPreferences.getString("serverURL", "");
 		String className = sharedPreferences.getString("loginTask", FormAuthLoginTask.class.getCanonicalName());
 		try {
@@ -86,27 +97,21 @@ public class PreferenceColonization {
 		}
 	}
 
-	public synchronized void initializeLocal(int ... xmlFiles) {
+	public synchronized void initializeLocal(int... xmlFiles) {
 		for (int i = 0; i < xmlFiles.length; i++) {
 			PreferenceManager.setDefaultValues(mContext, xmlFiles[i], true);
-		}			
-
-		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-		Editor editor = sharedPreferences.edit();
-		try {
-			editor.putString("appVersion", mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionName).commit();
-		} catch (NameNotFoundException nnfe) {
-			nnfe.printStackTrace();
 		}
 	}
 
 	public synchronized void initializeRemote(URL serverURL) {
 		try {
-			new RemotePreferenceColonization().execute(serverURL).get();
+			new RemotePreferenceColonization().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, serverURL).get(30, TimeUnit.SECONDS);
 		} catch (InterruptedException ie) {
 			ie.printStackTrace();
 		} catch (ExecutionException ee) {
 			ee.printStackTrace();
+		} catch (TimeoutException te) {
+			te.printStackTrace();
 		}
 	}
 
