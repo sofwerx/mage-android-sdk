@@ -99,7 +99,15 @@ public class UserHelper {
 		
 	}
 	
-	
+	/**
+	 * This method is used to read current Active Users from the database.
+	 * An active user is one that is currently logged into the client and
+	 * is presumably the user consuming Location Services.
+	 * 
+	 * @return A List of Users that are flagged as active in the datastore.
+	 * @throws UserException Indicates a problem reading users from the
+	 *                       datastore.
+	 */
 	public List<User> readActiveUsers() throws UserException {
 		
 		List<User> currentUsers = null;

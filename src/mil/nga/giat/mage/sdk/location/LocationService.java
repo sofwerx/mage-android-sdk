@@ -1,11 +1,19 @@
 package mil.nga.giat.mage.sdk.location;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import mil.nga.giat.mage.sdk.R;
-
+import mil.nga.giat.mage.sdk.datastore.common.GeometryType;
+import mil.nga.giat.mage.sdk.datastore.common.Property;
+import mil.nga.giat.mage.sdk.datastore.location.LocationGeometry;
+import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
+import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
+import mil.nga.giat.mage.sdk.exceptions.LocationException;
+import mil.nga.giat.mage.sdk.utils.GeometryUtil;
 import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
@@ -22,6 +30,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.util.Log;
 
 /**
  * Query the device for the device's location. If userReportingFrequency is set
@@ -29,6 +38,9 @@ import android.provider.Settings;
  */
 public class LocationService extends Service implements LocationListener, OnSharedPreferenceChangeListener {
 
+	private static final String LOG_NAME = LocationService.class.getName();
+
+	
 	private final Context mContext;
 
 	// Minimum milliseconds between updates
@@ -208,8 +220,41 @@ public class LocationService extends Service implements LocationListener, OnShar
 	// TODO: Actually save location
 	private void saveLocation(Location location, String state) {
 		// TODO: check that location timestamp is not 0! 
-		long reportedTime = System.currentTimeMillis();
-		System.out.println("SEW: " + state + " " + location.getLatitude() + ", " + location.getLongitude() + ", " + location.getTime() + ", " + location.getProvider() + ", " + reportedTime);
+				
+		///////////////////////////////////////////////////
+		//INTEGRATION WITH LOCATION DATASTORE//////////////
+		LocationHelper locationHelper = LocationHelper.getInstance(mContext);
+		
+		//build properties
+		Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();
+		LocationProperty reportedTime = new LocationProperty("REPORTED_TIME", String.valueOf(System.currentTimeMillis()));
+		locationProperties.add(reportedTime);
+				
+		//build geometry
+		String coordinages = GeometryUtil.generate(location.getLatitude(), location.getLongitude());		
+		LocationGeometry locationGeometry = new LocationGeometry(coordinages, new GeometryType("point"));
+		
+		//build location
+		mil.nga.giat.mage.sdk.datastore.location.Location loc = 
+				new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", locationProperties, locationGeometry);
+		
+		loc.setLocationGeometry(locationGeometry);
+		loc.setProperties(locationProperties);
+		
+		//save the location
+		try {
+			locationHelper.createLocation(loc);
+		}
+		catch(LocationException le) {
+			//TODO: is this good enough?
+			Log.w(LOG_NAME, "Unable to record current location locally!",le);			
+		}		
+		//TODO: Does this need to be put into an AsyncTask?
+		///////////////////////////////////////////////////
+		
+		
+		System.out.println(loc);
+
 	}
 	
 	private Thread createLocationPollingThread() {

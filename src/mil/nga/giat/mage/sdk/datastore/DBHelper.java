@@ -5,6 +5,9 @@ import java.sql.SQLException;
 import mil.nga.giat.mage.sdk.datastore.common.Geometry;
 import mil.nga.giat.mage.sdk.datastore.common.GeometryType;
 import mil.nga.giat.mage.sdk.datastore.common.Property;
+import mil.nga.giat.mage.sdk.datastore.location.Location;
+import mil.nga.giat.mage.sdk.datastore.location.LocationGeometry;
+import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
 import mil.nga.giat.mage.sdk.datastore.location.User;
 import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
@@ -42,7 +45,10 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	private Dao<Attachment, Long> attachmentDao;
 	
 	//User and Location DAOS
-	private Dao<User, Long> userDao = null;
+	private Dao<User, Long> userDao;
+	private Dao<Location, Long> locationDao;
+	private Dao<LocationGeometry, Long> locationGeometryDao;
+	private Dao<LocationProperty, Long> locationPropertyDao;
 	
 	/**
 	 * Singleton implementation.
@@ -58,7 +64,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 
 	/**
 	 * Constructor that takes an android Context.
-	 * @param context
+	 * @param context+
 	 * @return
 	 */
 	private DBHelper(Context context) {
@@ -73,6 +79,9 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 			getPropertyDao();
 			getAttachmentDao();
 			getUserDao();
+			getLocationDao();
+			getLocationGeometryDao();
+			getLocationPropertyDao();
 		}
 		catch(SQLException sqle) {
 			//TODO: handle this...
@@ -90,7 +99,11 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 			TableUtils.createTable(connectionSource, GeometryType.class);
 			TableUtils.createTable(connectionSource, Property.class);
 			TableUtils.createTable(connectionSource, Attachment.class);
+			
 			TableUtils.createTable(connectionSource, User.class);
+			TableUtils.createTable(connectionSource, Location.class);
+			TableUtils.createTable(connectionSource, LocationGeometry.class);
+			TableUtils.createTable(connectionSource, LocationProperty.class);
 			
 			//seed State data.
 			//TODO: This should be config file driven.
@@ -205,4 +218,40 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		return userDao;
 	}
 
+	/**
+	 * Getter for the LocationDao
+	 * @return This instance's LocationDao
+	 * @throws SQLException
+	 */
+	public Dao<Location, Long> getLocationDao() throws SQLException {
+		if (locationDao == null) {
+			locationDao = getDao(Location.class);
+		}
+		return locationDao;
+	}
+	
+	/**
+	 * Getter for the LocationGeometryDao
+	 * @return This instance's LocationGeometryDao
+	 * @throws SQLException
+	 */
+	public Dao<LocationGeometry, Long> getLocationGeometryDao() throws SQLException {
+		if (locationGeometryDao == null) {
+			locationGeometryDao = getDao(LocationGeometry.class);
+		}
+		return locationGeometryDao;
+	}
+	
+	/**
+	 * Getter for the LocationPropertyDao
+	 * @return This instance's LocationPropertyDao
+	 * @throws SQLException
+	 */
+	public Dao<LocationProperty, Long> getLocationPropertyDao() throws SQLException {
+		if (locationPropertyDao == null) {
+			locationPropertyDao = getDao(LocationProperty.class);
+		}
+		return locationPropertyDao;
+	}
+	
 }

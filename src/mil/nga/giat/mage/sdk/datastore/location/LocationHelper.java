@@ -1,16 +1,40 @@
 package mil.nga.giat.mage.sdk.datastore.location;
 
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.j256.ormlite.dao.Dao;
+
 import mil.nga.giat.mage.sdk.datastore.DBHelper;
+import mil.nga.giat.mage.sdk.datastore.common.Geometry;
+import mil.nga.giat.mage.sdk.datastore.common.GeometryType;
+import mil.nga.giat.mage.sdk.datastore.common.Property;
+import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
+import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import android.content.Context;
+import android.util.Log;
 
 public class LocationHelper {
 
-	private static final String LOG_NAME = "mage.observation.log";
+	private static final String LOG_NAME = LocationHelper.class.getName();
 
-	
 	// required DBHelper and DAOs for handing CRUD operations for Observations
 	private DBHelper helper;
+	private Dao<Location, Long> locationDao;
+	private Dao<LocationGeometry, Long> locationGeometryDao;
+	private Dao<GeometryType, Long> geometryTypeDao;
+	private Dao<LocationProperty, Long> locationPropertyDao;
+
+	
+	/**
+	 * This Map can be used to ensure that a valid GEOMETRY TYPE is used when performing CRUD 
+	 * operations on Observations.
+	 */
+	public static final Map<String, GeometryType> GEOMETRY_TYPE_LOOKUP_MAP = new HashMap<String, GeometryType>();
 	
 	/**
 	 * Singleton.
@@ -37,6 +61,28 @@ public class LocationHelper {
 		
 		helper = DBHelper.getInstance(context);
 		
+		try {
+			locationDao = helper.getLocationDao();
+			locationGeometryDao = helper.getLocationGeometryDao();
+			geometryTypeDao = helper.getGeometryTypeDao();
+			locationPropertyDao = helper.getLocationPropertyDao();
+			
+			//initialize geometry type values;
+			List<GeometryType> geometryTypes = geometryTypeDao.queryForAll();
+			for(GeometryType geometryType : geometryTypes) {
+				GEOMETRY_TYPE_LOOKUP_MAP.put(geometryType.getType(), geometryType);
+			}
+			
+		}
+		catch(SQLException sqle) {
+			Log.e(LOG_NAME, "Unable to communicate "
+					+ "with Location database.", sqle);
+
+			//Fatal Error!
+			throw new IllegalStateException("Unable to communicate "
+					+ "with Location database.", sqle);				
+		}
+		
 	}
 	
 	/**
@@ -50,7 +96,44 @@ public class LocationHelper {
 	 */
 	public Location createLocation(Location pLocation) throws LocationException {
 				
-		return null;
+		Location createdLocation;
+				
+		//Validate GeometryType.  ORM will not allow a null Geometry.
+		GeometryType geometryType = pLocation.getLocationGeometry().getGeometryType();
+		if(GEOMETRY_TYPE_LOOKUP_MAP.containsKey(geometryType.getType())) {
+			//This sets the GeometryType to the value already persisted in the lookup table.
+			//We don't want duplicates.
+			pLocation.getLocationGeometry().setGeometryType(GEOMETRY_TYPE_LOOKUP_MAP.get(geometryType.getType()));
+		}
+		else {
+			Log.w(LOG_NAME, "The geometry type: '" + geometryType.getType()
+					+ "' is invalid.  Valid geometry types are "
+					+ GEOMETRY_TYPE_LOOKUP_MAP.keySet());
+		}				
+		
+		try {			
+			//create Location geometry.
+			locationGeometryDao.create(pLocation.getLocationGeometry());			
+			
+			createdLocation = locationDao.createIfNotExists(pLocation);
+			
+			//create Location properties.
+			Collection<LocationProperty> locationProperties = pLocation.getProperties();
+			if (locationProperties != null) {
+				for (LocationProperty locationProperty : locationProperties) {
+					locationProperty.setLocation(createdLocation);
+					locationPropertyDao.create(locationProperty);
+				}
+			}
+			
+			
+		} 
+		catch (SQLException sqle) {
+			Log.e(LOG_NAME,"There was a problem creating the location: " + pLocation + ".",sqle);
+			throw new LocationException("There was a problem creating the observation: " + pLocation + ".",sqle);
+		}
+		
+		return createdLocation;
 		
 	}
 	

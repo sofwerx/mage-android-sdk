@@ -60,12 +60,19 @@ public class Location {
 		this.properties = properties;
 	}
 
-	public LocationGeometry getGeometry() {
+	public LocationGeometry getLocationGeometry() {
 		return locationGeometry;
 	}
 
-	public void setGeometry(LocationGeometry geometry) {
+	public void setLocationGeometry(LocationGeometry geometry) {
 		this.locationGeometry = geometry;
 	}
-    
+	@Override
+	public String toString() {
+		return "Location [pk_id=" + pk_id + ", type=" + type + ", properties="
+				+ properties + ", locationGeometry=" + locationGeometry + "]";
+	}
+   
+	
+	
 }
