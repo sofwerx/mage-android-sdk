@@ -11,6 +11,7 @@ import mil.nga.giat.mage.sdk.datastore.common.GeometryType;
 import mil.nga.giat.mage.sdk.datastore.location.LocationGeometry;
 import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
+import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
 import mil.nga.giat.mage.sdk.utils.GeometryUtil;
 import android.app.AlertDialog;
@@ -34,12 +35,13 @@ import android.util.Log;
 /**
  * Query the device for the device's location. If userReportingFrequency is set
  * to never, the Service will listen for changes to userReportingFrequency.
+ * 
+ * TODO: implement {@link IEventDispatcher} for location updates?
  */
 public class LocationService extends Service implements LocationListener, OnSharedPreferenceChangeListener {
 
 	private static final String LOG_NAME = LocationService.class.getName();
 
-	
 	private final Context mContext;
 
 	// Minimum milliseconds between updates
@@ -235,50 +237,51 @@ public class LocationService extends Service implements LocationListener, OnShar
 	public void stop() {
 		pollingRunning = Boolean.FALSE;
 		if (locationManager != null) {
+			synchronized (preferenceSemaphore) {
+				preferenceSemaphore.notifyAll();
+			}
 			removeLocationUpdates();
 		}
 	}
 	
-	// TODO: Actually save location
+	// TODO: Should this be in an AsyncTask?
 	private void saveLocation(Location location, String state) {
-		// TODO: check that location timestamp is not 0! 
-				
-		///////////////////////////////////////////////////
-		//INTEGRATION WITH LOCATION DATASTORE//////////////
+		// TODO: check that location timestamp is not 0!
+
+		// INTEGRATION WITH LOCATION DATASTORE
 		LocationHelper locationHelper = LocationHelper.getInstance(mContext);
-		
-		//build properties
+
+		// build properties
 		Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();
 		LocationProperty reportedTime = new LocationProperty("REPORTED_TIME", String.valueOf(System.currentTimeMillis()));
 		locationProperties.add(reportedTime);
-				
-		//build geometry
-		String coordinages = GeometryUtil.generate(location.getLatitude(), location.getLongitude());		
+
+		// build geometry
+		String coordinages = GeometryUtil.generate(location.getLatitude(), location.getLongitude());
 		LocationGeometry locationGeometry = new LocationGeometry(coordinages, new GeometryType("point"));
-		
-		//build location
-		mil.nga.giat.mage.sdk.datastore.location.Location loc = 
-				new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", locationProperties, locationGeometry);
-		
+
+		// build location
+		mil.nga.giat.mage.sdk.datastore.location.Location loc = new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", locationProperties, locationGeometry);
+
 		loc.setLocationGeometry(locationGeometry);
 		loc.setProperties(locationProperties);
-		
-		//save the location
+
+		// save the location
 		try {
 			locationHelper.createLocation(loc);
+		} catch (LocationException le) {
+			// TODO: is this good enough?
+			Log.w(LOG_NAME, "Unable to record current location locally!", le);
 		}
-		catch(LocationException le) {
-			//TODO: is this good enough?
-			Log.w(LOG_NAME, "Unable to record current location locally!",le);			
-		}		
-		//TODO: Does this need to be put into an AsyncTask?
-		///////////////////////////////////////////////////
-		
-		
-		System.out.println(loc);
 
+		Log.d(LOG_NAME, "A Current Active User exists." + loc);
 	}
 	
+	/**
+	 * Polls for locations at time specified by the settings.
+	 * 
+	 * @return
+	 */
 	private Thread createLocationPollingThread() {
 		return new Thread(new Runnable() {
 			public void run() {
@@ -315,7 +318,6 @@ public class LocationService extends Service implements LocationListener, OnShar
 							// the location could have been saved from a motion event, or from the last time the parent loop ran
 							// use local variables in order to maintain data integrity across instructions. 
 							while (((lLPullTime = getLastLocationPullTime()) + (userReportingFrequency = getUserReportingFrequency()) > (currentTime = new Date().getTime())) && isPolling()) {
-								// check every 12 seconds at most to check the settings
 								synchronized (preferenceSemaphore) {
 									preferenceSemaphore.wait(lLPullTime + userReportingFrequency - currentTime);
 									// this means we need to re-read the gps sensitivity
@@ -349,6 +351,9 @@ public class LocationService extends Service implements LocationListener, OnShar
 
 	}
 
+	/**
+	 * Will alert the polling thread that changes have been made
+	 */
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 		if (key.equalsIgnoreCase(mContext.getString(R.string.gpsSensitivityKey))) {
