@@ -6,17 +6,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.j256.ormlite.dao.Dao;
-
 import mil.nga.giat.mage.sdk.datastore.DBHelper;
-import mil.nga.giat.mage.sdk.datastore.common.Geometry;
 import mil.nga.giat.mage.sdk.datastore.common.GeometryType;
-import mil.nga.giat.mage.sdk.datastore.common.Property;
-import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
-import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import android.content.Context;
 import android.util.Log;
+
+import com.j256.ormlite.dao.Dao;
 
 public class LocationHelper {
 

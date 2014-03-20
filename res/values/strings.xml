@@ -5,5 +5,8 @@
     <string name="gpsSensitivityDefaultValue">0</string>
     <string name="userReportingFrequencyKey">userReportingFrequency</string>
     <string name="userReportingFrequencyDefaultValue">15000</string>
-
+    <string name="observationFetchFrequencyKey">observationFetchFrequency</string>
+    <string name="observationFetchFrequencyDefaultValue">30000</string>
+    <string name="userFetchFrequencyKey">userFetchFrequency</string>
+    <string name="userFetchFrequencyDefaultValue">30000</string>
 </resources>
