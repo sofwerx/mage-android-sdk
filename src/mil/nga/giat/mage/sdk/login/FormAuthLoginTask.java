@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import mil.nga.giat.mage.sdk.preferences.PreferenceColonization;
@@ -25,9 +26,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.preference.PreferenceManager;
 
 /**
- * Performs login to specified server with username and password. TODO: SHould
+ * Performs login to specified server with username and password. TODO: Should
  * this also handle device registration?
  * 
  * @author wiedemannse
@@ -98,9 +102,14 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-				List<String> accountInformation = new ArrayList<String>();
-				accountInformation.add(json.getString("token"));
-				return new AccountStatus(Boolean.TRUE, new ArrayList<Integer>(), new ArrayList<String>(), accountInformation);
+
+				// put the token information in the shared preferences
+				SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mApplicationContext);
+				Editor editor = sharedPreferences.edit();
+				editor.putString("token", json.getString("token").trim()).commit();
+				// FIXME : add the actually tokenExpirationDate once the server passes it back
+				editor.putString("tokenExpirationDate", new Date(new Date().getTime() + 8 * 60 * 60 * 1000).toString()).commit();
+				return new AccountStatus(Boolean.TRUE, new ArrayList<Integer>(), new ArrayList<String>(), json);
 			}
 		} catch (MalformedURLException mue) {
 			// already checked for this!

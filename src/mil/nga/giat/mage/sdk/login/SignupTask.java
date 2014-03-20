@@ -103,9 +103,7 @@ public class SignupTask extends AbstractAccountTask {
 
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-				List<String> accountInformation = new ArrayList<String>();
-				accountInformation.add(json.getString("username"));
-				return new AccountStatus(Boolean.TRUE, new ArrayList<Integer>(), new ArrayList<String>(), accountInformation);
+				return new AccountStatus(Boolean.TRUE, new ArrayList<Integer>(), new ArrayList<String>(), json);
 			}
 		} catch (MalformedURLException e) {
 			// already checked for this!

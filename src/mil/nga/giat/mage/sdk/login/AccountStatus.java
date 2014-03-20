@@ -3,6 +3,8 @@ package mil.nga.giat.mage.sdk.login;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONObject;
+
 /**
  * Contains information from resulting login or sign up
  * 
@@ -29,12 +31,11 @@ public class AccountStatus {
 	private List<String> errorMessages = new ArrayList<String>();
 
 	/**
-	 * TODO: Should this be replaced with JSON object?
 	 * 
 	 * If status was true, contains information relevant to the
 	 * {@link AbstractAccountTask}, such as a user's token
 	 */
-	private List<String> accountInformation = new ArrayList<String>();
+	private JSONObject accountInformation = new JSONObject();
 
 	public AccountStatus(Boolean status) {
 		super();
@@ -48,7 +49,7 @@ public class AccountStatus {
 		this.errorMessages = errorMessages;
 	}
 
-	public AccountStatus(Boolean status, List<Integer> errorIndices, List<String> errorMessages, List<String> accountInformation) {
+	public AccountStatus(Boolean status, List<Integer> errorIndices, List<String> errorMessages, JSONObject accountInformation) {
 		super();
 		this.status = status;
 		this.errorIndices = errorIndices;
@@ -68,7 +69,7 @@ public class AccountStatus {
 		return errorMessages;
 	}
 
-	public final List<String> getAccountInformation() {
+	public final JSONObject getAccountInformation() {
 		return accountInformation;
 	}
 }
