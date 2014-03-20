@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.common.GeometryType;
-import mil.nga.giat.mage.sdk.datastore.common.Property;
 import mil.nga.giat.mage.sdk.datastore.location.LocationGeometry;
 import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
@@ -50,12 +49,14 @@ public class LocationService extends Service implements LocationListener, OnShar
 	
 	protected boolean pollingRunning = false;
 	
+	protected Collection<LocationListener> locationListeners = new ArrayList<LocationListener>();
+	
 	protected synchronized boolean isPolling() {
 		return pollingRunning;
 	}
 	
 	// False means don't re-read gps settings.  True means re-read gps settings.  Gets triggered from preference change
-	protected AtomicBoolean preferenceSemaphore= new AtomicBoolean(false);
+	protected AtomicBoolean preferenceSemaphore = new AtomicBoolean(false);
 
 	// the last time a location was pulled form the phone.
 	protected long lastLocationPullTime = 0;
@@ -106,6 +107,14 @@ public class LocationService extends Service implements LocationListener, OnShar
 		this.locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
 		PreferenceManager.getDefaultSharedPreferences(mContext).registerOnSharedPreferenceChangeListener(this);
 		preferenceSemaphore.set(false);
+	}
+	
+	public void registerOnLocationListener(LocationListener listener) {
+	    locationListeners.add(listener);
+	}
+	
+	public void unregisterOnLocationListener(LocationListener listener) {
+	    locationListeners.remove(listener);
 	}
 	
 	private void requestLocationUpdates() {
@@ -174,22 +183,35 @@ public class LocationService extends Service implements LocationListener, OnShar
 
 	@Override
 	public void onLocationChanged(Location location) {
-		if(location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
+		if (location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
 			setLastLocationPullTime(System.currentTimeMillis());
 			saveLocation(location, "ACTIVE");
+		}
+		
+		for (LocationListener listener : locationListeners) {
+		    listener.onLocationChanged(location);
 		}
 	}
 
 	@Override
 	public void onProviderDisabled(String provider) {
+       for (LocationListener listener : locationListeners) {
+            listener.onProviderDisabled(provider);
+        }
 	}
 
 	@Override
 	public void onProviderEnabled(String provider) {
+       for (LocationListener listener : locationListeners) {
+            listener.onProviderEnabled(provider);
+        }
 	}
 
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
+       for (LocationListener listener : locationListeners) {
+            listener.onStatusChanged(provider, status, extras);
+        }
 	}
 
 	@Override
