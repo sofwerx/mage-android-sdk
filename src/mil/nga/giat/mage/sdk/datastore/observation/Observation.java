@@ -1,6 +1,9 @@
 package mil.nga.giat.mage.sdk.datastore.observation;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import mil.nga.giat.mage.sdk.datastore.common.Geometry;
 import mil.nga.giat.mage.sdk.datastore.common.Property;
@@ -83,7 +86,42 @@ public class Observation {
 	public void setAttachments(Collection<Attachment> attachments) {
 		this.attachments = attachments;
 	}
+
+	/**
+	 * A convenience method used for returning an Observation's properties in a more useful 
+	 * data-structure.
+	 * @return
+	 */
+	public Map<String, String> getPropertiesMap() {
+		
+		Map<String, String> propertiesMap = new HashMap<String, String>();
+		
+		if(properties != null) {
+			for(Property property : properties) {
+				propertiesMap.put(property.getKey(), property.getValue());
+			}
+		}
+		
+		return propertiesMap;
+	}
 	
+	/** 
+	 * A convenience method used for setting an Observation's properties with a Map
+	 * (instead of a Collection).
+	 * @param propertiesMap A Map of ALL the properties to be set.
+	 */
+	public void setPropertiesMap(Map<String,String> propertiesMap) {
+		Collection<Property> properties = new ArrayList<Property>();
+		
+		if(propertiesMap != null) {
+			for(String key : propertiesMap.keySet()) {
+				properties.add(new Property(key,propertiesMap.get(key)));
+			}
+		}
+		
+		setProperties(properties);
+	}
+			
 	@Override
 	public String toString() {
 		return "Observation [pk_id=" + pk_id + ", remote_id=" + remote_id
