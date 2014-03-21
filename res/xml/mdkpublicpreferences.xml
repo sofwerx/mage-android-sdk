@@ -3,16 +3,16 @@
 
     <PreferenceCategory android:title="DATA FETCH FREQUENCY" >
         <ListPreference
-            android:defaultValue="30000"
+            android:defaultValue="@string/userFetchFrequencyDefaultValue"
             android:entries="@array/userFetchFrequencies"
             android:entryValues="@array/userFetchFrequencyValues"
-            android:key="userFetchFrequency"
+            android:key="@string/userFetchFrequencyKey"
             android:title="Users" />
         <ListPreference
-            android:defaultValue="30000"
+            android:defaultValue="@string/observationFetchFrequencyDefaultValue"
             android:entries="@array/observationFetchFrequencies"
             android:entryValues="@array/observationFetchFrequencyValues"
-            android:key="observationFetchFrequency"
+            android:key="@string/observationFetchFrequencyKey"
             android:title="Observations" />
     </PreferenceCategory>
     <PreferenceCategory android:title="DATA REPORTING FREQUENCY" >

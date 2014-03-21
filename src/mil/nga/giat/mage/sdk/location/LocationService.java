@@ -13,6 +13,7 @@ import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
+import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import mil.nga.giat.mage.sdk.utils.GeometryUtil;
 import android.app.AlertDialog;
 import android.app.Service;
@@ -77,8 +78,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 	 * @return
 	 */
 	private final synchronized long getMinimumDistanceChangeForUpdates() {
-		final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-		return Long.parseLong(sharedPreferences.getString(mContext.getString(R.string.gpsSensitivityKey), mContext.getString(R.string.gpsSensitivityDefaultValue)));
+		return PreferenceHelper.getInstance(mContext).getValue(R.string.gpsSensitivityKey, Long.class, R.string.gpsSensitivityDefaultValue);
 	}
 	
 	/**
@@ -87,8 +87,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 	 * @return
 	 */
 	protected final synchronized long getUserReportingFrequency() {
-		final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-		return Long.parseLong(sharedPreferences.getString(mContext.getString(R.string.userReportingFrequencyKey), mContext.getString(R.string.userReportingFrequencyDefaultValue)));
+		return PreferenceHelper.getInstance(mContext).getValue(R.string.userReportingFrequencyKey, Long.class, R.string.userReportingFrequencyDefaultValue);
 	}
 	
 	protected boolean locationUpdatesEnabled = false;
@@ -153,7 +152,8 @@ public class LocationService extends Service implements LocationListener, OnShar
 		// if GPS Enabled get Location using GPS Services
 		if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 			location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-		} else if(locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+		}
+		if(locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
 			location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 		}
 		setLastLocationPullTime(System.currentTimeMillis());

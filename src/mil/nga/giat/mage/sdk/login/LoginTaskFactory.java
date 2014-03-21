@@ -3,6 +3,9 @@ package mil.nga.giat.mage.sdk.login;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import mil.nga.giat.mage.sdk.R;
+import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
+
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -41,8 +44,7 @@ public class LoginTaskFactory {
 	 * @return
 	 */
 	public AbstractAccountTask getLoginTask(AccountDelegate delegate, Context context) {
-		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-		String className = sharedPreferences.getString("loginTask", FormAuthLoginTask.class.getCanonicalName());
+		String className = PreferenceHelper.getInstance(mContext).getValue(R.string.loginTaskKey, String.class, R.string.loginTaskDefaultValue);
 		
 		try {
 			Class<?> c = Class.forName(className);

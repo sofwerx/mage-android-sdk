@@ -3,7 +3,7 @@
 
     <!-- What type of auth to use FormAuthLoginTask or LocalAuthLoginTask? -->
     <EditTextPreference
-        android:defaultValue="mil.nga.giat.mage.sdk.login.LocalAuthLoginTask"
-        android:key="loginTask" />
+        android:defaultValue="@string/loginTaskDefaultValue"
+        android:key="@string/loginTaskKey" />
 
 </PreferenceScreen>

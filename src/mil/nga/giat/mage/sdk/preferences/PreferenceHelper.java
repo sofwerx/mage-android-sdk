@@ -2,6 +2,8 @@ package mil.nga.giat.mage.sdk.preferences;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -38,23 +40,23 @@ import android.preference.PreferenceManager;
  * @author wiedemannse
  * 
  */
-public class PreferenceColonization {
+public class PreferenceHelper {
 
-	private PreferenceColonization() {
+	private PreferenceHelper() {
 	}
 
-	private static PreferenceColonization preferenceColonization;
+	private static PreferenceHelper preferenceHelper;
 	private static Context mContext;
 
-	public static PreferenceColonization getInstance(final Context context) {
+	public static PreferenceHelper getInstance(final Context context) {
 		if (context == null) {
 			return null;
 		}
-		if (preferenceColonization == null) {
-			preferenceColonization = new PreferenceColonization();
+		if (preferenceHelper == null) {
+			preferenceHelper = new PreferenceHelper();
 		}
 		mContext = context;
-		return preferenceColonization;
+		return preferenceHelper;
 	}
 
 	/**
@@ -182,6 +184,65 @@ public class PreferenceColonization {
 				je.printStackTrace();
 			}
 		}
+	}
 
+	/**
+	 * Use this method to get values of correct type form shared preferences.
+	 * Does not work with collections yet!
+	 * 
+	 * @param <T>
+	 * @param key
+	 * @param valueType
+	 * @param defaultValue
+	 * @return
+	 */
+	public final <T extends Object> T getValue(int key, Class<T> valueType, int defaultValue) {
+		final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+		String defaultValueString = sharedPreferences.getString(mContext.getString(defaultValue), mContext.getString(defaultValue));
+		Object defaultReturnValue = null;
+		if (valueType.equals(String.class)) {
+			defaultReturnValue = defaultValueString;
+		} else {
+			try {
+				Method valueOfMethod = valueType.getMethod("valueOf", String.class);
+				defaultReturnValue = valueOfMethod.invoke(valueType, defaultValueString);
+			} catch (NoSuchMethodException nsme) {
+				nsme.printStackTrace();
+			} catch (IllegalAccessException iae) {
+				iae.printStackTrace();
+			} catch (IllegalArgumentException iae) {
+				iae.printStackTrace();
+			} catch (InvocationTargetException ite) {
+				ite.printStackTrace();
+			}
+		}
+
+		return getValue(key, valueType, (T) defaultReturnValue);
+	}
+
+	public final <T extends Object> T getValue(int key, Class<T> valueType, T defaultValue) {
+		final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+		String stringValue = sharedPreferences.getString(mContext.getString(key), null);
+		if (stringValue != null) {
+			if(valueType.equals(String.class)) {
+				return (T) stringValue;
+			} else {
+				try {
+					Method valueOfMethod = valueType.getMethod("valueOf", String.class);
+					Object returnValue = valueOfMethod.invoke(valueType, stringValue);
+					return (T) returnValue;
+				} catch (NoSuchMethodException nsme) {
+					nsme.printStackTrace();
+				} catch (IllegalAccessException iae) {
+					iae.printStackTrace();
+				} catch (IllegalArgumentException iae) {
+					iae.printStackTrace();
+				} catch (InvocationTargetException ite) {
+					ite.printStackTrace();
+				}
+			}
+		}
+
+		return defaultValue;
 	}
 }
