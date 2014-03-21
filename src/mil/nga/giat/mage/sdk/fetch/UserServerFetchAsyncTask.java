@@ -1,4 +1,4 @@
-package com.nga.giat.mage.sdk.serverfetch;
+package mil.nga.giat.mage.sdk.fetch;
 
 import mil.nga.giat.mage.sdk.R;
 import android.content.Context;

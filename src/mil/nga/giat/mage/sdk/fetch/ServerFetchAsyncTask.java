@@ -1,4 +1,4 @@
-package com.nga.giat.mage.sdk.serverfetch;
+package mil.nga.giat.mage.sdk.fetch;
 
 import android.content.Context;
 import android.content.SharedPreferences;
