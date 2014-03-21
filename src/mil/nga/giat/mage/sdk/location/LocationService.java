@@ -153,7 +153,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 		if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 			location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 		}
-		if(locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+		if(location == null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
 			location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 		}
 		setLastLocationPullTime(System.currentTimeMillis());
