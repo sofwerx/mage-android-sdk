@@ -33,7 +33,7 @@ public class HttpClientManager {
 	}
 
 	DefaultHttpClient httpClient = null;
-
+/*
 	public DefaultHttpClient getHttpClient() {
 		if (httpClient == null) {
 			httpClient = new DefaultHttpClient();
@@ -50,5 +50,5 @@ public class HttpClientManager {
 			});
 		}
 		return httpClient;
-	}
+	}*/
 }
