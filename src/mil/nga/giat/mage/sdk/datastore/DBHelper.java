@@ -84,39 +84,78 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		}
 		
 	}
+	
+	public boolean isDatabaseEmpty() {
+		long countOfAllRecords = 0l;
+		try {
+			countOfAllRecords += getObservationDao().countOf();
+			countOfAllRecords += getGeometryDao().countOf();
+			countOfAllRecords += getPropertyDao().countOf();
+			countOfAllRecords += getAttachmentDao().countOf();
+			countOfAllRecords += getUserDao().countOf();
+			countOfAllRecords += getLocationDao().countOf();
+			countOfAllRecords += getLocationGeometryDao().countOf();
+			countOfAllRecords += getLocationPropertyDao().countOf();
+		} catch (SQLException sqle) {
+			sqle.printStackTrace();
+			return false;
+		}
+		return countOfAllRecords == 0;
+	}
 
+	private void createTables() throws SQLException {
+		TableUtils.createTable(connectionSource, Observation.class);
+		TableUtils.createTable(connectionSource, ObservationGeometry.class);
+		TableUtils.createTable(connectionSource, ObservationProperty.class);
+		TableUtils.createTable(connectionSource, Attachment.class);
+
+		TableUtils.createTable(connectionSource, User.class);
+		TableUtils.createTable(connectionSource, Location.class);
+		TableUtils.createTable(connectionSource, LocationGeometry.class);
+		TableUtils.createTable(connectionSource, LocationProperty.class);
+	}
+	
 	@Override
 	public void onCreate(SQLiteDatabase sqliteDatabase, ConnectionSource connectionSource) {
 		try {
-			TableUtils.createTable(connectionSource, Observation.class);
-			TableUtils.createTable(connectionSource, ObservationGeometry.class);
-			TableUtils.createTable(connectionSource, ObservationProperty.class);
-			TableUtils.createTable(connectionSource, Attachment.class);
-
-			TableUtils.createTable(connectionSource, User.class);
-			TableUtils.createTable(connectionSource, Location.class);
-			TableUtils.createTable(connectionSource, LocationGeometry.class);
-			TableUtils.createTable(connectionSource, LocationProperty.class);
+			createTables();
 		} catch (SQLException se) {
 			Log.e(LOG_NAME, "Could not create tables.", se);
 		}
 	}
 
+	private void dropTables() throws SQLException {
+		TableUtils.dropTable(connectionSource, Observation.class, Boolean.TRUE);
+
+		TableUtils.dropTable(connectionSource, ObservationGeometry.class, Boolean.TRUE);
+		TableUtils.dropTable(connectionSource, ObservationProperty.class, Boolean.TRUE);
+		TableUtils.dropTable(connectionSource, Attachment.class, Boolean.TRUE);
+
+		TableUtils.dropTable(connectionSource, User.class, Boolean.TRUE);
+		TableUtils.dropTable(connectionSource, Location.class, Boolean.TRUE);
+		TableUtils.dropTable(connectionSource, LocationGeometry.class, Boolean.TRUE);
+		TableUtils.dropTable(connectionSource, LocationProperty.class, Boolean.TRUE);
+	}
+	
 	@Override
 	public void onUpgrade(SQLiteDatabase database, ConnectionSource connectionSource, int oldVersion, int newVersion) {
 		try {
-			TableUtils.dropTable(connectionSource, Observation.class, Boolean.TRUE);
-
-			TableUtils.dropTable(connectionSource, ObservationGeometry.class, Boolean.TRUE);
-			TableUtils.dropTable(connectionSource, ObservationProperty.class, Boolean.TRUE);
-			TableUtils.dropTable(connectionSource, Attachment.class, Boolean.TRUE);
-
-			TableUtils.dropTable(connectionSource, User.class, Boolean.TRUE);
-			TableUtils.dropTable(connectionSource, Location.class, Boolean.TRUE);
-			TableUtils.dropTable(connectionSource, LocationGeometry.class, Boolean.TRUE);
-			TableUtils.dropTable(connectionSource, LocationProperty.class, Boolean.TRUE);
+			dropTables();
 		} catch (SQLException se) {
-			Log.e(LOG_NAME, "could not create table Observation", se);
+			Log.e(LOG_NAME, "Could not drop tables.", se);
+		}
+	}
+
+	/**
+	 * Drop and create all tables.
+	 */
+	public void resetDatabase() {
+		try {
+			dropTables();
+			createTables();
+			Log.d(LOG_NAME, "Reset Database.");
+		} catch (SQLException se) {
+			Log.e(LOG_NAME, "Could not reset Database.", se);
 		}
 	}
 
