@@ -16,7 +16,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.google.gson.Gson;
+
 import mil.nga.giat.mage.sdk.R;
+import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import android.content.Context;
@@ -89,7 +92,8 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask {
 				if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 					JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
 					// FIXME : use jackson??? to transform this JSON into
-					// observations!
+					// observations!					
+					
 					Log.d(LOG_NAME, json.toString());
 				}
 			} catch (MalformedURLException mue) {
