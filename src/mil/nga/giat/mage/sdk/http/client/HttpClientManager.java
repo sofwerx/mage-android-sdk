@@ -11,7 +11,14 @@ import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpStatus;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.protocol.HttpContext;
 
 import android.content.Context;
@@ -47,7 +54,15 @@ public class HttpClientManager {
 
 	public DefaultHttpClient getHttpClient() {
 		if (httpClient == null) {
-			httpClient = new DefaultHttpClient();
+			BasicHttpParams params = new BasicHttpParams();
+			SchemeRegistry schemeRegistry = new SchemeRegistry();
+			// do not register http! only https
+			//schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+			final SSLSocketFactory sslSocketFactory = SSLSocketFactory.getSocketFactory();
+			schemeRegistry.register(new Scheme("https", sslSocketFactory, 443));
+			// needs to be thread safe!
+			ClientConnectionManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
+			httpClient = new DefaultHttpClient(cm, params);
 			// add the token to every request!
 			httpClient.addRequestInterceptor(new HttpRequestInterceptor() {
 				@Override
