@@ -9,6 +9,7 @@ import java.util.List;
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
+import mil.nga.giat.mage.sdk.exceptions.LoginException;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -18,7 +19,7 @@ import android.util.Log;
 
 /**
  * A Task intended to be used for local authentication only. Testing or off-line
- * modes perhaps.
+ * modes perhaps.  TODO: throw {@link LoginException}
  * 
  * @author travis
  * 

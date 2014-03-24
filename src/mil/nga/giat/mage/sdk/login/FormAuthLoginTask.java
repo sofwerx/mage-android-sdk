@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 
 import mil.nga.giat.mage.sdk.R;
+import mil.nga.giat.mage.sdk.exceptions.LoginException;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import mil.nga.giat.mage.sdk.utils.ConnectivityUtility;
@@ -34,7 +35,7 @@ import android.preference.PreferenceManager;
 
 /**
  * Performs login to specified server with username and password. TODO: Should
- * this also handle device registration?
+ * this also handle device registration?  TODO: throw {@link LoginException}
  * 
  * @author wiedemannse
  * 
