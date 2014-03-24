@@ -2,34 +2,30 @@ package mil.nga.giat.mage.sdk.datastore.location;
 
 import java.util.Collection;
 
-import mil.nga.giat.mage.sdk.datastore.common.Geometry;
-import mil.nga.giat.mage.sdk.datastore.common.Property;
-
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
-@DatabaseTable(tableName="locations")
+@DatabaseTable(tableName = "locations")
 public class Location {
 
-	
 	@DatabaseField(generatedId = true)
-    private Long pk_id;
-	
+	private Long pk_id;
+
 	@DatabaseField
-    private String type;
-	
+	private String type;
+
 	@ForeignCollectionField(eager = true)
-    Collection<LocationProperty> properties;
-	
-    @DatabaseField(canBeNull = false,foreign = true, foreignAutoRefresh = true)
-    private LocationGeometry locationGeometry;
-    
-    public Location() {
-    	// ORMLite needs a no-arg constructor 
-    }
-	public Location(String type, Collection<LocationProperty> properties,
-			LocationGeometry locationGeometry) {
+	Collection<LocationProperty> properties;
+
+	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
+	private LocationGeometry locationGeometry;
+
+	public Location() {
+		// ORMLite needs a no-arg constructor
+	}
+
+	public Location(String type, Collection<LocationProperty> properties, LocationGeometry locationGeometry) {
 		super();
 		this.type = type;
 		this.properties = properties;
@@ -38,10 +34,6 @@ public class Location {
 
 	public Long getPk_id() {
 		return pk_id;
-	}
-
-	public void setPk_id(Long pk_id) {
-		this.pk_id = pk_id;
 	}
 
 	public String getType() {
@@ -67,12 +59,10 @@ public class Location {
 	public void setLocationGeometry(LocationGeometry geometry) {
 		this.locationGeometry = geometry;
 	}
+
 	@Override
 	public String toString() {
-		return "Location [pk_id=" + pk_id + ", type=" + type + ", properties="
-				+ properties + ", locationGeometry=" + locationGeometry + "]";
+		return "Location [pk_id=" + pk_id + ", type=" + type + ", properties=" + properties + ", locationGeometry=" + locationGeometry + "]";
 	}
-   
-	
-	
+
 }

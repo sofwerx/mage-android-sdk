@@ -5,8 +5,15 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 
+/**
+ * Utility that dealing with connection like information. Connectivity, mac
+ * address, etc.
+ * 
+ * @author wiedemannse
+ * 
+ */
 public class ConnectivityUtility {
-	
+
 	/**
 	 * Used to check for connectivity
 	 * 
@@ -21,7 +28,7 @@ public class ConnectivityUtility {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Get the Wi-Fi mac address, used to login
 	 */

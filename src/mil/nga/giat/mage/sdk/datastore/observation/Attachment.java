@@ -8,29 +8,29 @@ public class Attachment {
 
 	@DatabaseField(generatedId = true)
 	private Long pk_id;
-	
+
 	@DatabaseField
 	private String content_type;
-	
+
 	@DatabaseField
 	private Long size;
-	
+
 	@DatabaseField
 	private String name;
-	
+
 	@DatabaseField
 	private String local_path;
-	
+
 	@DatabaseField
 	private String remote_path;
-	
-	@DatabaseField (foreign = true)
-    private Observation observation;
-	
+
+	@DatabaseField(foreign = true)
+	private Observation observation;
+
 	public Attachment() {
 		// ORMLite needs a no-arg constructor
 	}
-	
+
 	public Attachment(String pContentType, Long pSize, String pName, String pLocalPath, String pRemotePath) {
 		this.content_type = pContentType;
 		this.size = pSize;
@@ -38,13 +38,9 @@ public class Attachment {
 		this.local_path = pLocalPath;
 		this.remote_path = pRemotePath;
 	}
-	
+
 	public Long getPk_id() {
 		return pk_id;
-	}
-
-	public void setPk_id(Long pk_id) {
-		this.pk_id = pk_id;
 	}
 
 	public String getContent_type() {
@@ -97,10 +93,7 @@ public class Attachment {
 
 	@Override
 	public String toString() {
-		return "Attachment [pk_id=" + pk_id + ", content_type=" + content_type
-				+ ", size=" + size + ", name=" + name + ", local_path="
-				+ local_path + ", remote_path=" + remote_path
-				+ ", observation=" + observation.getPk_id() + "]";
+		return "Attachment [pk_id=" + pk_id + ", content_type=" + content_type + ", size=" + size + ", name=" + name + ", local_path=" + local_path + ", remote_path=" + remote_path + ", observation=" + observation.getPk_id() + "]";
 	}
-	
+
 }

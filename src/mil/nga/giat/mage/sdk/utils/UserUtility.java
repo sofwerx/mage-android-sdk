@@ -2,6 +2,9 @@ package mil.nga.giat.mage.sdk.utils;
 
 import java.util.Date;
 
+import mil.nga.giat.mage.sdk.R;
+import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
+
 import com.mdimension.jchronic.Chronic;
 import com.mdimension.jchronic.utils.Span;
 import android.content.Context;
@@ -9,6 +12,12 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
 
+/**
+ * Utility that currently deals mostly with the user's token information.
+ * 
+ * @author wiedemannse
+ * 
+ */
 public class UserUtility {
 
 	private UserUtility() {
@@ -29,11 +38,11 @@ public class UserUtility {
 	}
 
 	public synchronized final Boolean isTokenExpired() {
-		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-		if (sharedPreferences.getString("token", "").trim().isEmpty()) {
+		String token = PreferenceHelper.getInstance(mContext).getValue(R.string.tokenKey);
+		if (token == null || token.trim().isEmpty()) {
 			return true;
 		}
-		String tokenExpirationDateString = sharedPreferences.getString("tokenExpirationDate", "");
+		String tokenExpirationDateString = PreferenceHelper.getInstance(mContext).getValue(R.string.tokenExpirationDateKey);
 		if (!tokenExpirationDateString.isEmpty()) {
 			Span s = Chronic.parse(tokenExpirationDateString);
 			if (s != null) {
@@ -46,7 +55,7 @@ public class UserUtility {
 	public synchronized final void clearTokenInformation() {
 		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
 		Editor editor = sharedPreferences.edit();
-		editor.putString("token", "").commit();
-		editor.putString("tokenExpirationDate", "").commit();
+		editor.putString(mContext.getString(R.string.tokenKey), "").commit();
+		editor.putString(mContext.getString(R.string.tokenExpirationDateKey), "").commit();
 	}
 }

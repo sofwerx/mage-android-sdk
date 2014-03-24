@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.utils.ConnectivityUtility;
 
 import org.apache.http.HttpResponse;
@@ -87,7 +88,7 @@ public class SignupTask extends AbstractAccountTask {
 		}
 
 		try {
-			DefaultHttpClient httpclient = new DefaultHttpClient();
+			DefaultHttpClient httpclient = HttpClientManager.getInstance(mApplicationContext).getHttpClient();
 			HttpPost post = new HttpPost(new URL(new URL(serverURL), "api/users").toURI());
 
 			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(3);

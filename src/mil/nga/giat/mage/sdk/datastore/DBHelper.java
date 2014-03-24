@@ -2,16 +2,14 @@ package mil.nga.giat.mage.sdk.datastore;
 
 import java.sql.SQLException;
 
-import mil.nga.giat.mage.sdk.datastore.common.Geometry;
-import mil.nga.giat.mage.sdk.datastore.common.GeometryType;
-import mil.nga.giat.mage.sdk.datastore.common.Property;
 import mil.nga.giat.mage.sdk.datastore.location.Location;
 import mil.nga.giat.mage.sdk.datastore.location.LocationGeometry;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
-import mil.nga.giat.mage.sdk.datastore.location.User;
 import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
-import mil.nga.giat.mage.sdk.datastore.observation.State;
+import mil.nga.giat.mage.sdk.datastore.observation.ObservationGeometry;
+import mil.nga.giat.mage.sdk.datastore.observation.ObservationProperty;
+import mil.nga.giat.mage.sdk.datastore.user.User;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
@@ -22,26 +20,25 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
 /**
- * This is an implementation of OrmLite android database Helper.
- * Go here to get daos that you may need.  Manage your table
- * creation and update strategies here as well.
- * @author travis
- *
+ * This is an implementation of OrmLite android database Helper. Go here to get
+ * daos that you may need. Manage your table creation and update strategies here
+ * as well.
+ * 
+ * @author travis, wiedemannse
+ * 
  */
 public class DBHelper extends OrmLiteSqliteOpenHelper {
 
 	private static DBHelper helperInstance;
 
 	private static final String DATABASE_NAME = "mage.db";
-	private static final String LOG_NAME = "mage.log";
+	private static final String LOG_NAME = DBHelper.class.getName();
 	private static final int DATABASE_VERSION = 1;
 
 	//Observation DAOS
 	private Dao<Observation, Long> observationDao;
-	private Dao<State, Long> stateDao;
-	private Dao<Geometry, Long> geometryDao;
-	private Dao<GeometryType, Long> geometryTypeDao;
-	private Dao<Property, Long> propertyDao;
+	private Dao<ObservationGeometry, Long> geometryDao;
+	private Dao<ObservationProperty, Long> propertyDao;
 	private Dao<Attachment, Long> attachmentDao;
 	
 	//User and Location DAOS
@@ -73,9 +70,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		//initialize DAOs
 		try {
 			getObservationDao();
-			getStateDao();
 			getGeometryDao();
-			getGeometryTypeDao();
 			getPropertyDao();
 			getAttachmentDao();
 			getUserDao();
@@ -94,38 +89,35 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	public void onCreate(SQLiteDatabase sqliteDatabase, ConnectionSource connectionSource) {
 		try {
 			TableUtils.createTable(connectionSource, Observation.class);
-			TableUtils.createTable(connectionSource, State.class);
-			TableUtils.createTable(connectionSource, Geometry.class);
-			TableUtils.createTable(connectionSource, GeometryType.class);
-			TableUtils.createTable(connectionSource, Property.class);
+			TableUtils.createTable(connectionSource, ObservationGeometry.class);
+			TableUtils.createTable(connectionSource, ObservationProperty.class);
 			TableUtils.createTable(connectionSource, Attachment.class);
-			
+
 			TableUtils.createTable(connectionSource, User.class);
 			TableUtils.createTable(connectionSource, Location.class);
 			TableUtils.createTable(connectionSource, LocationGeometry.class);
 			TableUtils.createTable(connectionSource, LocationProperty.class);
-			
-			//seed State data.
-			//TODO: This should be config file driven.
-			stateDao.create(new State("active"));
-			stateDao.create(new State("complete"));
-			stateDao.create(new State("archive"));
-			
-			//seed GeometryType data
-			//TODO: This should be config file driven.
-			geometryTypeDao.create(new GeometryType("point"));
-			geometryTypeDao.create(new GeometryType("line"));
-			geometryTypeDao.create(new GeometryType("polygon"));
-			
-		} 
-		catch (Exception e) {
-			Log.e(LOG_NAME, "could not create table Observation", e);
+		} catch (SQLException se) {
+			Log.e(LOG_NAME, "Could not create tables.", se);
 		}
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase database, ConnectionSource connectionSource, int oldVersion, int newVersion) {
-		//TODO drop tables		
+		try {
+			TableUtils.dropTable(connectionSource, Observation.class, Boolean.TRUE);
+
+			TableUtils.dropTable(connectionSource, ObservationGeometry.class, Boolean.TRUE);
+			TableUtils.dropTable(connectionSource, ObservationProperty.class, Boolean.TRUE);
+			TableUtils.dropTable(connectionSource, Attachment.class, Boolean.TRUE);
+
+			TableUtils.dropTable(connectionSource, User.class, Boolean.TRUE);
+			TableUtils.dropTable(connectionSource, Location.class, Boolean.TRUE);
+			TableUtils.dropTable(connectionSource, LocationGeometry.class, Boolean.TRUE);
+			TableUtils.dropTable(connectionSource, LocationProperty.class, Boolean.TRUE);
+		} catch (SQLException se) {
+			Log.e(LOG_NAME, "could not create table Observation", se);
+		}
 	}
 
 	@Override
@@ -147,39 +139,15 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	}
 	
 	/**
-	 * Getter for the StateDao.
-	 * @return This instance's StateDao
-	 * @throws SQLException
-	 */
-	public Dao<State, Long> getStateDao() throws SQLException {
-		if (stateDao == null) {
-			stateDao = getDao(State.class);
-		}
-		return stateDao;
-	}
-	
-	/**
 	 * Getter for the GeometryDao
 	 * @return This instance's GeometryDao
 	 * @throws SQLException
 	 */
-	public Dao<Geometry, Long> getGeometryDao() throws SQLException {
+	public Dao<ObservationGeometry, Long> getGeometryDao() throws SQLException {
 		if (geometryDao == null) {
-			geometryDao = getDao(Geometry.class);
+			geometryDao = getDao(ObservationGeometry.class);
 		}
 		return geometryDao;
-	}
-	
-	/**
-	 * Getter for the GeometryTypeDao
-	 * @return This instance's GeometryTypeDao
-	 * @throws SQLException
-	 */
-	public Dao<GeometryType, Long> getGeometryTypeDao() throws SQLException {
-		if (geometryTypeDao == null) {
-			geometryTypeDao = getDao(GeometryType.class);
-		}
-		return geometryTypeDao;
 	}
 	
 	/**
@@ -187,9 +155,9 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	 * @return This instance's PropertyDao
 	 * @throws SQLException
 	 */
-	public Dao<Property, Long> getPropertyDao() throws SQLException {
+	public Dao<ObservationProperty, Long> getPropertyDao() throws SQLException {
 		if (propertyDao == null) {
-			propertyDao = getDao(Property.class);
+			propertyDao = getDao(ObservationProperty.class);
 		}
 		return propertyDao;
 	}

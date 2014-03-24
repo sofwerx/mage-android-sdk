@@ -7,14 +7,13 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import mil.nga.giat.mage.sdk.R;
-import mil.nga.giat.mage.sdk.datastore.common.GeometryType;
+import mil.nga.giat.mage.sdk.datastore.common.PointGeometry;
 import mil.nga.giat.mage.sdk.datastore.location.LocationGeometry;
 import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
-import mil.nga.giat.mage.sdk.utils.GeometryUtil;
 import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
@@ -38,6 +37,9 @@ import android.util.Log;
  * to never, the Service will listen for changes to userReportingFrequency.
  * 
  * TODO: implement {@link IEventDispatcher} for location updates?
+ * 
+ * @author wiedemannse
+ * 
  */
 public class LocationService extends Service implements LocationListener, OnSharedPreferenceChangeListener {
 
@@ -246,35 +248,37 @@ public class LocationService extends Service implements LocationListener, OnShar
 	
 	// TODO: Should this be in an AsyncTask?
 	private void saveLocation(Location location, String state) {
-		// TODO: check that location timestamp is not 0!
+		if(location != null && location.getTime() > 0) {
+			// INTEGRATION WITH LOCATION DATASTORE
+			LocationHelper locationHelper = LocationHelper.getInstance(mContext);
 
-		// INTEGRATION WITH LOCATION DATASTORE
-		LocationHelper locationHelper = LocationHelper.getInstance(mContext);
+			// build properties
+			Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();
+			locationProperties.add(new LocationProperty("REPORTED_TIME", String.valueOf(System.currentTimeMillis())));
+			locationProperties.add(new LocationProperty("TIME", String.valueOf(location.getTime())));
+			locationProperties.add(new LocationProperty("ACCURACY", String.valueOf(location.getAccuracy())));
+			locationProperties.add(new LocationProperty("BEARING", String.valueOf(location.getBearing())));
+			locationProperties.add(new LocationProperty("SPEED", String.valueOf(location.getSpeed())));
+			locationProperties.add(new LocationProperty("PROVIDER", String.valueOf(location.getProvider())));
+			locationProperties.add(new LocationProperty("ALTITUDE", String.valueOf(location.getAltitude())));
 
-		// build properties
-		Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();
-		LocationProperty reportedTime = new LocationProperty("REPORTED_TIME", String.valueOf(System.currentTimeMillis()));
-		locationProperties.add(reportedTime);
+			// build geometry
+			LocationGeometry locationGeometry = new LocationGeometry(new PointGeometry(location.getLatitude(), location.getLongitude()));
 
-		// build geometry
-		String coordinages = GeometryUtil.generate(location.getLatitude(), location.getLongitude());
-		LocationGeometry locationGeometry = new LocationGeometry(coordinages, new GeometryType("point"));
+			// build location
+			mil.nga.giat.mage.sdk.datastore.location.Location loc = new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", locationProperties, locationGeometry);
 
-		// build location
-		mil.nga.giat.mage.sdk.datastore.location.Location loc = new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", locationProperties, locationGeometry);
+			loc.setLocationGeometry(locationGeometry);
+			loc.setProperties(locationProperties);
 
-		loc.setLocationGeometry(locationGeometry);
-		loc.setProperties(locationProperties);
-
-		// save the location
-		try {
-			locationHelper.createLocation(loc);
-		} catch (LocationException le) {
-			// TODO: is this good enough?
-			Log.w(LOG_NAME, "Unable to record current location locally!", le);
+			// save the location
+			try {
+				Log.d(LOG_NAME, locationHelper.createLocation(loc).toString());
+			} catch (LocationException le) {
+				// TODO: is this good enough?
+				Log.w(LOG_NAME, "Unable to record current location locally!", le);
+			}
 		}
-
-		Log.d(LOG_NAME, "A Current Active User exists." + loc);
 	}
 	
 	/**

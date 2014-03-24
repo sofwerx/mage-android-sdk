@@ -2,12 +2,13 @@ package mil.nga.giat.mage.sdk.exceptions;
 
 /**
  * A generic Observation exception.
+ * 
  * @author travis
- *
+ * 
  */
 public class ObservationException extends Exception {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 3643427262387236746L;
 
 	public ObservationException() {
 		super();

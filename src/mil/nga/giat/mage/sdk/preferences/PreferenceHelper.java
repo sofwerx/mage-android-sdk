@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import mil.nga.giat.mage.sdk.R;
+import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.login.FormAuthLoginTask;
 import mil.nga.giat.mage.sdk.login.LocalAuthLoginTask;
 
@@ -36,6 +37,8 @@ import android.preference.PreferenceManager;
 /**
  * Loads the default configuration from the local property files, and also loads
  * the server configuration.
+ * 
+ * TODO: add setValue methods that provide similar functionallity as getValue
  * 
  * @author wiedemannse
  * 
@@ -154,7 +157,7 @@ public class PreferenceHelper {
 
 		private void initialize(URL serverURL) {
 			try {
-				DefaultHttpClient httpclient = new DefaultHttpClient();
+				DefaultHttpClient httpclient = HttpClientManager.getInstance(mContext).getHttpClient();
 				HttpGet get = new HttpGet(new URL(serverURL, "api").toURI());
 				HttpResponse response = httpclient.execute(get);
 				if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
@@ -184,6 +187,10 @@ public class PreferenceHelper {
 				je.printStackTrace();
 			}
 		}
+	}
+
+	public final String getValue(int key) {
+		return getValue(key, String.class, null);
 	}
 
 	/**
@@ -224,7 +231,7 @@ public class PreferenceHelper {
 		final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
 		String stringValue = sharedPreferences.getString(mContext.getString(key), null);
 		if (stringValue != null) {
-			if(valueType.equals(String.class)) {
+			if (valueType.equals(String.class)) {
 				return (T) stringValue;
 			} else {
 				try {
