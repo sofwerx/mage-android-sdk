@@ -23,7 +23,7 @@ public class PointGeometry implements Geometry {
 
 	public PointGeometry(String geoJSON) {
 		String regexDouble = "-?\\d*\\.?\\d+";
-		Pattern pattern = Pattern.compile(".*(" + regexDouble + ")\\s*,\\s*(" + regexDouble + ").*");
+		Pattern pattern = Pattern.compile(".*?(" + regexDouble + ")\\s*,\\s*(" + regexDouble + ").*");
 		Matcher matcher = pattern.matcher(geoJSON);
 		if (matcher.matches()) {
 			latitude = Double.parseDouble(matcher.group(1));
