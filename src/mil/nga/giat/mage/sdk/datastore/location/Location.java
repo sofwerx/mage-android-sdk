@@ -13,10 +13,19 @@ public class Location {
 	private Long pk_id;
 
 	@DatabaseField
+	private String remote_id;
+
+	@DatabaseField(canBeNull = false, version = true)
+	private long lastModified;
+	
+	@DatabaseField(canBeNull = false)
+	private boolean dirty;
+
+	@DatabaseField
 	private String type;
 
 	@ForeignCollectionField(eager = true)
-	Collection<LocationProperty> properties;
+	private Collection<LocationProperty> properties;
 
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
 	private LocationGeometry locationGeometry;
@@ -26,14 +35,30 @@ public class Location {
 	}
 
 	public Location(String type, Collection<LocationProperty> properties, LocationGeometry locationGeometry) {
+		this(null, System.currentTimeMillis(), type, properties, locationGeometry);
+		this.setDirty(true);
+	}
+
+	public Location(String remoteId, long lastModified, String type, Collection<LocationProperty> properties, LocationGeometry locationGeometry) {
 		super();
+		this.remote_id = remoteId;
+		this.lastModified = lastModified;
 		this.type = type;
 		this.properties = properties;
 		this.locationGeometry = locationGeometry;
+		this.setDirty(false);
 	}
 
 	public Long getPk_id() {
 		return pk_id;
+	}
+
+	public String getRemote_id() {
+		return remote_id;
+	}
+
+	public void setRemote_id(String remote_id) {
+		this.remote_id = remote_id;
 	}
 
 	public String getType() {
@@ -42,6 +67,22 @@ public class Location {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public void setLastModified(long lastModified) {
+		this.lastModified = lastModified;
+	}
+
+	public long getLastModified() {
+		return lastModified;
+	}
+
+	public void setDirty(boolean dirty) {
+		this.dirty = dirty;
+	}
+
+	public boolean isDirty() {
+		return dirty;
 	}
 
 	public Collection<LocationProperty> getProperties() {

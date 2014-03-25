@@ -23,6 +23,8 @@ public class User {
 
 	@DatabaseField(canBeNull = false)
 	private Boolean isCurrentUser = Boolean.FALSE;
+	
+	// TODO : add last modified
 
 	@DatabaseField(canBeNull = true, foreign = true, foreignAutoRefresh = true)
 	private Role role;

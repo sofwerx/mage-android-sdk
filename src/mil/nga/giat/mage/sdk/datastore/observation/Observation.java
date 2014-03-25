@@ -20,6 +20,12 @@ public class Observation {
 	@DatabaseField
 	private String remote_id;
 
+	@DatabaseField(canBeNull = false, version = true)
+	private long lastModified;
+	
+	@DatabaseField(canBeNull = false)
+	private boolean dirty;
+
 	@DatabaseField(canBeNull = false)
 	private State state = State.ACTIVE;
 
@@ -27,20 +33,28 @@ public class Observation {
 	private ObservationGeometry observationGeometry;
 
 	@ForeignCollectionField(eager = true)
-	Collection<ObservationProperty> properties;
+	private Collection<ObservationProperty> properties;
 
 	@ForeignCollectionField(eager = true)
-	Collection<Attachment> attachments;
+	private Collection<Attachment> attachments;
 
 	public Observation() {
 		// ORMLite needs a no-arg constructor
 	}
 
-	public Observation(String pRemoteId, ObservationGeometry observationGeometry, Collection<ObservationProperty> pProperties, Collection<Attachment> pAttachments) {
-		this.remote_id = pRemoteId;
+	public Observation(ObservationGeometry observationGeometry, Collection<ObservationProperty> pProperties, Collection<Attachment> pAttachments) {
+		this(null, System.currentTimeMillis(), observationGeometry, pProperties, pAttachments);
+		this.setDirty(true);
+	}
+
+	public Observation(String remoteId, long lastModified, ObservationGeometry observationGeometry, Collection<ObservationProperty> pProperties, Collection<Attachment> pAttachments) {
+		super();
+		this.remote_id = remoteId;
+		this.lastModified = lastModified;
 		this.observationGeometry = observationGeometry;
 		this.properties = pProperties;
 		this.attachments = pAttachments;
+		this.setDirty(false);
 	}
 
 	public Long getPk_id() {
@@ -69,6 +83,22 @@ public class Observation {
 
 	public void setObservationGeometry(ObservationGeometry observationGeometry) {
 		this.observationGeometry = observationGeometry;
+	}
+
+	public void setLastModified(long lastModified) {
+		this.lastModified = lastModified;
+	}
+
+	public long getLastModified() {
+		return lastModified;
+	}
+	
+	public void setDirty(boolean dirty) {
+		this.dirty = dirty;
+	}
+
+	public boolean isDirty() {
+		return dirty;
 	}
 
 	public Collection<ObservationProperty> getProperties() {
