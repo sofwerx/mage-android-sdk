@@ -159,7 +159,35 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 		}
 		return observation;
 	}
-
+	
+	/**
+	 * Does a record already exist in the local DB?
+	 * 
+	 * @param pRemoteId
+	 *            The remote ID assigned to an observation by an external entity
+	 *            (server).
+	 * @return If an Observation exists locally.
+	 * @throws ObservationException
+	 *             Unable to read Observation from the database
+	 */
+	public Boolean observationExists(String pRemoteId) throws ObservationException {
+		
+		Boolean exists = Boolean.FALSE;
+		
+		try {					
+			List<Observation> results = observationDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
+			if(results != null && results.size() > 0) {
+				exists = Boolean.TRUE;
+			}
+		}
+		catch(SQLException sqle) {
+			Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+			throw new ObservationException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+		}
+		
+		return exists;
+	}
+	
 	/**
 	 * Deletes an Observation. This will also delete an Observation's child
 	 * Attachments, child Properties and Geometry data.
