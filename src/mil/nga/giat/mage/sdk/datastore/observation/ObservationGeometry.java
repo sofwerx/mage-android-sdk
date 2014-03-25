@@ -1,4 +1,4 @@
-package mil.nga.giat.mage.sdk.datastore.location;
+package mil.nga.giat.mage.sdk.datastore.observation;
 
 import mil.nga.giat.mage.sdk.datastore.common.Geometry;
 
@@ -6,8 +6,8 @@ import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
-@DatabaseTable(tableName = "location_geometries")
-public class LocationGeometry {
+@DatabaseTable(tableName = "observation_geometries")
+public class ObservationGeometry {
 
 	@DatabaseField(generatedId = true)
 	private Long pk_id;
@@ -15,11 +15,11 @@ public class LocationGeometry {
 	@DatabaseField(canBeNull = false, dataType=DataType.SERIALIZABLE)
 	private Geometry geometry;
 
-	public LocationGeometry() {
+	public ObservationGeometry() {
 		// ORMLite needs a no-arg constructor
 	}
 
-	public LocationGeometry(Geometry geometry) {
+	public ObservationGeometry(Geometry geometry) {
 		this.geometry = geometry;
 	}
 
@@ -37,6 +37,6 @@ public class LocationGeometry {
 
 	@Override
 	public String toString() {
-		return "LocationGeometry [pk_id=" + pk_id + ", geometry=" + getGeometry() + "]";
+		return "ObservationGeometry [pk_id=" + pk_id + ", geometry=" + getGeometry() + "]";
 	}
 }

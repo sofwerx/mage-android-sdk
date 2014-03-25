@@ -6,8 +6,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.List;
 
-import mil.nga.giat.mage.sdk.datastore.location.User;
-import mil.nga.giat.mage.sdk.datastore.location.UserHelper;
+import mil.nga.giat.mage.sdk.R;
+import mil.nga.giat.mage.sdk.datastore.user.User;
+import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
+import mil.nga.giat.mage.sdk.exceptions.LoginException;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -17,7 +19,7 @@ import android.util.Log;
 
 /**
  * A Task intended to be used for local authentication only. Testing or off-line
- * modes perhaps.
+ * modes perhaps.  TODO: throw {@link LoginException}
  * 
  * @author travis
  * 
@@ -52,9 +54,9 @@ public class LocalAuthLoginTask extends AbstractAccountTask {
 			// put the token information in the shared preferences
 			SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mApplicationContext);
 			Editor editor = sharedPreferences.edit();
-			editor.putString("token", md5Password).commit();
+			editor.putString(mApplicationContext.getString(R.string.tokenKey), md5Password).commit();
 			// FIXME : 8 hours for now?
-			editor.putString("tokenExpirationDate", new Date(new Date().getTime() + 8 * 60 * 60 * 1000).toString()).commit();
+			editor.putString(mApplicationContext.getString(R.string.tokenExpirationDateKey), new Date(new Date().getTime() + 8 * 60 * 60 * 1000).toString()).commit();
 		} catch (NoSuchAlgorithmException nsae) {
 			nsae.printStackTrace();
 		} catch (UnsupportedEncodingException uee) {
@@ -71,7 +73,8 @@ public class LocalAuthLoginTask extends AbstractAccountTask {
 				userHelper.deleteCurrentUsers();
 
 				// create new active user.
-				User currentUser = new User("unknown", "unknown", "unknown", username, null, null, Boolean.TRUE);
+				User currentUser = new User("unknown", "unknown", "unknown", username, null);
+				currentUser.setCurrentUser(Boolean.TRUE);
 				currentUser = userHelper.createUser(currentUser);
 			} else {
 				Log.d(LOG_NAME, "A Current Active User exists." + activeUsers.get(0));

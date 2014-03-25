@@ -1,4 +1,4 @@
-package mil.nga.giat.mage.sdk.datastore.location;
+package mil.nga.giat.mage.sdk.datastore.user;
 
 import java.util.Collection;
 
@@ -12,7 +12,7 @@ public class Role {
 	@DatabaseField(generatedId = true)
 	private Long pk_id;
 
-	@DatabaseField
+	@DatabaseField(canBeNull = false)
 	private String name;
 
 	@DatabaseField
@@ -22,8 +22,9 @@ public class Role {
 	Collection<Permission> permissions;
 
 	public Role() {
-        // ORMLite needs a no-arg constructor 
-    }
+		// ORMLite needs a no-arg constructor
+	}
+
 	public Role(String name, String description, Collection<Permission> permissions) {
 		super();
 		this.name = name;
@@ -33,10 +34,6 @@ public class Role {
 
 	public Long getPk_id() {
 		return pk_id;
-	}
-
-	public void setPk_id(Long pk_id) {
-		this.pk_id = pk_id;
 	}
 
 	public String getName() {

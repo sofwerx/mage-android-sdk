@@ -16,7 +16,7 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
 
-public class MediaUtils {
+public class MediaUtility {
 	
 	private static int getPowerOfTwoForSampleRatio(double ratio){
         int k = Integer.highestOneBit((int)Math.floor(ratio));
@@ -50,17 +50,17 @@ public class MediaUtils {
 	
 	public static Bitmap getFullSizeOrientedBitmap(Uri uri, Context c) throws FileNotFoundException, IOException {
 		InputStream is = c.getContentResolver().openInputStream(uri);
-		return MediaUtils.orientBitmap(BitmapFactory.decodeStream(is, null, null), getFileAbsolutePath(uri, c));
+		return MediaUtility.orientBitmap(BitmapFactory.decodeStream(is, null, null), getFileAbsolutePath(uri, c));
 	}
 	
 	public static Bitmap getThumbnailFromContent(Uri uri, int thumbsize, Context c) throws FileNotFoundException, IOException {
 		InputStream is = c.getContentResolver().openInputStream(uri);
-		return MediaUtils.getThumbnail(is, thumbsize, getFileAbsolutePath(uri, c));
+		return MediaUtility.getThumbnail(is, thumbsize, getFileAbsolutePath(uri, c));
 	}
 	
 	public static Bitmap getThumbnail(File file, int thumbsize) throws FileNotFoundException, IOException {
 		FileInputStream input = new FileInputStream(file);
-		return MediaUtils.getThumbnail(input, thumbsize, file.getAbsolutePath());
+		return MediaUtility.getThumbnail(input, thumbsize, file.getAbsolutePath());
     }
 	
 	// TODO: this will only allow thumbnails based on the max of width or height.  We should allow choosing either height or width.
@@ -86,7 +86,7 @@ public class MediaUtils {
         bitmapOptions.inPreferredConfig=Bitmap.Config.ARGB_8888;//optional
         input = new FileInputStream(absoluteFilePath);
         
-        Bitmap bitmap = MediaUtils.orientBitmap(BitmapFactory.decodeStream(input, null, bitmapOptions), absoluteFilePath);
+        Bitmap bitmap = MediaUtility.orientBitmap(BitmapFactory.decodeStream(input, null, bitmapOptions), absoluteFilePath);
         input.close();
         return bitmap;
 	}
