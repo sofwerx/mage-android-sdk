@@ -90,6 +90,16 @@ public class LocationService extends Service implements LocationListener, OnShar
 		return PreferenceHelper.getInstance(mContext).getValue(R.string.userReportingFrequencyKey, Long.class, R.string.userReportingFrequencyDefaultValue);
 	}
 	
+	protected final synchronized boolean getLocationServiceEnabled() {
+	    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+        return preferences.getBoolean("locationServiceEnabled", false);
+	}
+	
+    protected final synchronized boolean shouldReportUserLocation() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+        return preferences.getBoolean("reportLocation", false);
+    }
+	
 	protected boolean locationUpdatesEnabled = false;
 
 	public synchronized boolean getLocationUpdatesEnabled() {
@@ -185,7 +195,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 
 	@Override
 	public void onLocationChanged(Location location) {
-		if (location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
+		if (location.getProvider().equals(LocationManager.GPS_PROVIDER)  && shouldReportUserLocation()) {
 			setLastLocationPullTime(System.currentTimeMillis());
 			saveLocation(location, "ACTIVE");
 		}
@@ -220,21 +230,29 @@ public class LocationService extends Service implements LocationListener, OnShar
 	public IBinder onBind(Intent intent) {
 		return null;
 	}
+	
+	public void init() {
+	    if (getLocationServiceEnabled()) start();
+	}
 
 	/**
 	 * Call this to start the location service
 	 */
-	public void start() {
-		if(!isPolling()) {
+	private void start() {
+		 if(!isPolling()) {
 			pollingRunning = Boolean.TRUE;
 			createLocationPollingThread().start();
 		}
 	}
 	
+    private void stop() {
+        destroy();
+    }
+	
 	/**
 	 * Call this to stop the location service
 	 */
-	public void stop() {
+	public void destroy() {
 		pollingRunning = Boolean.FALSE;
 		if (locationManager != null) {
 			synchronized (preferenceSemaphore) {
@@ -305,7 +323,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 							
 							final Location location = getLocation();
 							
-							if (location != null) {
+							if (location != null && shouldReportUserLocation()) {
 								mHandler.post(new Runnable() {
 									public void run() {
 										saveLocation(location, "STALE");
@@ -356,7 +374,15 @@ public class LocationService extends Service implements LocationListener, OnShar
 	 */
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-		if (key.equalsIgnoreCase(mContext.getString(R.string.gpsSensitivityKey))) {
+	    if (key.equalsIgnoreCase(mContext.getString(R.string.locationServiceEnabledKey))) {
+	        boolean locationServiceEnabled = sharedPreferences.getBoolean("locationServiceEnabled", false);
+	        if (locationServiceEnabled) {
+	            start();
+	        } else {
+	            stop();
+	        }
+	    }
+	    else if (key.equalsIgnoreCase(mContext.getString(R.string.gpsSensitivityKey))) {
 			synchronized (preferenceSemaphore) {
 				// this will cause the polling-thread to reset the gps sensitivity
 				locationUpdatesEnabled = false;

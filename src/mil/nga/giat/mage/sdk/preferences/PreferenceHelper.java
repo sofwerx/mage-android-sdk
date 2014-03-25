@@ -66,7 +66,7 @@ public class PreferenceHelper {
 	 */
 	public synchronized void initializeAll(int... xmlFiles) {
 		// load preferences from mdk xml files first
-		initializeLocal(new int[] { R.xml.mdkprivatepreferences, R.xml.mdkpublicpreferences });
+		initializeLocal(new int[] { R.xml.mdkprivatepreferences, R.xml.mdkpublicpreferences, R.xml.locationpreferences });
 
 		// add programmatic preferences
 		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
@@ -100,8 +100,8 @@ public class PreferenceHelper {
 	}
 
 	public synchronized void initializeLocal(int... xmlFiles) {
-		for (int i = 0; i < xmlFiles.length; i++) {
-			PreferenceManager.setDefaultValues(mContext, xmlFiles[i], true);
+		for (int id : xmlFiles) {
+			PreferenceManager.setDefaultValues(mContext, id, true);
 		}
 	}
 
