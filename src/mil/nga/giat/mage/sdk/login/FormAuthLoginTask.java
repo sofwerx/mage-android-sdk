@@ -8,12 +8,14 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import mil.nga.giat.mage.sdk.R;
+import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.exceptions.LoginException;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
-import mil.nga.giat.mage.sdk.utils.ConnectivityUtility;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -83,7 +85,25 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 		// is server a valid URL? (already checked username and password)
 		try {
 			URL sURL = new URL(serverURL);
-			PreferenceHelper.getInstance(mApplicationContext).initializeRemote(sURL);
+			
+			// Make sure host exists
+			if (!ConnectivityUtility.isResolvable(sURL.getHost())) {
+				List<Integer> errorIndices = new ArrayList<Integer>();
+				errorIndices.add(2);
+				List<String> errorMessages = new ArrayList<String>();
+				errorMessages.add("Bad hostname");
+				return new AccountStatus(Boolean.FALSE, errorIndices, errorMessages);
+			}
+			
+			try {
+				PreferenceHelper.getInstance(mApplicationContext).initializeRemote(sURL);
+			} catch (Exception e) {
+				List<Integer> errorIndices = new ArrayList<Integer>();
+				errorIndices.add(2);
+				List<String> errorMessages = new ArrayList<String>();
+				errorMessages.add("Problem connecting to server");
+				return new AccountStatus(Boolean.FALSE, errorIndices, errorMessages);
+			}
 		} catch (MalformedURLException e) {
 			List<Integer> errorIndices = new ArrayList<Integer>();
 			errorIndices.add(2);

@@ -93,8 +93,8 @@ public class PreferenceHelper {
 				try {
 					// load preferences from server
 					initializeRemote(new URL(serverURLString));
-				} catch (MalformedURLException mue) {
-					mue.printStackTrace();
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 		} catch (ClassNotFoundException cnfe) {
@@ -108,16 +108,8 @@ public class PreferenceHelper {
 		}
 	}
 
-	public synchronized void initializeRemote(URL serverURL) {
-		try {
-			new RemotePreferenceColonization().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, serverURL).get(30, TimeUnit.SECONDS);
-		} catch (InterruptedException ie) {
-			ie.printStackTrace();
-		} catch (ExecutionException ee) {
-			ee.printStackTrace();
-		} catch (TimeoutException te) {
-			te.printStackTrace();
-		}
+	public synchronized void initializeRemote(URL serverURL) throws InterruptedException, ExecutionException, TimeoutException {
+		new RemotePreferenceColonization().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, serverURL).get(30, TimeUnit.SECONDS);
 	}
 
 	private class RemotePreferenceColonization extends AsyncTask<URL, Void, Void> {

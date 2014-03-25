@@ -394,6 +394,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 	    }
 	    else if (key.equalsIgnoreCase(mContext.getString(R.string.gpsSensitivityKey))) {
 			synchronized (preferenceSemaphore) {
+				Log.d(LOG_NAME, "GPS sensitivity changed, distance in meters for change: " + getMinimumDistanceChangeForUpdates());
 				// this will cause the polling-thread to reset the gps sensitivity
 				locationUpdatesEnabled = false;
 				preferenceSemaphore.set(true);
@@ -401,6 +402,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 			}
 		} else if (key.equalsIgnoreCase(mContext.getString(R.string.userReportingFrequencyKey))) {
 			synchronized (preferenceSemaphore) {
+				Log.d(LOG_NAME, "Location service frequency changed: " + getUserReportingFrequency());
 				preferenceSemaphore.notifyAll();
 			}
 		}

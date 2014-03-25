@@ -8,8 +8,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
-import mil.nga.giat.mage.sdk.utils.ConnectivityUtility;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
