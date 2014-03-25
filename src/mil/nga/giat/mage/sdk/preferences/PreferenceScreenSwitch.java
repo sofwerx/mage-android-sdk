@@ -9,14 +9,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Switch;
 
-public class ScreenSwitchPreference extends SwitchPreference implements OnPreferenceChangeListener {
+public class PreferenceScreenSwitch extends SwitchPreference implements OnPreferenceChangeListener {
 
-    public ScreenSwitchPreference(Context context, AttributeSet attrs) {
+    public PreferenceScreenSwitch(Context context, AttributeSet attrs) {
         super(context, attrs);
         
         setOnPreferenceChangeListener(this);
     }
-
+    
     @Override
     protected void onClick() {
         // Don't let users click the actual preference to changed the switch state
@@ -24,9 +24,9 @@ public class ScreenSwitchPreference extends SwitchPreference implements OnPrefer
 
     @Override
     public boolean onPreferenceChange(Preference p, Object value) {
-        ScreenSwitchPreference preference = (ScreenSwitchPreference) p;
+        PreferenceScreenSwitch preference = (PreferenceScreenSwitch) p;
         Boolean checked = (Boolean) value;
-        preference.setChecked(checked);
+        preference.setChecked(checked);        
         return true;
     }
 
@@ -46,11 +46,5 @@ public class ScreenSwitchPreference extends SwitchPreference implements OnPrefer
         }
     }
     
-    @Override
-    protected void onSetInitialValue(boolean restoreValue, Object defaultValue) {
-        boolean per = getPersistedBoolean(isChecked());
-        boolean value = restoreValue ? getPersistedBoolean(isChecked()) : (Boolean) defaultValue;
-        setChecked(value);
-    }
-
+    
 }

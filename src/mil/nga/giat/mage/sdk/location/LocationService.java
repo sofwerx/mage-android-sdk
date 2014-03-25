@@ -197,13 +197,19 @@ public class LocationService extends Service implements LocationListener, OnShar
 
 	@Override
 	public void onLocationChanged(Location location) {
-		if (location.getProvider().equals(LocationManager.GPS_PROVIDER)  && shouldReportUserLocation()) {
+		if (location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
 			setLastLocationPullTime(System.currentTimeMillis());
-			saveLocation(location, "ACTIVE");
+			
+			if (shouldReportUserLocation()) {
+			    saveLocation(location, "ACTIVE");			    
+			}
 		}
 		
-		for (LocationListener listener : locationListeners) {
-		    listener.onLocationChanged(location);
+		long duration = new Date().getTime() - getLastLocationPullTime();
+		if (location.getProvider().equals(LocationManager.GPS_PROVIDER) || duration > getUserReportingFrequency()) {
+		    for (LocationListener listener : locationListeners) {
+		        listener.onLocationChanged(location);
+		    }		    
 		}
 	}
 

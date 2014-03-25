@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
     
-    <mil.nga.giat.mage.sdk.preferences.ScreenSwitchPreference
+    <mil.nga.giat.mage.sdk.preferences.PreferenceScreenSwitch
         android:order="1"
         android:title="Location Services"
         android:summary="GPS sensitivy and tracking options"
@@ -11,7 +11,7 @@
             android:action="android.intent.action.VIEW"
             android:targetClass="mil.nga.giat.mage.preferences.LocationPreferencesActivity"
             android:targetPackage="mil.nga.giat.mage" />
-    </mil.nga.giat.mage.sdk.preferences.ScreenSwitchPreference>
+    </mil.nga.giat.mage.sdk.preferences.PreferenceScreenSwitch>
     
     <PreferenceCategory
         android:order="2"
