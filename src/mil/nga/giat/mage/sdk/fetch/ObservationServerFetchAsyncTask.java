@@ -17,9 +17,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
+import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
+import mil.nga.giat.mage.sdk.exceptions.ObservationException;
+import mil.nga.giat.mage.sdk.gson.deserializer.ObservationDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import android.content.Context;
@@ -35,7 +39,9 @@ import android.util.Log;
 public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask {
 
 	private static final String LOG_NAME = ObservationServerFetchAsyncTask.class.getName();
-
+	
+	private static final Gson observationDeserializer = ObservationDeserializer.getGson();
+	
 	public ObservationServerFetchAsyncTask(Context context) {
 		super(context);
 	}
@@ -43,6 +49,8 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask {
 	@Override
 	protected Void doInBackground(Void... params) {
 
+		ObservationHelper observationHelper = ObservationHelper.getInstance(mContext);
+		
 		int fieldObservationLayerId = 0;
 		String fieldObservationLayerName = "Field Observations";
 		// get the correct feature server id
@@ -84,6 +92,9 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask {
 		while (Status.RUNNING.equals(getStatus())) {
 			Long frequency = PreferenceHelper.getInstance(mContext).getValue(R.string.observationFetchFrequencyKey, Long.class, R.string.observationFetchFrequencyDefaultValue);
 
+			
+			
+			
 			try {
 				URL serverURL = new URL(PreferenceHelper.getInstance(mContext).getValue(R.string.serverURLKey));
 
@@ -92,7 +103,28 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask {
 				if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 					JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
 					// FIXME : use jackson??? to transform this JSON into
-					// observations!					
+					// observations!
+					
+					JSONArray features = json.getJSONArray("features");
+					for(int i = 0; i < features.length(); i++) {
+						JSONObject feature = (JSONObject)features.get(i);
+						Observation observation = observationDeserializer.fromJson(feature.toString(), Observation.class);						
+						
+						//if the Observation does NOT currently exist in the local datastore
+						if(!observationHelper.observationExists(observation.getRemote_id())) {
+							observation = ObservationHelper.getInstance(mContext).createObservation(observation);
+							Log.d(LOG_NAME, "created observation with remote_id " + observation.getRemote_id());
+						}
+						//the Observation DOES exist...
+						else {
+							Log.d(LOG_NAME, "observation with remote_id " + observation.getRemote_id() + " already exists!");
+							//TODO: perform an update?
+						}
+																							
+					}
+					
+					
+					
 					
 					Log.d(LOG_NAME, json.toString());
 				}
@@ -114,6 +146,9 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask {
 			} catch (JSONException je) {
 				// TODO Auto-generated catch block
 				je.printStackTrace();
+			} catch (ObservationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 			
 			try {
