@@ -1,9 +1,14 @@
 package mil.nga.giat.mage.sdk.datastore.location;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import mil.nga.giat.mage.sdk.datastore.DBHelper;
+import mil.nga.giat.mage.sdk.event.IEventDispatcher;
+import mil.nga.giat.mage.sdk.event.IEventListener;
+import mil.nga.giat.mage.sdk.event.location.ILocationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
 import android.content.Context;
 import android.util.Log;
@@ -18,7 +23,7 @@ import com.j256.ormlite.dao.Dao;
  * @author wiedemannse
  * 
  */
-public class LocationHelper {
+public class LocationHelper implements IEventDispatcher<Location> {
 
 	private static final String LOG_NAME = LocationHelper.class.getName();
 
@@ -28,6 +33,8 @@ public class LocationHelper {
 	private final Dao<LocationGeometry, Long> locationGeometryDao;
 	private final Dao<LocationProperty, Long> locationPropertyDao;
 
+	private List<ILocationEventListener> listeners = new ArrayList<ILocationEventListener>();
+	
 	/**
 	 * Singleton.
 	 */
@@ -100,6 +107,11 @@ public class LocationHelper {
 					locationPropertyDao.create(locationProperty);
 				}
 			}
+			
+			// fire the event
+			for (ILocationEventListener listener : listeners) {
+				listener.onLocationCreated(createdLocation);
+			}
 
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "There was a problem creating the location: " + pLocation + ".", sqle);
@@ -107,5 +119,15 @@ public class LocationHelper {
 		}
 
 		return createdLocation;
+	}
+
+	@Override
+	public boolean addListener(IEventListener<Location> listener) {
+		return listeners.add((ILocationEventListener) listener);
+	}
+
+	@Override
+	public boolean removeListener(IEventListener<Location> listener) {
+		return listeners.remove((ILocationEventListener)listener);
 	}
 }

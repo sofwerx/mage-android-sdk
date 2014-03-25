@@ -1,9 +1,14 @@
 package mil.nga.giat.mage.sdk.datastore.observation;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import mil.nga.giat.mage.sdk.datastore.DBHelper;
+import mil.nga.giat.mage.sdk.event.IEventDispatcher;
+import mil.nga.giat.mage.sdk.event.IEventListener;
+import mil.nga.giat.mage.sdk.event.observation.IObservationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import android.content.Context;
 import android.util.Log;
@@ -18,7 +23,7 @@ import com.j256.ormlite.dao.Dao;
  * @author travis
  * 
  */
-public class ObservationHelper {
+public class ObservationHelper implements IEventDispatcher<Observation> {
 
 	private static final String LOG_NAME = ObservationHelper.class.getName();
 
@@ -29,6 +34,8 @@ public class ObservationHelper {
 	private Dao<ObservationProperty, Long> propertyDao;
 	private Dao<Attachment, Long> attachmentDao;
 
+	private List<IObservationEventListener> listeners = new ArrayList<IObservationEventListener>();
+	
 	/**
 	 * Singleton.
 	 */
@@ -120,7 +127,11 @@ public class ObservationHelper {
 			Log.e(LOG_NAME, "There was a problem creating the observation: " + pObservation + ".", sqle);
 			throw new ObservationException("There was a problem creating the observation: " + pObservation + ".", sqle);
 		}
-
+		
+		// fire the event
+		for (IObservationEventListener listener : listeners) {
+			listener.onObservationCreated(createdObservation);
+		}
 		return createdObservation;
 
 	}
@@ -158,7 +169,6 @@ public class ObservationHelper {
 	 */
 	public void deleteObservation(Long pPrimaryKey) throws ObservationException {
 		try {
-
 			// read the full Observation in
 			Observation observation = observationDao.queryForId(pPrimaryKey);
 
@@ -183,10 +193,23 @@ public class ObservationHelper {
 
 			// finally, delete the Observation.
 			observationDao.deleteById(pPrimaryKey);
+			
+			for (IObservationEventListener listener : listeners) {
+				listener.onObservationDeleted(observation);
+			}
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to delete Observation: " + pPrimaryKey, sqle);
 			throw new ObservationException("Unable to delete Observation: " + pPrimaryKey, sqle);
 		}
 	}
 
+	@Override
+	public boolean addListener(IEventListener<Observation> listener) {
+		return listeners.add((IObservationEventListener) listener);
+	}
+
+	@Override
+	public boolean removeListener(IEventListener<Observation> listener) {
+		return listeners.remove((IObservationEventListener)listener);
+	}
 }
