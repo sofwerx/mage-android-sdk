@@ -24,6 +24,7 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -201,7 +202,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 			setLastLocationPullTime(System.currentTimeMillis());
 			
 			if (shouldReportUserLocation()) {
-			    saveLocation(location, "ACTIVE");			    
+				new saveLocation().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new Object[]{location, "ACTIVE"});
 			}
 		}
 		
@@ -269,7 +270,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 			removeLocationUpdates();
 		}
 	}
-	
+	/*
 	// TODO: Should this be in an AsyncTask?
 	private void saveLocation(Location location, String state) {
 		if(location != null && location.getTime() > 0) {
@@ -303,7 +304,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 				Log.w(LOG_NAME, "Unable to record current location locally!", le);
 			}
 		}
-	}
+	}*/
 	
 	/**
 	 * Polls for locations at time specified by the settings.
@@ -336,7 +337,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 							if (location != null && shouldReportUserLocation()) {
 								mHandler.post(new Runnable() {
 									public void run() {
-										saveLocation(location, "STALE");
+										new saveLocation().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new Object[]{location, "STALE"});
 									}
 								});
 							}
@@ -379,6 +380,49 @@ public class LocationService extends Service implements LocationListener, OnShar
 
 	}
 
+	public class saveLocation extends AsyncTask<Object, Void, Void> {
+
+		@Override
+		protected Void doInBackground(Object... params) {
+
+			Location location = (Location) params[0];
+			String state = (String) params[1];
+
+			if (location != null && location.getTime() > 0) {
+				// INTEGRATION WITH LOCATION DATASTORE
+				LocationHelper locationHelper = LocationHelper.getInstance(mContext);
+
+				// build properties
+				Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();
+				locationProperties.add(new LocationProperty("REPORTED_TIME", String.valueOf(System.currentTimeMillis())));
+				locationProperties.add(new LocationProperty("TIME", String.valueOf(location.getTime())));
+				locationProperties.add(new LocationProperty("ACCURACY", String.valueOf(location.getAccuracy())));
+				locationProperties.add(new LocationProperty("BEARING", String.valueOf(location.getBearing())));
+				locationProperties.add(new LocationProperty("SPEED", String.valueOf(location.getSpeed())));
+				locationProperties.add(new LocationProperty("PROVIDER", String.valueOf(location.getProvider())));
+				locationProperties.add(new LocationProperty("ALTITUDE", String.valueOf(location.getAltitude())));
+
+				// build geometry
+				LocationGeometry locationGeometry = new LocationGeometry(new PointGeometry(location.getLatitude(), location.getLongitude()));
+
+				// build location
+				mil.nga.giat.mage.sdk.datastore.location.Location loc = new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", locationProperties, locationGeometry);
+
+				loc.setLocationGeometry(locationGeometry);
+				loc.setProperties(locationProperties);
+
+				// save the location
+				try {
+					Log.d(LOG_NAME, locationHelper.createLocation(loc).toString());
+				} catch (LocationException le) {
+					// TODO: is this good enough?
+					Log.w(LOG_NAME, "Unable to record current location locally!", le);
+				}
+			}
+			return null;
+		}
+	}
+	
 	/**
 	 * Will alert the polling thread that changes have been made
 	 */
