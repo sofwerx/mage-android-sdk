@@ -23,6 +23,9 @@ public class Attachment {
 
 	@DatabaseField
 	private String remote_path;
+	
+	@DatabaseField
+	private String remote_id;
 
 	@DatabaseField(foreign = true)
 	private Observation observation;
@@ -82,6 +85,14 @@ public class Attachment {
 	public void setRemote_path(String remote_path) {
 		this.remote_path = remote_path;
 	}
+	
+	public String getRemote_id() {
+		return remote_id;
+	}
+
+	public void setRemote_id(String remote_id) {
+		this.remote_id = remote_id;
+	}
 
 	public Observation getObservation() {
 		return observation;
@@ -93,7 +104,7 @@ public class Attachment {
 
 	@Override
 	public String toString() {
-		return "Attachment [pk_id=" + pk_id + ", content_type=" + content_type + ", size=" + size + ", name=" + name + ", local_path=" + local_path + ", remote_path=" + remote_path + ", observation=" + observation.getPk_id() + "]";
+		return "Attachment [pk_id=" + pk_id + ", content_type=" + content_type + ", size=" + size + ", name=" + name + ", local_path=" + local_path + ", remote_path=" + remote_path + ", remote_id=" + remote_id + ", observation=" + observation.getPk_id() + "]";
 	}
 
 }
