@@ -87,10 +87,16 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 
 		for (int i = 0; i < jsonAttachments.size(); i++) {
 			JsonObject jsonAttachment = (JsonObject) jsonAttachments.get(i);
-			// Attachment attachment = new Attachment();
-			// attachment.setContent_type(jsonAttachment.get(memberName));
-			// TODO: finish this up
+			Attachment attachment = new Attachment();
+			attachment.setContent_type(jsonAttachment.get("contentType").getAsString());
+			attachment.setRemote_path(jsonAttachment.get("relativePath").getAsString());
+			attachment.setName(jsonAttachment.get("name").toString());
+			attachment.setSize(jsonAttachment.get("size").getAsLong());	
+			attachment.setObservation(observation);
+			attachments.add(attachment);
 		}
+		observation.setAttachments(attachments);
+		
 		return observation;
 	}
 	
