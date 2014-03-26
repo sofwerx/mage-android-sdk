@@ -61,7 +61,7 @@ public class LocationProperty {
 
 	@Override
 	public String toString() {
-		return "LocationProperty [pk_id=" + pk_id + ", key=" + key + ", value=" + value + ", location=" + location.getPk_id() + "]";
+		return "LocationProperty [pk_id=" + pk_id + ", key=" + key + ", value=" + value + "]";
 	}
 
 }

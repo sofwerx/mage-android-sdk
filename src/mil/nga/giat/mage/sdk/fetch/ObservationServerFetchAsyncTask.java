@@ -4,6 +4,16 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Date;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import mil.nga.giat.mage.sdk.R;
+import mil.nga.giat.mage.sdk.datastore.observation.Observation;
+import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
+import mil.nga.giat.mage.sdk.exceptions.ObservationException;
+import mil.nga.giat.mage.sdk.gson.deserializer.ObservationDeserializer;
+import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
+import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -16,41 +26,40 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-
-import mil.nga.giat.mage.sdk.R;
-import mil.nga.giat.mage.sdk.datastore.observation.Observation;
-import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
-import mil.nga.giat.mage.sdk.exceptions.ObservationException;
-import mil.nga.giat.mage.sdk.gson.deserializer.ObservationDeserializer;
-import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
-import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 /**
- * FIXME: Prototype for a procedure that might pull observations from the
- * server.
+ * A simple procedure thats pull observations from the server.
  * 
  * @author wiedemannse
  * 
  */
-public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask {
+public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implements OnSharedPreferenceChangeListener {
 
 	private static final String LOG_NAME = ObservationServerFetchAsyncTask.class.getName();
-	
-	private static final Gson observationDeserializer = ObservationDeserializer.getGson();
-	
+
 	public ObservationServerFetchAsyncTask(Context context) {
 		super(context);
+		PreferenceManager.getDefaultSharedPreferences(mContext).registerOnSharedPreferenceChangeListener(this);
+	}
+
+	protected AtomicBoolean preferenceSemaphore = new AtomicBoolean(false);
+
+	protected final synchronized long getobservationFetchFrequency() {
+		return PreferenceHelper.getInstance(mContext).getValue(R.string.observationFetchFrequencyKey, Long.class, R.string.observationFetchFrequencyDefaultValue);
 	}
 
 	@Override
 	protected Void doInBackground(Void... params) {
 
 		ObservationHelper observationHelper = ObservationHelper.getInstance(mContext);
-		
+
 		int fieldObservationLayerId = 0;
 		String fieldObservationLayerName = "Field Observations";
 		// get the correct feature server id
@@ -89,44 +98,38 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask {
 			je.printStackTrace();
 		}
 
-		while (Status.RUNNING.equals(getStatus())) {
-			Long frequency = PreferenceHelper.getInstance(mContext).getValue(R.string.observationFetchFrequencyKey, Long.class, R.string.observationFetchFrequencyDefaultValue);
+		final Gson observationDeserializer = ObservationDeserializer.getGsonBuilder();
 
-			
-			
-			
+		while (Status.RUNNING.equals(getStatus())) {
 			try {
 				URL serverURL = new URL(PreferenceHelper.getInstance(mContext).getValue(R.string.serverURLKey));
+
+				// TODO : get latest last modified date, to request observations
+				// in time frame
 
 				HttpGet get = new HttpGet(new URL(serverURL, "/FeatureServer/" + fieldObservationLayerId + "/features").toURI());
 				HttpResponse response = httpclient.execute(get);
 				if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 					JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-					// FIXME : use jackson??? to transform this JSON into
-					// observations!
-					
 					JSONArray features = json.getJSONArray("features");
-					for(int i = 0; i < features.length(); i++) {
-						JSONObject feature = (JSONObject)features.get(i);
-						Observation observation = observationDeserializer.fromJson(feature.toString(), Observation.class);						
-						
-						//if the Observation does NOT currently exist in the local datastore
-						if(!observationHelper.observationExists(observation.getRemote_id())) {
-							observation = ObservationHelper.getInstance(mContext).createObservation(observation);
-							Log.d(LOG_NAME, "created observation with remote_id " + observation.getRemote_id());
+					if (features != null) {
+						for (int i = 0; i < features.length(); i++) {
+							JSONObject feature = (JSONObject) features.get(i);
+							if (feature != null) {
+								Observation observation = observationDeserializer.fromJson(feature.toString(), Observation.class);
+
+								if (observation != null) {
+									if (!observationHelper.observationExists(observation.getRemote_id())) {
+										observation = ObservationHelper.getInstance(mContext).createObservation(observation);
+										Log.d(LOG_NAME, "created observation with remote_id " + observation.getRemote_id());
+									} else {
+										// TODO: perform an update?
+										Log.d(LOG_NAME, "observation with remote_id " + observation.getRemote_id() + " already exists!");
+									}
+								}
+							}
 						}
-						//the Observation DOES exist...
-						else {
-							Log.d(LOG_NAME, "observation with remote_id " + observation.getRemote_id() + " already exists!");
-							//TODO: perform an update?
-						}
-																							
 					}
-					
-					
-					
-					
-					Log.d(LOG_NAME, json.toString());
 				}
 			} catch (MalformedURLException mue) {
 				// TODO Auto-generated catch block
@@ -150,10 +153,17 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+
+			long frequency = getobservationFetchFrequency();
+			long lastFetchTime = new Date().getTime();
+			long currentTime = new Date().getTime();
 			try {
-				Log.d(LOG_NAME, "Observation fetch sleeping for " + frequency + "ms.");
-				Thread.sleep(frequency);
+				while (lastFetchTime + (frequency = getobservationFetchFrequency()) > (currentTime = new Date().getTime())) {
+					synchronized (preferenceSemaphore) {
+						Log.d(LOG_NAME, "Observation fetch sleeping for " + (lastFetchTime + frequency - currentTime) + "ms.");
+						preferenceSemaphore.wait(lastFetchTime + frequency - currentTime);
+					}
+				}
 			} catch (InterruptedException ie) {
 				Log.w("Interupted.  Unable to sleep " + frequency, ie);
 				// TODO: should cancel the AsyncTask?
@@ -163,4 +173,17 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask {
 		return null;
 	}
 
+	/**
+	 * Will alert the fetching thread that changes have been made
+	 */
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+		System.out.println("onSharedPreferenceChanged");
+		if (key.equalsIgnoreCase(mContext.getString(R.string.observationFetchFrequencyKey))) {
+			synchronized (preferenceSemaphore) {
+				System.out.println("notifyAll");
+				preferenceSemaphore.notifyAll();
+			}
+		}
+	}
 }

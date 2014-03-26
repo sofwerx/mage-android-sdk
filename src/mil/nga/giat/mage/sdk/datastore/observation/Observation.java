@@ -17,7 +17,7 @@ public class Observation {
 	@DatabaseField(generatedId = true)
 	private Long pk_id;
 
-	@DatabaseField
+	@DatabaseField(unique = true)
 	private String remote_id;
 
 	@DatabaseField(canBeNull = false, version = true)
