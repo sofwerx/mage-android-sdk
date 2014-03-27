@@ -15,6 +15,7 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 
 public class MediaUtility {
 	
@@ -23,6 +24,17 @@ public class MediaUtility {
         if(k==0) return 1;
         else return k;
     }
+	
+	public static String getMimeType(String url)
+	{
+	    String type = null;
+	    String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+	    if (extension != null) {
+	        MimeTypeMap mime = MimeTypeMap.getSingleton();
+	        type = mime.getMimeTypeFromExtension(extension);
+	    }
+	    return type;
+	}
 	
 	public static String getFileAbsolutePath(Uri uri, Context c) 
 	{
