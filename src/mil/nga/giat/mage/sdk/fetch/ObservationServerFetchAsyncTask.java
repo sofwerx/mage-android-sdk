@@ -119,12 +119,12 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 								Observation observation = observationDeserializer.fromJson(feature.toString(), Observation.class);
 
 								if (observation != null) {
-									if (!observationHelper.observationExists(observation.getRemote_id())) {
+									if (!observationHelper.observationExists(observation.getRemoteId())) {
 										observation = ObservationHelper.getInstance(mContext).createObservation(observation);
-										Log.d(LOG_NAME, "created observation with remote_id " + observation.getRemote_id());
+										Log.d(LOG_NAME, "created observation with remote_id " + observation.getRemoteId());
 									} else {
 										// TODO: perform an update?
-										Log.d(LOG_NAME, "observation with remote_id " + observation.getRemote_id() + " already exists!");
+										Log.d(LOG_NAME, "observation with remote_id " + observation.getRemoteId() + " already exists!");
 									}
 								}
 							}

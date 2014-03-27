@@ -49,7 +49,7 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 		JsonObject feature = json.getAsJsonObject();
 
 		Observation observation = new Observation();
-		observation.setRemote_id(feature.get("id").getAsString());
+		observation.setRemoteId(feature.get("id").getAsString());
 
 		// deserialize state
 		JsonObject stateFeature = feature.get("states").getAsJsonArray().get(0).getAsJsonObject();
@@ -110,11 +110,11 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 			for (int i = 0; i < jsonAttachments.size(); i++) {
 				JsonObject jsonAttachment = (JsonObject) jsonAttachments.get(i);
 				Attachment attachment = new Attachment();
-				attachment.setContent_type(jsonAttachment.get("contentType").getAsString());
-				attachment.setRemote_path(jsonAttachment.get("relativePath").getAsString());
+				attachment.setContentType(jsonAttachment.get("contentType").getAsString());
+				attachment.setRemotePath(jsonAttachment.get("relativePath").getAsString());
 				attachment.setName(jsonAttachment.get("name").getAsString());
 				attachment.setSize(jsonAttachment.get("size").getAsLong());
-				attachment.setRemote_id(jsonAttachment.get("id").getAsString());
+				attachment.setRemoteId(jsonAttachment.get("id").getAsString());
 				attachment.setObservation(observation);
 				attachments.add(attachment);
 			}

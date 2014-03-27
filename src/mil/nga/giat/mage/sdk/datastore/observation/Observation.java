@@ -14,19 +14,19 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable(tableName = "observations")
 public class Observation {
 
-	@DatabaseField(generatedId = true)
-	private Long pk_id;
+	@DatabaseField(generatedId = true, columnName="pk_id")
+	private Long id;
 
-	@DatabaseField(unique = true)
-	private String remote_id;
+	@DatabaseField(unique = true, columnName="remote_id")
+	private String remoteId;
 
-	@DatabaseField(canBeNull = false, version = true)
+	@DatabaseField(canBeNull = false, version = true, columnName="lastModified")
 	private long lastModified;
 	
-	@DatabaseField(canBeNull = false)
+	@DatabaseField(canBeNull = false, columnName="dirty")
 	private boolean dirty;
 
-	@DatabaseField(canBeNull = false)
+	@DatabaseField(canBeNull = false, columnName="state")
 	private State state = State.ACTIVE;
 
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
@@ -49,7 +49,7 @@ public class Observation {
 
 	public Observation(String remoteId, long lastModified, ObservationGeometry observationGeometry, Collection<ObservationProperty> pProperties, Collection<Attachment> pAttachments) {
 		super();
-		this.remote_id = remoteId;
+		this.remoteId = remoteId;
 		this.lastModified = lastModified;
 		this.observationGeometry = observationGeometry;
 		this.properties = pProperties;
@@ -57,16 +57,16 @@ public class Observation {
 		this.setDirty(false);
 	}
 
-	public Long getPk_id() {
-		return pk_id;
+	public Long getId() {
+		return id;
 	}
 
-	public String getRemote_id() {
-		return remote_id;
+	public String getRemoteId() {
+		return remoteId;
 	}
 
-	public void setRemote_id(String remote_id) {
-		this.remote_id = remote_id;
+	public void setRemoteId(String remoteId) {
+		this.remoteId = remoteId;
 	}
 
 	public State getState() {
@@ -157,7 +157,7 @@ public class Observation {
 
 	@Override
 	public String toString() {
-		return "Observation [pk_id=" + pk_id + ", remote_id=" + remote_id + ", state=" + state + ", observationGeometry=" + observationGeometry + ", properties=" + properties + ", attachments=" + attachments + "]";
+		return "Observation [pk_id=" + id + ", remote_id=" + remoteId + ", state=" + state + ", observationGeometry=" + observationGeometry + ", properties=" + properties + ", attachments=" + attachments + "]";
 	}
 
 }

@@ -6,26 +6,26 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable(tableName = "attachments")
 public class Attachment {
 
-	@DatabaseField(generatedId = true)
-	private Long pk_id;
+	@DatabaseField(generatedId = true, columnName="pk_id")
+	private Long id;
 
-	@DatabaseField(unique = true)
-	private String remote_id;
+	@DatabaseField(unique = true, columnName="remote_id")
+	private String remoteId;
 
-	@DatabaseField
-	private String content_type;
+	@DatabaseField(columnName="content_type")
+	private String contentType;
 
-	@DatabaseField
+	@DatabaseField(columnName="size")
 	private Long size;
 
-	@DatabaseField
+	@DatabaseField(columnName="name")
 	private String name;
 
-	@DatabaseField
-	private String local_path;
+	@DatabaseField(columnName="local_path")
+	private String localPath;
 
-	@DatabaseField
-	private String remote_path;
+	@DatabaseField(columnName="remote_path")
+	private String remotePath;
 
 	@DatabaseField(foreign = true)
 	private Observation observation;
@@ -35,31 +35,31 @@ public class Attachment {
 	}
 
 	public Attachment(String pContentType, Long pSize, String pName, String pLocalPath, String pRemotePath) {
-		this.content_type = pContentType;
+		this.contentType = pContentType;
 		this.size = pSize;
 		this.name = pName;
-		this.local_path = pLocalPath;
-		this.remote_path = pRemotePath;
+		this.localPath = pLocalPath;
+		this.remotePath = pRemotePath;
 	}
 
-	public Long getPk_id() {
-		return pk_id;
+	public Long getId() {
+		return id;
 	}
 
-	public String getRemote_id() {
-		return remote_id;
+	public String getRemoteId() {
+		return remoteId;
 	}
 
-	public void setRemote_id(String remote_id) {
-		this.remote_id = remote_id;
+	public void setRemoteId(String remoteId) {
+		this.remoteId = remoteId;
 	}
 
-	public String getContent_type() {
-		return content_type;
+	public String getContentType() {
+		return contentType;
 	}
 
-	public void setContent_type(String content_type) {
-		this.content_type = content_type;
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
 	}
 
 	public Long getSize() {
@@ -78,20 +78,20 @@ public class Attachment {
 		this.name = name;
 	}
 
-	public String getLocal_path() {
-		return local_path;
+	public String getLocalPath() {
+		return localPath;
 	}
 
-	public void setLocal_path(String local_path) {
-		this.local_path = local_path;
+	public void setLocalPath(String localPath) {
+		this.localPath = localPath;
 	}
 
-	public String getRemote_path() {
-		return remote_path;
+	public String getRemotePath() {
+		return remotePath;
 	}
 
-	public void setRemote_path(String remote_path) {
-		this.remote_path = remote_path;
+	public void setRemotePath(String remotePath) {
+		this.remotePath = remotePath;
 	}
 
 	public Observation getObservation() {
@@ -104,7 +104,7 @@ public class Attachment {
 
 	@Override
 	public String toString() {
-		return "Attachment [pk_id=" + pk_id + ", content_type=" + content_type + ", size=" + size + ", name=" + name + ", local_path=" + local_path + ", remote_path=" + remote_path + ", remote_id=" + remote_id + ", observation=" + observation.getPk_id() + "]";
+		return "Attachment [pk_id=" + id + ", content_type=" + contentType + ", size=" + size + ", name=" + name + ", local_path=" + localPath + ", remote_path=" + remotePath + ", remote_id=" + remoteId + ", observation=" + observation.getId() + "]";
 	}
 
 }
