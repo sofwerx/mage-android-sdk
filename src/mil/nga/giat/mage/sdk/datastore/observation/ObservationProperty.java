@@ -58,7 +58,7 @@ public class ObservationProperty {
 
 	@Override
 	public String toString() {
-		return "ObservationProperty [pk_id=" + pk_id + ", key=" + key + ", value=" + value + ", observation=" + observation.getPk_id() + "]";
+		return "ObservationProperty [pk_id=" + pk_id + ", key=" + key + ", value=" + value + ", observation=" + observation.getId() + "]";
 	}
 
 }

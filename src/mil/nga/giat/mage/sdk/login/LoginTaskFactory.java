@@ -5,11 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
-
-
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 
 /**
  * Deals with login tasks and their configuration.

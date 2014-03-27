@@ -26,8 +26,8 @@ public class PointGeometry implements Geometry {
 		Pattern pattern = Pattern.compile(".*?(" + regexDouble + ")\\s*,\\s*(" + regexDouble + ").*");
 		Matcher matcher = pattern.matcher(geoJSON);
 		if (matcher.matches()) {
-			latitude = Double.parseDouble(matcher.group(1));
-			longitude = Double.parseDouble(matcher.group(2));
+			latitude = Double.parseDouble(matcher.group(2));
+			longitude = Double.parseDouble(matcher.group(1));
 		}
 	}
 

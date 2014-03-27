@@ -212,7 +212,7 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 			Collection<Attachment> attachments = observation.getAttachments();
 			if (attachments != null) {
 				for (Attachment attachment : attachments) {
-					attachmentDao.deleteById(attachment.getPk_id());
+					attachmentDao.deleteById(attachment.getId());
 				}
 			}
 
