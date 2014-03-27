@@ -58,11 +58,11 @@
         <item>0</item>
     </string-array>
     <string-array name="gpsSensitivities">
-        <item>Low</item>
-        <item>Medium Low</item>
-        <item>Medium</item>
-        <item>Medium High</item>
-        <item>High</item>
+        <item>3 Kilometers</item>
+        <item>1 Kilometer</item>
+        <item>100 Meters</item>
+        <item>10 Meters</item>
+        <item>0 Meters</item>
     </string-array>
     <string-array name="gpsSensitivityValues">
         <item>3000</item>
