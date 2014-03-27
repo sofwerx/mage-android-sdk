@@ -1,10 +1,13 @@
 package mil.nga.giat.mage.sdk.datastore.observation;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "attachments")
-public class Attachment {
+public class Attachment implements Parcelable {
 
 	@DatabaseField(generatedId = true, columnName="pk_id")
 	private Long id;
@@ -26,6 +29,9 @@ public class Attachment {
 
 	@DatabaseField(columnName="remote_path")
 	private String remotePath;
+	
+	@DatabaseField(columnName="url")
+	private String url;
 
 	@DatabaseField(foreign = true)
 	private Observation observation;
@@ -34,12 +40,12 @@ public class Attachment {
 		// ORMLite needs a no-arg constructor
 	}
 
-	public Attachment(String pContentType, Long pSize, String pName, String pLocalPath, String pRemotePath) {
-		this.contentType = pContentType;
-		this.size = pSize;
-		this.name = pName;
-		this.localPath = pLocalPath;
-		this.remotePath = pRemotePath;
+	public Attachment(String contentType, Long size, String name, String localPath, String remotePath) {
+		this.contentType = contentType;
+		this.size = size;
+		this.name = name;
+		this.localPath = localPath;
+		this.remotePath = remotePath;
 	}
 
 	public Long getId() {
@@ -93,6 +99,14 @@ public class Attachment {
 	public void setRemotePath(String remotePath) {
 		this.remotePath = remotePath;
 	}
+	
+	public String getUrl() {
+		return url;
+	}
+	
+	public void setUrl(String url) {
+		this.url = url;
+	}
 
 	public Observation getObservation() {
 		return observation;
@@ -104,7 +118,46 @@ public class Attachment {
 
 	@Override
 	public String toString() {
-		return "Attachment [pk_id=" + id + ", content_type=" + contentType + ", size=" + size + ", name=" + name + ", local_path=" + localPath + ", remote_path=" + remotePath + ", remote_id=" + remoteId + ", observation=" + observation.getId() + "]";
+		return "Attachment [pk_id=" + id + ", content_type=" + contentType + ", size=" + size + ", name=" + name + ", local_path=" + localPath + ", remote_path=" + remotePath + ", remote_id=" + remoteId + ", url=" + url + ", observation=" + observation.getId() + "]";
 	}
+	
+	// Parcelable stuff
+	
+	public Attachment(Parcel in) {
+		id = in.readLong();
+		remoteId = in.readString();
+		contentType = in.readString();
+		size = in.readLong();
+		name = in.readString();
+		localPath = in.readString();
+		remotePath = in.readString();
+		url = in.readString();
+	}
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel out, int flags) {
+		out.writeLong(id);
+		out.writeString(remoteId);
+		out.writeString(contentType);
+		out.writeLong(size);
+		out.writeString(name);
+		out.writeString(localPath);
+		out.writeString(remotePath);
+		out.writeString(url);
+	}
+	
+	public static final Parcelable.Creator<Attachment> CREATOR = new Parcelable.Creator<Attachment>() {
+	      public Attachment createFromParcel(Parcel source) {
+	            return new Attachment(source);
+	      }
+	      public Attachment[] newArray(int size) {
+	            return new Attachment[size];
+	      }
+	};
 
 }

@@ -115,6 +115,9 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 				attachment.setName(jsonAttachment.get("name").getAsString());
 				attachment.setSize(jsonAttachment.get("size").getAsLong());
 				attachment.setRemoteId(jsonAttachment.get("id").getAsString());
+				if (jsonAttachment.has("url")) {
+					attachment.setUrl(jsonAttachment.get("url").getAsString());
+				}
 				attachment.setObservation(observation);
 				attachments.add(attachment);
 			}
