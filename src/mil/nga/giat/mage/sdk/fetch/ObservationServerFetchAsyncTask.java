@@ -5,11 +5,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import mil.nga.giat.mage.sdk.R;
