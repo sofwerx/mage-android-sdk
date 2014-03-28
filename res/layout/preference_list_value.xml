@@ -7,4 +7,4 @@
     android:focusable="false"
     android:clickable="false"
     android:textStyle="bold"
-    android:textAppearance="?android:attr/textAppearanceMedium" />
+    android:textAppearance="?android:attr/textAppearanceSmall" />

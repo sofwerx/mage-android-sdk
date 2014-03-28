@@ -52,7 +52,7 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 		observation.setRemoteId(feature.get("id").getAsString());
 
 		// deserialize state
-		JsonObject stateFeature = feature.get("states").getAsJsonArray().get(0).getAsJsonObject();
+		JsonObject stateFeature = feature.getAsJsonObject("state");
 		if (stateFeature != null) {
 			String stateString = stateFeature.get("name").getAsString().toUpperCase(Locale.US);
 			try {
