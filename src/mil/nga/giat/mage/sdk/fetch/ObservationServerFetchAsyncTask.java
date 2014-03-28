@@ -2,9 +2,14 @@ package mil.nga.giat.mage.sdk.fetch;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import mil.nga.giat.mage.sdk.R;
@@ -14,6 +19,7 @@ import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import mil.nga.giat.mage.sdk.gson.deserializer.ObservationDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
+import mil.nga.giat.mage.sdk.utils.DateUtility;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -29,6 +35,7 @@ import org.json.JSONObject;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -75,6 +82,7 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 					JSONObject j = json.getJSONObject(i);
 					if (j.getString("name").equals(fieldObservationLayerName)) {
 						fieldObservationLayerId = j.getInt("id");
+						break;
 					}
 				}
 			}
@@ -104,10 +112,14 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 			try {
 				URL serverURL = new URL(PreferenceHelper.getInstance(mContext).getValue(R.string.serverURLKey));
 
-				// TODO : get latest last modified date, to request observations
-				// in time frame
-
-				HttpGet get = new HttpGet(new URL(serverURL, "/FeatureServer/" + fieldObservationLayerId + "/features").toURI());
+				Date lastModifiedDate = observationHelper.getLatestRemoteLastModified();
+				
+				URL observationURL = new URL(serverURL, "/FeatureServer/" + fieldObservationLayerId + "/features");
+				Uri.Builder uriBuilder = Uri.parse(observationURL.toURI().toString()).buildUpon();
+				uriBuilder.appendQueryParameter("startDate", DateUtility.getISO8601().format(lastModifiedDate));
+				
+				Log.d(LOG_NAME, uriBuilder.build().toString());
+				HttpGet get = new HttpGet(new URI(uriBuilder.build().toString()));
 				HttpResponse response = httpclient.execute(get);
 				if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 					JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
@@ -120,7 +132,7 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 
 								if (observation != null) {
 									if (!observationHelper.observationExists(observation.getRemoteId())) {
-										observation = ObservationHelper.getInstance(mContext).createObservation(observation);
+										observation = observationHelper.createObservation(observation);
 										Log.d(LOG_NAME, "created observation with remote_id " + observation.getRemoteId());
 									} else {
 										// TODO: perform an update?
@@ -178,10 +190,8 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 	 */
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-		System.out.println("onSharedPreferenceChanged");
 		if (key.equalsIgnoreCase(mContext.getString(R.string.observationFetchFrequencyKey))) {
 			synchronized (preferenceSemaphore) {
-				System.out.println("notifyAll");
 				preferenceSemaphore.notifyAll();
 			}
 		}

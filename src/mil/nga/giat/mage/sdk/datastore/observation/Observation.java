@@ -2,6 +2,7 @@ package mil.nga.giat.mage.sdk.datastore.observation;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,8 +21,8 @@ public class Observation {
 	@DatabaseField(unique = true, columnName="remote_id")
 	private String remoteId;
 
-	@DatabaseField(canBeNull = false, version = true, columnName="lastModified")
-	private long lastModified;
+	@DatabaseField(canBeNull = false, columnName="last_modified")
+	private Date lastModified = new Date(0);
 	
 	@DatabaseField(canBeNull = false, columnName="dirty")
 	private boolean dirty;
@@ -43,11 +44,11 @@ public class Observation {
 	}
 
 	public Observation(ObservationGeometry observationGeometry, Collection<ObservationProperty> pProperties, Collection<Attachment> pAttachments) {
-		this(null, System.currentTimeMillis(), observationGeometry, pProperties, pAttachments);
+		this(null, new Date(0), observationGeometry, pProperties, pAttachments);
 		this.setDirty(true);
 	}
 
-	public Observation(String remoteId, long lastModified, ObservationGeometry observationGeometry, Collection<ObservationProperty> pProperties, Collection<Attachment> pAttachments) {
+	public Observation(String remoteId, Date lastModified, ObservationGeometry observationGeometry, Collection<ObservationProperty> pProperties, Collection<Attachment> pAttachments) {
 		super();
 		this.remoteId = remoteId;
 		this.lastModified = lastModified;
@@ -85,11 +86,11 @@ public class Observation {
 		this.observationGeometry = observationGeometry;
 	}
 
-	public void setLastModified(long lastModified) {
+	public void setLastModified(Date lastModified) {
 		this.lastModified = lastModified;
 	}
 
-	public long getLastModified() {
+	public Date getLastModified() {
 		return lastModified;
 	}
 	
@@ -157,7 +158,7 @@ public class Observation {
 
 	@Override
 	public String toString() {
-		return "Observation [pk_id=" + id + ", remote_id=" + remoteId + ", state=" + state + ", observationGeometry=" + observationGeometry + ", properties=" + properties + ", attachments=" + attachments + "]";
+		return "Observation [pk_id=" + id + ", remote_id=" + remoteId + ", state=" + state + ", lastModified=" + lastModified +  ", observationGeometry=" + observationGeometry + ", properties=" + properties + ", attachments=" + attachments + "]";
 	}
 
 }

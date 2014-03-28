@@ -1,8 +1,10 @@
 package mil.nga.giat.mage.sdk.gson.deserializer;
 
 import java.lang.reflect.Type;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -15,6 +17,7 @@ import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationGeometry;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationProperty;
+import mil.nga.giat.mage.sdk.utils.DateUtility;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -50,7 +53,16 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 
 		Observation observation = new Observation();
 		observation.setRemoteId(feature.get("id").getAsString());
-
+		
+		try {
+			Date d = DateUtility.getISO8601().parse(feature.get("timestamp").getAsString());			
+			observation.setLastModified(d);
+		} catch (ParseException e) {
+			Log.e(LOG_NAME, "Problem paring date.");
+		}
+		
+		// TODO: deal with EVENTCLEAR!?!? will this become a state?
+		
 		// deserialize state
 		JsonObject stateFeature = feature.getAsJsonObject("state");
 		if (stateFeature != null) {
