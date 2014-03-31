@@ -6,7 +6,7 @@ pushd .
 cd `dirname $0`
 
 # build the *properties files for ant
-$ANDROIDSDKPATH/tools/android update project --name MDK --target android-18 -p .
+$ANDROIDSDKPATH/tools/android update project --name MDK --target android-19 -p .
 
 # build the project
 ant clean release
