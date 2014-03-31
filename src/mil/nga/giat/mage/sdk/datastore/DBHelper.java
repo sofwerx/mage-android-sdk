@@ -9,6 +9,7 @@ import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationGeometry;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationProperty;
+import mil.nga.giat.mage.sdk.datastore.user.Role;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -35,20 +36,22 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	private static final String LOG_NAME = DBHelper.class.getName();
 	private static final int DATABASE_VERSION = 1;
 
-	//Observation DAOS
+	// Observation DAOS
 	private Dao<Observation, Long> observationDao;
-	private Dao<ObservationGeometry, Long> geometryDao;
-	private Dao<ObservationProperty, Long> propertyDao;
+	private Dao<ObservationGeometry, Long> observationGeometryDao;
+	private Dao<ObservationProperty, Long> observationPropertyDao;
 	private Dao<Attachment, Long> attachmentDao;
-	
-	//User and Location DAOS
+
+	// User and Location DAOS
 	private Dao<User, Long> userDao;
+	private Dao<Role, Long> roleDao;
 	private Dao<Location, Long> locationDao;
 	private Dao<LocationGeometry, Long> locationGeometryDao;
 	private Dao<LocationProperty, Long> locationPropertyDao;
-	
+
 	/**
 	 * Singleton implementation.
+	 * 
 	 * @param context
 	 * @return
 	 */
@@ -61,38 +64,41 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 
 	/**
 	 * Constructor that takes an android Context.
-	 * @param context+
+	 * 
+	 * @param context
+	 * 
 	 * @return
 	 */
 	private DBHelper(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
-		
-		//initialize DAOs
+
+		// initialize DAOs
 		try {
 			getObservationDao();
-			getGeometryDao();
-			getPropertyDao();
+			getObservationGeometryDao();
+			getObservationPropertyDao();
 			getAttachmentDao();
 			getUserDao();
+			getRoleDao();
 			getLocationDao();
 			getLocationGeometryDao();
 			getLocationPropertyDao();
-		}
-		catch(SQLException sqle) {
-			//TODO: handle this...
+		} catch (SQLException sqle) {
+			// TODO: handle this...
 			sqle.printStackTrace();
 		}
-		
+
 	}
-	
+
 	public boolean isDatabaseEmpty() {
 		long countOfAllRecords = 0l;
 		try {
 			countOfAllRecords += getObservationDao().countOf();
-			countOfAllRecords += getGeometryDao().countOf();
-			countOfAllRecords += getPropertyDao().countOf();
+			countOfAllRecords += getObservationGeometryDao().countOf();
+			countOfAllRecords += getObservationPropertyDao().countOf();
 			countOfAllRecords += getAttachmentDao().countOf();
 			countOfAllRecords += getUserDao().countOf();
+			countOfAllRecords += getRoleDao().countOf();
 			countOfAllRecords += getLocationDao().countOf();
 			countOfAllRecords += getLocationGeometryDao().countOf();
 			countOfAllRecords += getLocationPropertyDao().countOf();
@@ -110,11 +116,12 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		TableUtils.createTable(connectionSource, Attachment.class);
 
 		TableUtils.createTable(connectionSource, User.class);
+		TableUtils.createTable(connectionSource, Role.class);
 		TableUtils.createTable(connectionSource, Location.class);
 		TableUtils.createTable(connectionSource, LocationGeometry.class);
 		TableUtils.createTable(connectionSource, LocationProperty.class);
 	}
-	
+
 	@Override
 	public void onCreate(SQLiteDatabase sqliteDatabase, ConnectionSource connectionSource) {
 		try {
@@ -132,11 +139,12 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		TableUtils.dropTable(connectionSource, Attachment.class, Boolean.TRUE);
 
 		TableUtils.dropTable(connectionSource, User.class, Boolean.TRUE);
+		TableUtils.dropTable(connectionSource, Role.class, Boolean.TRUE);
 		TableUtils.dropTable(connectionSource, Location.class, Boolean.TRUE);
 		TableUtils.dropTable(connectionSource, LocationGeometry.class, Boolean.TRUE);
 		TableUtils.dropTable(connectionSource, LocationProperty.class, Boolean.TRUE);
 	}
-	
+
 	@Override
 	public void onUpgrade(SQLiteDatabase database, ConnectionSource connectionSource, int oldVersion, int newVersion) {
 		try {
@@ -164,9 +172,10 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		super.close();
 		helperInstance = null;
 	}
-	
+
 	/**
 	 * Getter for the ObservationDao.
+	 * 
 	 * @return This instance's ObservationDao
 	 * @throws SQLException
 	 */
@@ -176,33 +185,36 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		}
 		return observationDao;
 	}
-	
+
 	/**
 	 * Getter for the GeometryDao
+	 * 
 	 * @return This instance's GeometryDao
 	 * @throws SQLException
 	 */
-	public Dao<ObservationGeometry, Long> getGeometryDao() throws SQLException {
-		if (geometryDao == null) {
-			geometryDao = getDao(ObservationGeometry.class);
+	public Dao<ObservationGeometry, Long> getObservationGeometryDao() throws SQLException {
+		if (observationGeometryDao == null) {
+			observationGeometryDao = getDao(ObservationGeometry.class);
 		}
-		return geometryDao;
+		return observationGeometryDao;
 	}
-	
+
 	/**
 	 * Getter for the PropertyDao
+	 * 
 	 * @return This instance's PropertyDao
 	 * @throws SQLException
 	 */
-	public Dao<ObservationProperty, Long> getPropertyDao() throws SQLException {
-		if (propertyDao == null) {
-			propertyDao = getDao(ObservationProperty.class);
+	public Dao<ObservationProperty, Long> getObservationPropertyDao() throws SQLException {
+		if (observationPropertyDao == null) {
+			observationPropertyDao = getDao(ObservationProperty.class);
 		}
-		return propertyDao;
+		return observationPropertyDao;
 	}
-	
+
 	/**
 	 * Getter for the AttachmentDao
+	 * 
 	 * @return This instance's AttachmentDao
 	 * @throws SQLException
 	 */
@@ -212,9 +224,10 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		}
 		return attachmentDao;
 	}
-	
+
 	/**
 	 * Getter for the UserDao
+	 * 
 	 * @return This instance's UserDao
 	 * @throws SQLException
 	 */
@@ -226,7 +239,21 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	}
 
 	/**
+	 * Getter for the RoleDao
+	 * 
+	 * @return This instance's RoleDao
+	 * @throws SQLException
+	 */
+	public Dao<Role, Long> getRoleDao() throws SQLException {
+		if (roleDao == null) {
+			roleDao = getDao(Role.class);
+		}
+		return roleDao;
+	}
+
+	/**
 	 * Getter for the LocationDao
+	 * 
 	 * @return This instance's LocationDao
 	 * @throws SQLException
 	 */
@@ -236,9 +263,10 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		}
 		return locationDao;
 	}
-	
+
 	/**
 	 * Getter for the LocationGeometryDao
+	 * 
 	 * @return This instance's LocationGeometryDao
 	 * @throws SQLException
 	 */
@@ -248,9 +276,10 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		}
 		return locationGeometryDao;
 	}
-	
+
 	/**
 	 * Getter for the LocationPropertyDao
+	 * 
 	 * @return This instance's LocationPropertyDao
 	 * @throws SQLException
 	 */
@@ -260,5 +289,5 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 		}
 		return locationPropertyDao;
 	}
-	
+
 }

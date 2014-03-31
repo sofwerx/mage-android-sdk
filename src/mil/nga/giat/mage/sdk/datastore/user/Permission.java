@@ -1,47 +1,34 @@
 package mil.nga.giat.mage.sdk.datastore.user;
 
-import com.j256.ormlite.field.DatabaseField;
-import com.j256.ormlite.table.DatabaseTable;
+import java.io.Serializable;
 
-@DatabaseTable(tableName = "permissions")
-public class Permission {
-
-	@DatabaseField(generatedId = true)
-	private Long pk_id;
-
-	@DatabaseField
-	private String permission;
-
-	@DatabaseField(canBeNull = false, foreign = true)
-	private Role role;
-
-	public Permission() {
-		// ORMLite needs a no-arg constructor
-	}
-
-	public Permission(String permission, Role role) {
-		this.permission = permission;
-		this.role = role;
-	}
-
-	public Long getPk_id() {
-		return pk_id;
-	}
-
-	public String getPermission() {
-		return permission;
-	}
-
-	public void setPermission(String permission) {
-		this.permission = permission;
-	}
-
-	public Role getRole() {
-		return role;
-	}
-
-	public void setRole(Role role) {
-		this.role = role;
-	}
-
+public enum Permission implements Serializable {
+	CREATE_DEVICE,
+	CREATE_FEATURE,
+	CREATE_LAYER,
+	CREATE_LOCATION,
+	CREATE_ROLE,
+	CREATE_TEAM,
+	CREATE_USER,
+	DELETE_DEVICE,
+	DELETE_FEATURE,
+	DELETE_LAYER,
+	DELETE_LOCATION,
+	DELETE_ROLE,
+	DELETE_TEAM,
+	DELETE_USER,
+	READ_DEVICE,
+	READ_FEATURE,
+	READ_LAYER,
+	READ_LOCATION,
+	READ_ROLE,
+	READ_TEAM,
+	READ_USER,
+	UPDATE_DEVICE,
+	UPDATE_FEATURE,
+	UPDATE_LAYER,
+	UPDATE_LOCATION,
+	UPDATE_ROLE,
+	UPDATE_TEAM,
+	UPDATE_USER;
 }

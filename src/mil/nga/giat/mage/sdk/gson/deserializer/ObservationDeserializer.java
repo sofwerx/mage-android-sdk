@@ -29,6 +29,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 
+/**
+ * JSON to {@link Observation}
+ * 
+ * @author wiedemannse
+ * 
+ */
 public class ObservationDeserializer implements JsonDeserializer<Observation> {
 
 	private static final String LOG_NAME = ObservationDeserializer.class.getName();
@@ -38,7 +44,7 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 	 * TypeAdaptor i.e. custom deserializer.
 	 * 
 	 * @return A Gson object that can be used to convert Json into an
-	 *         Observation object.
+	 *         {@link Observation} object.
 	 */
 	public static Gson getGsonBuilder() {
 		GsonBuilder gsonBuilder = new GsonBuilder();
@@ -53,16 +59,16 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 
 		Observation observation = new Observation();
 		observation.setRemoteId(feature.get("id").getAsString());
-		
+
 		try {
-			Date d = DateUtility.getISO8601().parse(feature.get("timestamp").getAsString());			
+			Date d = DateUtility.getISO8601().parse(feature.get("timestamp").getAsString());
 			observation.setLastModified(d);
 		} catch (ParseException e) {
 			Log.e(LOG_NAME, "Problem paring date.");
 		}
-		
+
 		// TODO: deal with EVENTCLEAR!?!? will this become a state?
-		
+
 		// deserialize state
 		JsonObject stateFeature = feature.getAsJsonObject("state");
 		if (stateFeature != null) {
@@ -120,7 +126,7 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 
 			Collection<Attachment> attachments = new ArrayList<Attachment>();
 			for (int i = 0; i < jsonAttachments.size(); i++) {
-				JsonObject jsonAttachment = (JsonObject) jsonAttachments.get(i);
+				JsonObject jsonAttachment = jsonAttachments.get(i).getAsJsonObject();
 				Attachment attachment = new Attachment();
 				attachment.setContentType(jsonAttachment.get("contentType").getAsString());
 				attachment.setRemotePath(jsonAttachment.get("relativePath").getAsString());

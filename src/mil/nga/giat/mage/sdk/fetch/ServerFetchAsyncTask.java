@@ -2,12 +2,11 @@ package mil.nga.giat.mage.sdk.fetch;
 
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.connectivity.NetworkChangeReceiver;
-import mil.nga.giat.mage.sdk.event.IEventListener;
 import mil.nga.giat.mage.sdk.event.connectivity.IConnectivityEventListener;
 import android.content.Context;
 import android.os.AsyncTask;
 
-public abstract class ServerFetchAsyncTask extends AsyncTask<Void, Void, Void> implements IConnectivityEventListener {
+public abstract class ServerFetchAsyncTask extends AsyncTask<Void, Void, Boolean> implements IConnectivityEventListener {
 
 	protected final Context mContext;
 	protected final NetworkChangeReceiver mNetworkChangeReceiver = new NetworkChangeReceiver();;

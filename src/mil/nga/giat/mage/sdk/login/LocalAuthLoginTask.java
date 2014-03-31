@@ -74,7 +74,7 @@ public class LocalAuthLoginTask extends AbstractAccountTask {
 				userHelper.deleteCurrentUsers();
 
 				// create new active user.
-				User currentUser = new User("unknown", "unknown", "unknown", username, null);
+				User currentUser = new User("NA", "unknown", "unknown", "unknown", username, null);
 				currentUser.setCurrentUser(Boolean.TRUE);
 				currentUser = userHelper.createUser(currentUser);
 			} else {

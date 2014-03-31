@@ -30,11 +30,11 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 	private static final String LOG_NAME = ObservationHelper.class.getName();
 
 	// required DBHelper and DAOs for handing CRUD operations for Observations
-	private DBHelper helper;
-	private Dao<Observation, Long> observationDao;
-	private Dao<ObservationGeometry, Long> geometryDao;
-	private Dao<ObservationProperty, Long> propertyDao;
-	private Dao<Attachment, Long> attachmentDao;
+	private final DBHelper helper;
+	private final Dao<Observation, Long> observationDao;
+	private final Dao<ObservationGeometry, Long> geometryDao;
+	private final Dao<ObservationProperty, Long> propertyDao;
+	private final Dao<Attachment, Long> attachmentDao;
 
 	private List<IObservationEventListener> listeners = new ArrayList<IObservationEventListener>();
 	
@@ -69,8 +69,8 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 		try {
 			// Set up DAOs
 			observationDao = helper.getObservationDao();
-			geometryDao = helper.getGeometryDao();
-			propertyDao = helper.getPropertyDao();
+			geometryDao = helper.getObservationGeometryDao();
+			propertyDao = helper.getObservationPropertyDao();
 			attachmentDao = helper.getAttachmentDao();
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to communicate " + "with Observation database.", sqle);

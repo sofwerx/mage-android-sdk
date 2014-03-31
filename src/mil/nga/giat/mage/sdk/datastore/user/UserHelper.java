@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import mil.nga.giat.mage.sdk.datastore.DBHelper;
+import mil.nga.giat.mage.sdk.exceptions.ObservationException;
+import mil.nga.giat.mage.sdk.exceptions.RoleException;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
 import android.content.Context;
 import android.util.Log;
@@ -28,8 +30,8 @@ public class UserHelper {
 	private static final String LOG_NAME = UserHelper.class.getName();
 
 	// required DBHelper and DAOs for handing CRUD operations for Users
-	private DBHelper helper;
-	private Dao<User, Long> userDao;
+	private final DBHelper helper;
+	private final Dao<User, Long> userDao;
 
 	/**
 	 * Singleton.
@@ -63,10 +65,10 @@ public class UserHelper {
 		try {
 			userDao = helper.getUserDao();
 		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "Unable to communicate " + "with User/Location database.", sqle);
+			Log.e(LOG_NAME, "Unable to communicate with User database.", sqle);
 
 			// Fatal Error!
-			throw new IllegalStateException("Unable to communicate " + "with User/Location database.", sqle);
+			throw new IllegalStateException("Unable to communicate with User database.", sqle);
 		}
 
 	}
@@ -88,13 +90,15 @@ public class UserHelper {
 
 		try {
 			createdUser = userDao.createIfNotExists(pUser);
+
+			// TODO : create role?
+
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "There was a problem creating user: " + pUser);
 			throw new UserException("There was a problem creating user: " + pUser, sqle);
 		}
 
 		return createdUser;
-
 	}
 
 	/**
@@ -129,6 +133,20 @@ public class UserHelper {
 
 	}
 
+	public User read(String pRemoteId) throws UserException {
+		User user = null;
+		try {
+			List<User> results = userDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
+			if (results != null && results.size() > 0) {
+				user = results.get(0);
+			}
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+			throw new UserException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+		}
+		return user;
+	}
+	
 	/**
 	 * Delete all users that are flagged as isCurrentUser.
 	 * 

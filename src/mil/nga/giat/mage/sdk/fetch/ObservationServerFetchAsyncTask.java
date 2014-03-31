@@ -9,6 +9,8 @@ import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
+import mil.nga.giat.mage.sdk.datastore.user.User;
+import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.gson.deserializer.ObservationDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
@@ -46,16 +48,19 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 		PreferenceManager.getDefaultSharedPreferences(mContext).registerOnSharedPreferenceChangeListener(this);
 	}
 
-	protected AtomicBoolean preferenceSemaphore = new AtomicBoolean(false);
+	protected AtomicBoolean fetchSemaphore = new AtomicBoolean(false);
 
 	protected final synchronized long getobservationFetchFrequency() {
 		return PreferenceHelper.getInstance(mContext).getValue(R.string.observationFetchFrequencyKey, Long.class, R.string.observationFetchFrequencyDefaultValue);
 	}
 
 	@Override
-	protected Void doInBackground(Void... params) {
+	protected Boolean doInBackground(Void... params) {
+
+		Boolean status = Boolean.TRUE;
 
 		ObservationHelper observationHelper = ObservationHelper.getInstance(mContext);
+		UserHelper userHelper = UserHelper.getInstance(mContext);
 
 		int fieldObservationLayerId = 0;
 		String fieldObservationLayerName = "Field Observations";
@@ -76,89 +81,101 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 					}
 				}
 			}
-		} 
-		catch (Exception e) {
-			//this block should never flow exceptions up!  Log for now.
+		} catch (Exception e) {
+			// this block should never flow exceptions up! Log for now.
 			e.printStackTrace();
-			Log.e(LOG_NAME,"There was a failure while performing an Observation Fetch opperation.",e);				
+			Log.e(LOG_NAME, "There was a failure while performing an Observation Fetch opperation.", e);
 		}
 
 		final Gson observationDeserializer = ObservationDeserializer.getGsonBuilder();
 
 		while (Status.RUNNING.equals(getStatus())) {
-						
-			if(IS_CONNECTED) {
-				
+
+			if (IS_CONNECTED) {
+
 				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch...");
-				
+
 				try {
 					URL serverURL = new URL(PreferenceHelper.getInstance(mContext).getValue(R.string.serverURLKey));
-	
+
 					Date lastModifiedDate = observationHelper.getLatestRemoteLastModified();
-					
+
 					URL observationURL = new URL(serverURL, "/FeatureServer/" + fieldObservationLayerId + "/features");
 					Uri.Builder uriBuilder = Uri.parse(observationURL.toURI().toString()).buildUpon();
 					uriBuilder.appendQueryParameter("startDate", DateUtility.getISO8601().format(lastModifiedDate));
-					
+
 					Log.d(LOG_NAME, uriBuilder.build().toString());
 					HttpGet get = new HttpGet(new URI(uriBuilder.build().toString()));
 					HttpResponse response = httpclient.execute(get);
 					if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 						JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-						
-						if(json != null && json.has("features")) {						
-							JSONArray features = json.getJSONArray("features");							
+
+						if (json != null && json.has("features")) {
+							JSONArray features = json.getJSONArray("features");
 							for (int i = 0; i < features.length(); i++) {
 								JSONObject feature = (JSONObject) features.get(i);
 								if (feature != null) {
 									Observation observation = observationDeserializer.fromJson(feature.toString(), Observation.class);
-	
+
 									if (observation != null) {
 										if (!observationHelper.observationExists(observation.getRemoteId())) {
 											observation = observationHelper.createObservation(observation);
+
+											// TODO: if the observation has a userid that we've not seen before, then request the user info!
+											// TODO: the server is going to move the user id to a different section of the json
+											String userId = observation.getPropertiesMap().get("userId");
+											if (userId != null) {
+												User user = userHelper.read(userId);
+												final long tenHoursInMillseconds = 10 * 60 * 60 * 1000;
+												if (user == null || (new Date(user.getFetchedDate().getTime() + tenHoursInMillseconds)).after(new Date())) {
+													// TODO: fetch new user
+												}
+											}
 											Log.d(LOG_NAME, "created observation with remote_id " + observation.getRemoteId());
-										} 
-										else {
+										} else {
 											// TODO: perform an update?
 											Log.d(LOG_NAME, "observation with remote_id " + observation.getRemoteId() + " already exists!");
 										}
 									}
 								}
-							}							
+							}
 						}
 					}
-				} 
-				catch (Exception e) {
-					//this block should never flow exceptions up!  Log for now.
+				} catch (Exception e) {
+					// this block should never flow exceptions up! Log for now.
 					e.printStackTrace();
-					Log.e(LOG_NAME,"There was a failure while performing an Observation Fetch opperation.",e);					
+					Log.e(LOG_NAME, "There was a failure while performing an Observation Fetch opperation.", e);
 				}
-			} 
-			else {
+			} else {
 				Log.d(LOG_NAME, "The device is currently disconnected. Nothing to fetch.");
 			}
-			
+
 			long frequency = getobservationFetchFrequency();
 			long lastFetchTime = new Date().getTime();
 			long currentTime = new Date().getTime();
 			try {
 				while (lastFetchTime + (frequency = getobservationFetchFrequency()) > (currentTime = new Date().getTime())) {
-					synchronized (preferenceSemaphore) {
+					synchronized (fetchSemaphore) {
 						Log.d(LOG_NAME, "Observation fetch sleeping for " + (lastFetchTime + frequency - currentTime) + "ms.");
-						preferenceSemaphore.wait(lastFetchTime + frequency - currentTime);
+						fetchSemaphore.wait(lastFetchTime + frequency - currentTime);
+						if(fetchSemaphore.get() == true) {
+							break;
+						}
 					}
 				}
-			} 
-			catch (InterruptedException ie) {
+				synchronized (fetchSemaphore) {
+					fetchSemaphore.set(false);
+				}
+			} catch (InterruptedException ie) {
 				Log.w("Interupted.  Unable to sleep " + frequency, ie);
 				// TODO: should cancel the AsyncTask?
 				cancel(Boolean.TRUE);
-			}
-			finally {
+				status = Boolean.FALSE;
+			} finally {
 				IS_CONNECTED = ConnectivityUtility.isOnline(mContext);
 			}
 		}
-		return null;
+		return status;
 	}
 
 	/**
@@ -167,10 +184,18 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 		if (key.equalsIgnoreCase(mContext.getString(R.string.observationFetchFrequencyKey))) {
-			synchronized (preferenceSemaphore) {
-				preferenceSemaphore.notifyAll();
+			synchronized (fetchSemaphore) {
+				fetchSemaphore.notifyAll();
 			}
 		}
 	}
-
+	
+	@Override
+	public void onAnyConnected() {
+		super.onAnyConnected();
+		synchronized (fetchSemaphore) {
+			fetchSemaphore.set(true);
+			fetchSemaphore.notifyAll();
+		}
+	}
 }

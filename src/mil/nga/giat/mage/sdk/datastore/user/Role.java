@@ -1,9 +1,7 @@
 package mil.nga.giat.mage.sdk.datastore.user;
 
-import java.util.Collection;
-
+import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
-import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "roles")
@@ -11,6 +9,9 @@ public class Role {
 
 	@DatabaseField(generatedId = true)
 	private Long pk_id;
+	
+	@DatabaseField(unique = true, columnName = "remote_id")
+	private String remoteId;
 
 	@DatabaseField(canBeNull = false)
 	private String name;
@@ -18,15 +19,16 @@ public class Role {
 	@DatabaseField
 	private String description;
 
-	@ForeignCollectionField(eager = true)
-	Collection<Permission> permissions;
+	@DatabaseField(dataType=DataType.SERIALIZABLE)
+	private Permissions permissions = new Permissions();
 
 	public Role() {
 		// ORMLite needs a no-arg constructor
 	}
 
-	public Role(String name, String description, Collection<Permission> permissions) {
+	public Role(String remoteId, String name, String description, Permissions permissions) {
 		super();
+		this.remoteId = remoteId;
 		this.name = name;
 		this.description = description;
 		this.permissions = permissions;
@@ -34,6 +36,14 @@ public class Role {
 
 	public Long getPk_id() {
 		return pk_id;
+	}
+	
+	public String getRemoteId() {
+		return remoteId;
+	}
+
+	public void setRemoteId(String remoteId) {
+		this.remoteId = remoteId;
 	}
 
 	public String getName() {
@@ -52,11 +62,11 @@ public class Role {
 		this.description = description;
 	}
 
-	public Collection<Permission> getPermissions() {
+	public Permissions getPermissions() {
 		return permissions;
 	}
 
-	public void setPermissions(Collection<Permission> permissions) {
+	public void setPermissions(Permissions permissions) {
 		this.permissions = permissions;
 	}
 

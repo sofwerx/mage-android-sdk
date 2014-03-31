@@ -1,5 +1,7 @@
 package mil.nga.giat.mage.sdk.datastore.user;
 
+import java.util.Date;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -8,6 +10,9 @@ public class User {
 
 	@DatabaseField(generatedId = true)
 	private Long pk_id;
+
+	@DatabaseField(unique = true, columnName = "remote_id")
+	private String remoteId;
 
 	@DatabaseField
 	private String email;
@@ -23,8 +28,9 @@ public class User {
 
 	@DatabaseField(canBeNull = false)
 	private Boolean isCurrentUser = Boolean.FALSE;
-	
-	// TODO : add last modified
+
+	@DatabaseField(canBeNull = false, columnName="fetched_date")
+	private Date fetchedDate = new Date(0);
 
 	@DatabaseField(canBeNull = true, foreign = true, foreignAutoRefresh = true)
 	private Role role;
@@ -33,8 +39,9 @@ public class User {
 		// ORMLite needs a no-arg constructor
 	}
 
-	public User(String email, String firstname, String lastname, String username, Role role) {
+	public User(String remoteId, String email, String firstname, String lastname, String username, Role role) {
 		super();
+		this.remoteId = remoteId;
 		this.email = email;
 		this.firstname = firstname;
 		this.lastname = lastname;
@@ -44,6 +51,14 @@ public class User {
 
 	public Long getPk_id() {
 		return pk_id;
+	}
+
+	public String getRemoteId() {
+		return remoteId;
+	}
+
+	public void setRemoteId(String remoteId) {
+		this.remoteId = remoteId;
 	}
 
 	public String getEmail() {
@@ -57,7 +72,7 @@ public class User {
 	public String getLastname() {
 		return lastname;
 	}
-	
+
 	public String getUsername() {
 		return username;
 	}
@@ -76,6 +91,14 @@ public class User {
 
 	public void setCurrentUser(Boolean isCurrentUser) {
 		this.isCurrentUser = isCurrentUser;
+	}
+
+	public Date getFetchedDate() {
+		return fetchedDate;
+	}
+
+	public void setFetchedDate(Date fetchedDate) {
+		this.fetchedDate = fetchedDate;
 	}
 
 }
