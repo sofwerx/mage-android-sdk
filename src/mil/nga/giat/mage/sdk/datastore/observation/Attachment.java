@@ -124,10 +124,10 @@ public class Attachment implements Parcelable {
 	// Parcelable stuff
 	
 	public Attachment(Parcel in) {
-		id = in.readLong();
+		id = (Long)in.readValue(Long.class.getClassLoader());
 		remoteId = in.readString();
 		contentType = in.readString();
-		size = in.readLong();
+		size = (Long)in.readValue(Long.class.getClassLoader());
 		name = in.readString();
 		localPath = in.readString();
 		remotePath = in.readString();
@@ -141,10 +141,10 @@ public class Attachment implements Parcelable {
 
 	@Override
 	public void writeToParcel(Parcel out, int flags) {
-		out.writeLong(id);
+		out.writeValue(id);
 		out.writeString(remoteId);
 		out.writeString(contentType);
-		out.writeLong(size);
+		out.writeValue(size);
 		out.writeString(name);
 		out.writeString(localPath);
 		out.writeString(remotePath);
