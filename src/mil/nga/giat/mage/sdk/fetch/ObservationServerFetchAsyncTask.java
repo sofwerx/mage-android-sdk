@@ -1,9 +1,6 @@
 package mil.nga.giat.mage.sdk.fetch;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -11,7 +8,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
-import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import mil.nga.giat.mage.sdk.gson.deserializer.ObservationDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
@@ -19,13 +15,10 @@ import mil.nga.giat.mage.sdk.utils.DateUtility;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.ParseException;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
@@ -82,24 +75,9 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 					}
 				}
 			}
-		} catch (MalformedURLException mue) {
-			// TODO Auto-generated catch block
-			mue.printStackTrace();
-		} catch (URISyntaxException use) {
-			// TODO Auto-generated catch block
-			use.printStackTrace();
-		} catch (ClientProtocolException cpe) {
-			// TODO Auto-generated catch block
-			cpe.printStackTrace();
-		} catch (IOException ioe) {
-			// TODO Auto-generated catch block
-			ioe.printStackTrace();
-		} catch (ParseException pe) {
-			// TODO Auto-generated catch block
-			pe.printStackTrace();
-		} catch (JSONException je) {
-			// TODO Auto-generated catch block
-			je.printStackTrace();
+		} catch (Exception e) {
+			//this block should never flow exceptions up!  Log for now.
+			Log.e(LOG_NAME,"There was a failure while performing an Observation Fetch opperation.",e);				
 		}
 
 		final Gson observationDeserializer = ObservationDeserializer.getGsonBuilder();
@@ -139,27 +117,10 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 						}
 					}
 				}
-			} catch (MalformedURLException mue) {
-				// TODO Auto-generated catch block
-				mue.printStackTrace();
-			} catch (URISyntaxException use) {
-				// TODO Auto-generated catch block
-				use.printStackTrace();
-			} catch (ClientProtocolException cpe) {
-				// TODO Auto-generated catch block
-				cpe.printStackTrace();
-			} catch (IOException ioe) {
-				// TODO Auto-generated catch block
-				ioe.printStackTrace();
-			} catch (ParseException pe) {
-				// TODO Auto-generated catch block
-				pe.printStackTrace();
-			} catch (JSONException je) {
-				// TODO Auto-generated catch block
-				je.printStackTrace();
-			} catch (ObservationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} 
+			catch (Exception e) {
+				//this block should never flow exceptions up!  Log for now.
+				Log.e(LOG_NAME,"There was a failure while performing an Observation Fetch opperation.",e);				
 			}
 
 			long frequency = getobservationFetchFrequency();
