@@ -11,6 +11,7 @@ import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.exceptions.LoginException;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
+import mil.nga.giat.mage.sdk.utils.DateUtility;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -56,7 +57,7 @@ public class LocalAuthLoginTask extends AbstractAccountTask {
 			Editor editor = sharedPreferences.edit();
 			editor.putString(mApplicationContext.getString(R.string.tokenKey), md5Password).commit();
 			// FIXME : 8 hours for now?
-			editor.putString(mApplicationContext.getString(R.string.tokenExpirationDateKey), new Date(new Date().getTime() + 8 * 60 * 60 * 1000).toString()).commit();
+			editor.putString(mApplicationContext.getString(R.string.tokenExpirationDateKey), DateUtility.getISO8601().format(new Date(new Date().getTime() + 8 * 60 * 60 * 1000))).commit();
 		} catch (NoSuchAlgorithmException nsae) {
 			nsae.printStackTrace();
 		} catch (UnsupportedEncodingException uee) {

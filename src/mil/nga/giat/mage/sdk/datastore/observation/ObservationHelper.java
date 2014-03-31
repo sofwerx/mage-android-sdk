@@ -3,6 +3,7 @@ package mil.nga.giat.mage.sdk.datastore.observation;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import mil.nga.giat.mage.sdk.datastore.DBHelper;
@@ -14,6 +15,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
 
 /**
  * A utility class for accessing {@link Observation} data from the physical data
@@ -159,7 +161,32 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 		}
 		return observation;
 	}
-	
+
+	/**
+	 * Gets the latest last modified date.  Used when fetching.
+	 * 
+	 * @return
+	 */
+	public Date getLatestRemoteLastModified() {
+		Date lastModifiedDate = new Date(0);
+		QueryBuilder<Observation, Long> queryBuilder = observationDao.queryBuilder();
+
+		try {
+			queryBuilder.where().isNotNull("remote_id");
+			queryBuilder.where().eq("dirty", false);
+			queryBuilder.orderBy("last_modified", false);
+			queryBuilder.limit(1L);
+			Observation o = observationDao.queryForFirst(queryBuilder.prepare());
+			if (o != null) {
+				lastModifiedDate = o.getLastModified();
+			}
+		} catch (SQLException se) {
+			Log.w(LOG_NAME, "Could not get last_modified date.");
+		}
+
+		return lastModifiedDate;
+	}
+
 	/**
 	 * Does a record already exist in the local DB?
 	 * 
@@ -241,3 +268,5 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 		return listeners.remove((IObservationEventListener)listener);
 	}
 }
+
+

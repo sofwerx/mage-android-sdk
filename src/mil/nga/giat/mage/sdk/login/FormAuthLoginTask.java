@@ -14,6 +14,7 @@ import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.exceptions.LoginException;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
+import mil.nga.giat.mage.sdk.utils.DateUtility;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -127,9 +128,11 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 				// put the token information in the shared preferences
 				SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mApplicationContext);
 				Editor editor = sharedPreferences.edit();
-				editor.putString(mApplicationContext.getString(R.string.tokenKey), json.getString("token").trim()).commit();
-				// FIXME : add the actually tokenExpirationDate once the server passes it back
-				editor.putString(mApplicationContext.getString(R.string.tokenExpirationDateKey), new Date(new Date().getTime() + 8 * 60 * 60 * 1000).toString()).commit();
+				editor.putString(mApplicationContext.getString(R.string.tokenKey), json.getString("token").trim()).commit();				
+				try {
+					editor.putString(mApplicationContext.getString(R.string.tokenExpirationDateKey), DateUtility.getISO8601().format(DateUtility.getISO8601().parse(json.getString("expirationDate").trim()))).commit();
+				} catch (java.text.ParseException e) {
+				}
 				return new AccountStatus(Boolean.TRUE, new ArrayList<Integer>(), new ArrayList<String>(), json);
 			}
 		} catch (MalformedURLException mue) {

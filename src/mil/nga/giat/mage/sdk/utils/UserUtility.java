@@ -1,16 +1,15 @@
 package mil.nga.giat.mage.sdk.utils;
 
+import java.text.ParseException;
 import java.util.Date;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
-
-import com.mdimension.jchronic.Chronic;
-import com.mdimension.jchronic.utils.Span;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 /**
  * Utility that currently deals mostly with the user's token information.
@@ -19,6 +18,8 @@ import android.preference.PreferenceManager;
  * 
  */
 public class UserUtility {
+
+	private static final String LOG_NAME = UserUtility.class.getName();
 
 	private UserUtility() {
 	}
@@ -44,10 +45,13 @@ public class UserUtility {
 		}
 		String tokenExpirationDateString = PreferenceHelper.getInstance(mContext).getValue(R.string.tokenExpirationDateKey);
 		if (!tokenExpirationDateString.isEmpty()) {
-			Span s = Chronic.parse(tokenExpirationDateString);
-			if (s != null) {
-				return new Date().after(new Date(s.getBegin() * 1000));
+
+			try {
+				return new Date().after(DateUtility.getISO8601().parse(tokenExpirationDateString));
+			} catch (ParseException e) {
+				Log.e(LOG_NAME, "Problem paring token date.");
 			}
+
 		}
 		return true;
 	}
