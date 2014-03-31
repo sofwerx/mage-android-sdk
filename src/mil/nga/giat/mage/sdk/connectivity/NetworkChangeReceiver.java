@@ -19,7 +19,7 @@ import android.util.Log;
 
 public class NetworkChangeReceiver extends BroadcastReceiver implements IEventDispatcher<Void> {
 
-	private static final int sleepDelay = 30; // in seconds
+	private static final int sleepDelay = 10; // in seconds
 	
 	private static final String LOG_NAME = NetworkChangeReceiver.class.getName();
 
@@ -110,7 +110,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver implements IEventDi
 			}
 		}
 		
-		// was there a change in general conntivity?
+		// was there a change in general connectivity?
 		if (oldConnectionAvailabilityState ^ newConnectionAvailabilityState) {
 			// is mobile data now on?
 			if(newConnectionAvailabilityState) {
