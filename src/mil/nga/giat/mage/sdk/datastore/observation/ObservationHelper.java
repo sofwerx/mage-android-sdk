@@ -188,6 +188,26 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 	}
 
 	/**
+	 * Gets a List of Observations from the datastore that are dirty (i.e. should be
+	 * synced with the server).
+	 * @return
+	 */
+	public List<Observation> getDirty() {
+		QueryBuilder<Observation, Long> queryBuilder = observationDao.queryBuilder();
+		List<Observation> observations = new ArrayList<Observation>();
+
+		try {
+			queryBuilder.where().eq("dirty", true);
+			observations = observationDao.query(queryBuilder.prepare());
+		} 
+		catch (SQLException e) {
+			// TODO Auto-generated catch block
+			Log.e(LOG_NAME, "Could not get dirty Observations.");
+		}		
+		return observations;
+	}
+	
+	/**
 	 * Does a record already exist in the local DB?
 	 * 
 	 * @param pRemoteId
