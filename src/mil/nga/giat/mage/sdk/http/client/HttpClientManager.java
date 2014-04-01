@@ -18,6 +18,7 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.protocol.HttpContext;
 
 import android.content.Context;
@@ -62,6 +63,8 @@ public class HttpClientManager {
 			// needs to be thread safe!
 			ClientConnectionManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
 			httpClient = new DefaultHttpClient(cm, params);
+			httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 25000);
+			httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 30000);
 			// add the token to every request!
 			httpClient.addRequestInterceptor(new HttpRequestInterceptor() {
 				@Override

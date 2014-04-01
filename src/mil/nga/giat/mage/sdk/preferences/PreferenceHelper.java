@@ -150,9 +150,12 @@ public class PreferenceHelper {
 
 		private void initialize(URL serverURL) {
 			try {
+				Log.i("test", "b4client");
 				DefaultHttpClient httpclient = HttpClientManager.getInstance(mContext).getHttpClient();
 				HttpGet get = new HttpGet(new URL(serverURL, "api").toURI());
+				Log.i("test", "b4exe");
 				HttpResponse response = httpclient.execute(get);
+				Log.i("test", "a4exe");
 				if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 					JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
 					// preface all global
