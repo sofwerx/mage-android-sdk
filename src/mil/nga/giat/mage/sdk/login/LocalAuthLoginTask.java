@@ -86,6 +86,6 @@ public class LocalAuthLoginTask extends AbstractAccountTask {
 			Log.w(LOG_NAME, "Unable to initialize a local Active User.");
 		}
 
-		return new AccountStatus(Boolean.TRUE);
+		return new AccountStatus(AccountStatus.Status.SUCCESSFUL_LOGIN);
 	}
 }

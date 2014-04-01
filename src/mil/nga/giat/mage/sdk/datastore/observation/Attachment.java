@@ -122,7 +122,6 @@ public class Attachment implements Parcelable {
 	}
 	
 	// Parcelable stuff
-	
 	public Attachment(Parcel in) {
 		id = (Long)in.readValue(Long.class.getClassLoader());
 		remoteId = in.readString();

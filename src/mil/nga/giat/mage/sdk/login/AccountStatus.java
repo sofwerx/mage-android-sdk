@@ -12,11 +12,20 @@ import org.json.JSONObject;
  *
  */
 public class AccountStatus {
+	
+	public static enum Status {
+		SUCCESSFUL_LOGIN,
+		FAILED_LOGIN,
+		SUCCESSFUL_REGISTRATION,
+		ALREADY_REGISTERED,
+		FAILED_SIGNUP,
+		SUCCESSFUL_SIGNUP
+	};
 
 	/**
 	 * Request was successful or not
 	 */
-	private Boolean status = Boolean.FALSE;
+	private Status status = Status.FAILED_LOGIN;
 
 	/**
 	 * If status was false. Then this list can correspond to which argument(s)
@@ -37,19 +46,19 @@ public class AccountStatus {
 	 */
 	private JSONObject accountInformation = new JSONObject();
 
-	public AccountStatus(Boolean status) {
+	public AccountStatus(Status status) {
 		super();
 		this.status = status;
 	}
 
-	public AccountStatus(Boolean status, List<Integer> errorIndices, List<String> errorMessages) {
+	public AccountStatus(Status status, List<Integer> errorIndices, List<String> errorMessages) {
 		super();
 		this.status = status;
 		this.errorIndices = errorIndices;
 		this.errorMessages = errorMessages;
 	}
 
-	public AccountStatus(Boolean status, List<Integer> errorIndices, List<String> errorMessages, JSONObject accountInformation) {
+	public AccountStatus(Status status, List<Integer> errorIndices, List<String> errorMessages, JSONObject accountInformation) {
 		super();
 		this.status = status;
 		this.errorIndices = errorIndices;
@@ -57,7 +66,7 @@ public class AccountStatus {
 		this.accountInformation = accountInformation;
 	}
 
-	public final Boolean getStatus() {
+	public final Status getStatus() {
 		return status;
 	}
 

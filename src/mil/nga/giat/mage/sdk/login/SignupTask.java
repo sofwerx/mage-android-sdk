@@ -64,7 +64,7 @@ public class SignupTask extends AbstractAccountTask {
 			errorIndices.add(5);
 			List<String> errorMessages = new ArrayList<String>();
 			errorMessages.add("No connection");
-			return new AccountStatus(Boolean.FALSE, errorIndices, errorMessages);
+			return new AccountStatus(AccountStatus.Status.FAILED_SIGNUP, errorIndices, errorMessages);
 		}
 
 		String macAddress = ConnectivityUtility.getMacAddress(mApplicationContext);
@@ -73,7 +73,7 @@ public class SignupTask extends AbstractAccountTask {
 			errorIndices.add(5);
 			List<String> errorMessages = new ArrayList<String>();
 			errorMessages.add("No mac address found on device");
-			return new AccountStatus(Boolean.FALSE, errorIndices, errorMessages);
+			return new AccountStatus(AccountStatus.Status.FAILED_SIGNUP, errorIndices, errorMessages);
 		}
 
 		// is server a valid URL? (already checked username and password)
@@ -84,7 +84,7 @@ public class SignupTask extends AbstractAccountTask {
 			errorIndices.add(5);
 			List<String> errorMessages = new ArrayList<String>();
 			errorMessages.add("Bad URL");
-			return new AccountStatus(Boolean.FALSE, errorIndices, errorMessages);
+			return new AccountStatus(AccountStatus.Status.FAILED_SIGNUP, errorIndices, errorMessages);
 		}
 
 		try {
@@ -104,7 +104,7 @@ public class SignupTask extends AbstractAccountTask {
 
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-				return new AccountStatus(Boolean.TRUE, new ArrayList<Integer>(), new ArrayList<String>(), json);
+				return new AccountStatus(AccountStatus.Status.SUCCESSFUL_SIGNUP, new ArrayList<Integer>(), new ArrayList<String>(), json);
 			}
 		} catch (MalformedURLException e) {
 			// already checked for this!
@@ -128,6 +128,6 @@ public class SignupTask extends AbstractAccountTask {
 			e.printStackTrace();
 		}
 
-		return new AccountStatus(Boolean.FALSE);
+		return new AccountStatus(AccountStatus.Status.FAILED_SIGNUP);
 	}
 }
