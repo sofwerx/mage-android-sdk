@@ -3,10 +3,11 @@ package mil.nga.giat.mage.sdk.fetch;
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.connectivity.NetworkChangeReceiver;
 import mil.nga.giat.mage.sdk.event.connectivity.IConnectivityEventListener;
+import mil.nga.giat.mage.sdk.event.user.IUserEventListener;
 import android.content.Context;
 import android.os.AsyncTask;
 
-public abstract class ServerFetchAsyncTask extends AsyncTask<Void, Void, Boolean> implements IConnectivityEventListener {
+public abstract class ServerFetchAsyncTask extends AsyncTask<Object, Object, Boolean> implements IConnectivityEventListener, IUserEventListener {
 
 	protected final Context mContext;
 	protected final NetworkChangeReceiver mNetworkChangeReceiver = new NetworkChangeReceiver();;
@@ -73,5 +74,9 @@ public abstract class ServerFetchAsyncTask extends AsyncTask<Void, Void, Boolean
 	public void onMobileDataDisconnected() {
 		//if more granular connectivity management is ever needed.  i.e. for attachments?	
 	}
-	
+
+	@Override
+	public void onTokenExpired() {
+		cancel(true);
+	}
 }

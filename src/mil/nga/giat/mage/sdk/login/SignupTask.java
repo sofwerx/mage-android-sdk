@@ -11,6 +11,7 @@ import java.util.List;
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -86,7 +87,7 @@ public class SignupTask extends AbstractAccountTask {
 			errorMessages.add("Bad URL");
 			return new AccountStatus(AccountStatus.Status.FAILED_SIGNUP, errorIndices, errorMessages);
 		}
-
+		HttpEntity entity = null;
 		try {
 			DefaultHttpClient httpclient = HttpClientManager.getInstance(mApplicationContext).getHttpClient();
 			HttpPost post = new HttpPost(new URL(new URL(serverURL), "api/users").toURI());
@@ -103,7 +104,8 @@ public class SignupTask extends AbstractAccountTask {
 			HttpResponse response = httpclient.execute(post);
 
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
+				entity = response.getEntity();
+				JSONObject json = new JSONObject(EntityUtils.toString(entity));
 				return new AccountStatus(AccountStatus.Status.SUCCESSFUL_SIGNUP, new ArrayList<Integer>(), new ArrayList<String>(), json);
 			}
 		} catch (MalformedURLException e) {
@@ -126,6 +128,13 @@ public class SignupTask extends AbstractAccountTask {
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			try {
+				if (entity != null) {
+					entity.consumeContent();
+				}
+			} catch (Exception e) {
+			}
 		}
 
 		return new AccountStatus(AccountStatus.Status.FAILED_SIGNUP);

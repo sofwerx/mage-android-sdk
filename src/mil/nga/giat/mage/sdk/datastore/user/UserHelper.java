@@ -73,21 +73,22 @@ public class UserHelper {
 
 	}
 
-	/**
-	 * This utility method abstracts the complexities of persisting a new User.
-	 * All the caller needs to to is construct an User object and call the
-	 * appropriate setters.
-	 * 
-	 * @param pUser
-	 *            A constructed User.
-	 * @return A fully constructed User complete with database primary keys.
-	 * @throws UserException
-	 *             If the User being created violates any database constraints.
-	 */
-	public User createUser(User pUser) throws UserException {
-
-		User createdUser;
-
+	public User read(String pRemoteId) throws UserException {
+		User user = null;
+		try {
+			List<User> results = userDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
+			if (results != null && results.size() > 0) {
+				user = results.get(0);
+			}
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+			throw new UserException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+		}
+		return user;
+	}
+	
+	public User create(User pUser) throws UserException {
+		User createdUser = null;
 		try {
 			createdUser = userDao.createIfNotExists(pUser);
 
@@ -97,7 +98,6 @@ public class UserHelper {
 			Log.e(LOG_NAME, "There was a problem creating user: " + pUser);
 			throw new UserException("There was a problem creating user: " + pUser, sqle);
 		}
-
 		return createdUser;
 	}
 
@@ -110,7 +110,7 @@ public class UserHelper {
 	 * @throws UserException
 	 *             Indicates a problem reading users from the datastore.
 	 */
-	public List<User> readActiveUsers() throws UserException {
+	public List<User> readCurrentUsers() throws UserException {
 
 		List<User> currentUsers = null;
 
@@ -131,20 +131,6 @@ public class UserHelper {
 
 		return currentUsers;
 
-	}
-
-	public User read(String pRemoteId) throws UserException {
-		User user = null;
-		try {
-			List<User> results = userDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
-			if (results != null && results.size() > 0) {
-				user = results.get(0);
-			}
-		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
-			throw new UserException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
-		}
-		return user;
 	}
 	
 	/**

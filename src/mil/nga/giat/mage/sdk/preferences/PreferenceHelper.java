@@ -17,6 +17,7 @@ import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.login.FormAuthLoginTask;
 import mil.nga.giat.mage.sdk.login.LocalAuthLoginTask;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ParseException;
@@ -149,15 +150,14 @@ public class PreferenceHelper {
 		}
 
 		private void initialize(URL serverURL) {
+			HttpEntity entity = null;
 			try {
-				Log.i("test", "b4client");
 				DefaultHttpClient httpclient = HttpClientManager.getInstance(mContext).getHttpClient();
 				HttpGet get = new HttpGet(new URL(serverURL, "api").toURI());
-				Log.i("test", "b4exe");
 				HttpResponse response = httpclient.execute(get);
-				Log.i("test", "a4exe");
 				if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-					JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
+					entity = response.getEntity();
+					JSONObject json = new JSONObject(EntityUtils.toString(entity));
 					// preface all global
 					populateValues("g", json);
 				}
@@ -181,6 +181,13 @@ public class PreferenceHelper {
 			} catch (JSONException je) {
 				// TODO Auto-generated catch block
 				je.printStackTrace();
+			} finally {
+				try {
+					if (entity != null) {
+						entity.consumeContent();
+					}
+				} catch (Exception e) {
+				}
 			}
 		}
 	}

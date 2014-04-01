@@ -45,7 +45,7 @@ public class UserDeserializer implements JsonDeserializer<User> {
 		String lastname = feature.get("lastname").getAsString();
 		String username = feature.get("username").getAsString();
 
-		// TODO : get role
+		// FIXME : get role
 
 		User user = new User(remoteId, email, firstname, lastname, username, null);
 		return user;

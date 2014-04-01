@@ -67,7 +67,7 @@ public class LocalAuthLoginTask extends AbstractAccountTask {
 		// initialize local active user
 		try {
 			// get active users
-			List<User> activeUsers = userHelper.readActiveUsers();
+			List<User> activeUsers = userHelper.readCurrentUsers();
 			if (activeUsers == null || activeUsers.size() != 1) {
 
 				// delete active user(s)
@@ -76,7 +76,7 @@ public class LocalAuthLoginTask extends AbstractAccountTask {
 				// create new active user.
 				User currentUser = new User("NA", "unknown", "unknown", "unknown", username, null);
 				currentUser.setCurrentUser(Boolean.TRUE);
-				currentUser = userHelper.createUser(currentUser);
+				currentUser = userHelper.create(currentUser);
 			} else {
 				Log.d(LOG_NAME, "A Current Active User exists." + activeUsers.get(0));
 			}

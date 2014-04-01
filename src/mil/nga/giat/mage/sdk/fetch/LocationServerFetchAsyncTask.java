@@ -11,9 +11,12 @@ public class LocationServerFetchAsyncTask extends ServerFetchAsyncTask {
 	}
 
 	@Override
-	protected Boolean doInBackground(Void... params) {
+	protected Boolean doInBackground(Object... params) {
 
 		return Boolean.TRUE;
 	}
-
+	
+	public void destroy() {
+		cancel(true);
+	}
 }

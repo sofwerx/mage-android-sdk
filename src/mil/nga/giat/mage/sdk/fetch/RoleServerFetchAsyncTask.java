@@ -9,6 +9,7 @@ import mil.nga.giat.mage.sdk.gson.deserializer.RoleDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
@@ -34,12 +35,22 @@ public class RoleServerFetchAsyncTask extends ServerFetchAsyncTask {
 
 	private static final String LOG_NAME = RoleServerFetchAsyncTask.class.getName();
 
+	/**
+	 * Controls the program flow initialization lifecycle
+	 */
+	private boolean isInitialization = false;
+	
 	public RoleServerFetchAsyncTask(Context context) {
 		super(context);
 	}
+	
+	public RoleServerFetchAsyncTask(Context context, boolean isInitialization) {
+		super(context);
+		this.isInitialization = isInitialization;
+	}
 
 	@Override
-	protected Boolean doInBackground(Void... params) {
+	protected Boolean doInBackground(Object... params) {
 
 		Boolean status = Boolean.TRUE;
 
@@ -47,7 +58,7 @@ public class RoleServerFetchAsyncTask extends ServerFetchAsyncTask {
 
 		final Gson roleDeserializer = RoleDeserializer.getGsonBuilder();
 		DefaultHttpClient httpclient = HttpClientManager.getInstance(mContext).getHttpClient();
-
+		HttpEntity entity = null;
 		try {
 			URL serverURL = new URL(PreferenceHelper.getInstance(mContext).getValue(R.string.serverURLKey));
 
@@ -57,7 +68,8 @@ public class RoleServerFetchAsyncTask extends ServerFetchAsyncTask {
 			HttpGet get = new HttpGet(roleURL.toURI());
 			HttpResponse response = httpclient.execute(get);
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				JSONArray json = new JSONArray(EntityUtils.toString(response.getEntity()));
+				entity = response.getEntity();
+				JSONArray json = new JSONArray(EntityUtils.toString(entity));
 				if (json != null) {
 					for (int i = 0; i < json.length(); i++) {
 						JSONObject roleJson = (JSONObject) json.get(i);
@@ -65,38 +77,52 @@ public class RoleServerFetchAsyncTask extends ServerFetchAsyncTask {
 							Role role = roleDeserializer.fromJson(roleJson.toString(), Role.class);
 
 							if (role != null) {
-								if (!roleHelper.exists(role.getRemoteId())) {
+								if (roleHelper.read(role.getRemoteId()) == null) {
 									role = roleHelper.create(role);
 									Log.d(LOG_NAME, "created role with remote_id " + role.getRemoteId());
 								}
+							} else {
+								// ignore updates
 							}
 						}
 					}
 				}
 			}
 		} catch (Exception e) {
-			// this block should never flow exceptions up! Log for now.
-			Log.e(LOG_NAME, "There was a failure while performing an Observation Fetch opperation.", e);
+			Log.e(LOG_NAME, "There was a failure when fetching roles.", e);
 			// TODO: should cancel the AsyncTask?
 			cancel(Boolean.TRUE);
 			status = Boolean.FALSE;
+		} finally {
+			try {
+				if (entity != null) {
+					entity.consumeContent();
+				}
+			} catch (Exception e) {
+			}
 		}
 		return status;
 	}
+	
+	UserServerFetchAsyncTask userTask = null;
 	
 	@Override
 	protected void onPostExecute(Boolean status) {
 		super.onPostExecute(status);
 		
-		if(status) {
+		if(!status) {
+			Log.e(LOG_NAME, "Error getting roles!");
+		} else if(isInitialization) {
 			// start the next fetching tasks!
-			LocationServerFetchAsyncTask userTask = new LocationServerFetchAsyncTask(mContext);
-			userTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-			
-			ObservationServerFetchAsyncTask observationTask = new ObservationServerFetchAsyncTask(mContext);
-			observationTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-		} else {
-			Log.e(LOG_NAME, "Error getting roles!  Fetching can not continue.");
+			userTask = new UserServerFetchAsyncTask(mContext, true);
+			userTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "myself");
+		}
+	}
+	
+	public void destroy() {
+		cancel(true);
+		if(userTask != null) {
+			userTask.destroy();
 		}
 	}
 }

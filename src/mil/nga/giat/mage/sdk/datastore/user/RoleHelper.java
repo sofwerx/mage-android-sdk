@@ -70,45 +70,29 @@ public class RoleHelper {
 
 	}
 
-	public Role create(Role pRole) throws UserException {
-
-		Role createdRole;
-
-		try {
-			createdRole = roleDao.createIfNotExists(pRole);
-
-		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "There was a problem creating the role: " + pRole);
-			throw new UserException("There was a problem creating the role: " + pRole, sqle);
-		}
-
-		return createdRole;
-	}
-	
-	/**
-	 * Does a record already exist in the local DB?
-	 * 
-	 * @param pRemoteId
-	 *            The remote ID assigned to an observation by an external entity
-	 *            (server).
-	 * @return If the Role exists locally.
-	 * @throws ObservationException
-	 *             Unable to read Observation from the database
-	 */
-	public Boolean exists(String pRemoteId) throws RoleException {
-
-		Boolean exists = Boolean.FALSE;
-
+	public Role read(String pRemoteId) throws RoleException {
+		Role role = null;
 		try {
 			List<Role> results = roleDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
 			if (results != null && results.size() > 0) {
-				exists = Boolean.TRUE;
+				role = results.get(0);
 			}
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
 			throw new RoleException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
 		}
-		return exists;
+		return role;
 	}
+	
+	public Role create(Role pRole) throws RoleException {
+		Role createdRole = null;
+		try {
+			createdRole = roleDao.createIfNotExists(pRole);
 
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "There was a problem creating the role: " + pRole);
+			throw new RoleException("There was a problem creating the role: " + pRole, sqle);
+		}
+		return createdRole;
+	}
 }

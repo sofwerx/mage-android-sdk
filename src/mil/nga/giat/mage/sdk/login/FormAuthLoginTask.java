@@ -15,6 +15,7 @@ import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import mil.nga.giat.mage.sdk.utils.DateUtility;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -116,7 +117,7 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 		}
 
 		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mApplicationContext);
-		
+		HttpEntity entity = null;
 		try {
 			DefaultHttpClient httpClient = HttpClientManager.getInstance(mApplicationContext).getHttpClient();
 			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(3);
@@ -127,7 +128,6 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 			
 			// If we think we need to register, go do it
 			if(!sharedPreferences.getBoolean(mApplicationContext.getString(R.string.deviceRegisteredKey), false)) {
-				Log.i("test", "Register device");
 				AccountStatus.Status regStatus = registerDevice(serverURL, authParams);
 				
 				if (regStatus == AccountStatus.Status.SUCCESSFUL_REGISTRATION) {
@@ -136,15 +136,13 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 					return new AccountStatus(AccountStatus.Status.FAILED_LOGIN);
 				}
 			}
-			Log.i("test", "device should be registered we think, login");
 			HttpPost post = new HttpPost(new URL(new URL(serverURL), "api/login").toURI());
 			post.setEntity(authParams);
 			HttpResponse response = httpClient.execute(post);
 
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				Log.i("test", "Successfully logged in");
-				
-				JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
+				entity = response.getEntity();
+				JSONObject json = new JSONObject(EntityUtils.toString(entity));
 
 				// put the token information in the shared preferences
 				
@@ -157,11 +155,10 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 				return new AccountStatus(AccountStatus.Status.SUCCESSFUL_LOGIN, new ArrayList<Integer>(), new ArrayList<String>(), json);
 			} else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
 				
-				response.getEntity();
+				entity = response.getEntity();
+				entity.consumeContent();
 				// Could be that the device is not registered.
-				Log.i("test", "Thought the device was registered but i was unauth, try to re-register");
 				if(sharedPreferences.getBoolean(mApplicationContext.getString(R.string.deviceRegisteredKey), false)) {
-					Log.i("test", "clear the knowledge that we are registered and try again");
 					// If we think the device was registered but failed to login, try to register it again
 					Editor editor = PreferenceManager.getDefaultSharedPreferences(mApplicationContext).edit();
 					editor.putBoolean(mApplicationContext.getString(R.string.deviceRegisteredKey), false);
@@ -190,6 +187,13 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 		} catch (JSONException je) {
 			// TODO Auto-generated catch block
 			je.printStackTrace();
+		} finally {
+			try {
+				if (entity != null) {
+					entity.consumeContent();
+				}
+			} catch (Exception e) {
+			}
 		}
 
 		return new AccountStatus(AccountStatus.Status.FAILED_LOGIN);
@@ -197,7 +201,6 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 	
 	private AccountStatus.Status registerDevice(String serverURL, UrlEncodedFormEntity authParams) {
 		try {
-			Log.i("test", "Registering the device");
 			DefaultHttpClient httpClient = HttpClientManager.getInstance(mApplicationContext).getHttpClient();
 			HttpPost register = new HttpPost(new URL(new URL(serverURL), "api/devices").toURI());
 			register.setEntity(authParams);
@@ -210,10 +213,8 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 					Editor editor = PreferenceManager.getDefaultSharedPreferences(mApplicationContext).edit();
 					editor.putBoolean(mApplicationContext.getString(R.string.deviceRegisteredKey), true);
 					editor.commit();
-					Log.i("test", "Already was registered");
 					return AccountStatus.Status.ALREADY_REGISTERED;
 				} else {
-					Log.i("test", "Successfully registered the device, tell the user");
 					// device registration has been submitted
 					return AccountStatus.Status.SUCCESSFUL_REGISTRATION; //new AccountStatus(AccountStatus.Status.SUCCESSFUL_REGISTRATION, new ArrayList<Integer>(), new ArrayList<String>(), jsonObject);
 				}

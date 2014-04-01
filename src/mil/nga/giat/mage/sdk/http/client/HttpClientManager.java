@@ -1,8 +1,13 @@
 package mil.nga.giat.mage.sdk.http.client;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import mil.nga.giat.mage.sdk.R;
+import mil.nga.giat.mage.sdk.event.IEventDispatcher;
+import mil.nga.giat.mage.sdk.event.IEventListener;
+import mil.nga.giat.mage.sdk.event.user.IUserEventListener;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 
 import org.apache.http.HttpException;
@@ -22,6 +27,7 @@ import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.protocol.HttpContext;
 
 import android.content.Context;
+import android.util.Log;
 
 /**
  * Always use the {@link HttpClientManager#getHttpClient()} for making ALL
@@ -31,7 +37,11 @@ import android.content.Context;
  * @author wiedemannse
  * 
  */
-public class HttpClientManager {
+public class HttpClientManager implements IEventDispatcher<Void> {
+
+	private static final String LOG_NAME = HttpClientManager.class.getName();
+
+	private static List<IUserEventListener> listeners = new ArrayList<IUserEventListener>();
 
 	private HttpClientManager() {
 	}
@@ -50,14 +60,14 @@ public class HttpClientManager {
 		return httpClientManager;
 	}
 
-	DefaultHttpClient httpClient = null;
+	private DefaultHttpClient httpClient = null;
 
 	public DefaultHttpClient getHttpClient() {
 		if (httpClient == null) {
 			BasicHttpParams params = new BasicHttpParams();
 			SchemeRegistry schemeRegistry = new SchemeRegistry();
 			// do not register http! only https
-			//schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+			// schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
 			final SSLSocketFactory sslSocketFactory = SSLSocketFactory.getSocketFactory();
 			schemeRegistry.register(new Scheme("https", sslSocketFactory, 443));
 			// needs to be thread safe!
@@ -82,13 +92,25 @@ public class HttpClientManager {
 				public void process(HttpResponse response, HttpContext context) throws HttpException, IOException {
 					int statusCode = response.getStatusLine().getStatusCode();
 					if (statusCode == HttpStatus.SC_FORBIDDEN || statusCode == HttpStatus.SC_UNAUTHORIZED) {
-						// TODO : fire event that tell the gui that token is
-						// expired.
+						for (IUserEventListener listener : listeners) {
+							listener.onTokenExpired();
+						}
+						Log.d(LOG_NAME, "TOKEN EXPIRED");
 						return;
 					}
 				}
 			});
 		}
 		return httpClient;
+	}
+
+	@Override
+	public boolean addListener(IEventListener<Void> listener) {
+		return listeners.add((IUserEventListener) listener);
+	}
+
+	@Override
+	public boolean removeListener(IEventListener<Void> listener) {
+		return listeners.remove((IUserEventListener) listener);
 	}
 }

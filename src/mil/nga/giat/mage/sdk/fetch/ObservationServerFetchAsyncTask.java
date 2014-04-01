@@ -2,7 +2,12 @@ package mil.nga.giat.mage.sdk.fetch;
 
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import mil.nga.giat.mage.sdk.R;
@@ -16,6 +21,7 @@ import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import mil.nga.giat.mage.sdk.utils.DateUtility;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
@@ -28,6 +34,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -55,7 +62,7 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 	}
 
 	@Override
-	protected Boolean doInBackground(Void... params) {
+	protected Boolean doInBackground(Object... params) {
 
 		Boolean status = Boolean.TRUE;
 
@@ -66,13 +73,15 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 		String fieldObservationLayerName = "Field Observations";
 		// get the correct feature server id
 		DefaultHttpClient httpclient = HttpClientManager.getInstance(mContext).getHttpClient();
+		HttpEntity entity = null;
 		try {
 			URL serverURL = new URL(PreferenceHelper.getInstance(mContext).getValue(R.string.serverURLKey));
 
 			HttpGet get = new HttpGet(new URL(serverURL, "api/layers").toURI());
 			HttpResponse response = httpclient.execute(get);
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				JSONArray json = new JSONArray(EntityUtils.toString(response.getEntity()));
+				entity = response.getEntity();
+				JSONArray json = new JSONArray(EntityUtils.toString(entity));
 				for (int i = 0; i < json.length(); i++) {
 					JSONObject j = json.getJSONObject(i);
 					if (j.getString("name").equals(fieldObservationLayerName)) {
@@ -85,11 +94,18 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 			// this block should never flow exceptions up! Log for now.
 			e.printStackTrace();
 			Log.e(LOG_NAME, "There was a failure while performing an Observation Fetch opperation.", e);
+		} finally {
+			try {
+				if (entity != null) {
+					entity.consumeContent();
+				}
+			} catch (Exception e) {
+			}
 		}
 
 		final Gson observationDeserializer = ObservationDeserializer.getGsonBuilder();
 
-		while (Status.RUNNING.equals(getStatus())) {
+		while (Status.RUNNING.equals(getStatus()) && !isCancelled()) {
 
 			if (IS_CONNECTED) {
 
@@ -109,17 +125,18 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 					HttpResponse response = httpclient.execute(get);
 					if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 						JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-
+						List<String> unrecognizedOrExpiredUsers = new ArrayList<String>();
+						
 						if (json != null && json.has("features")) {
 							JSONArray features = json.getJSONArray("features");
 							for (int i = 0; i < features.length(); i++) {
 								JSONObject feature = (JSONObject) features.get(i);
-								if (feature != null) {
+								if (feature != null && !isCancelled()) {
 									Observation observation = observationDeserializer.fromJson(feature.toString(), Observation.class);
 
 									if (observation != null) {
 										if (!observationHelper.observationExists(observation.getRemoteId())) {
-											observation = observationHelper.createObservation(observation);
+											observation = observationHelper.create(observation);
 
 											// TODO: if the observation has a userid that we've not seen before, then request the user info!
 											// TODO: the server is going to move the user id to a different section of the json
@@ -128,18 +145,22 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 												User user = userHelper.read(userId);
 												final long tenHoursInMillseconds = 10 * 60 * 60 * 1000;
 												if (user == null || (new Date(user.getFetchedDate().getTime() + tenHoursInMillseconds)).after(new Date())) {
-													// TODO: fetch new user
+													unrecognizedOrExpiredUsers.add(userId);
 												}
 											}
 											Log.d(LOG_NAME, "created observation with remote_id " + observation.getRemoteId());
 										} else {
-											// TODO: perform an update?
+											// TODO: perform update?
 											Log.d(LOG_NAME, "observation with remote_id " + observation.getRemoteId() + " already exists!");
 										}
 									}
 								}
 							}
 						}
+						
+						// get any users that were not recognized!
+						/*UserServerFetchAsyncTask userTask = new UserServerFetchAsyncTask(mContext);
+						userTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, unrecognizedOrExpiredUsers.toArray(new String[unrecognizedOrExpiredUsers.size()])).get(60, TimeUnit.SECONDS);*/
 					}
 				} catch (Exception e) {
 					// this block should never flow exceptions up! Log for now.
@@ -177,7 +198,7 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 		}
 		return status;
 	}
-
+	
 	/**
 	 * Will alert the fetching thread that changes have been made
 	 */
@@ -197,5 +218,9 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 			fetchSemaphore.set(true);
 			fetchSemaphore.notifyAll();
 		}
+	}
+	
+	public void destroy() {
+		cancel(true);
 	}
 }

@@ -94,7 +94,7 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 	 *             If the Observation being created violates any database
 	 *             constraints.
 	 */
-	public Observation createObservation(Observation pObservation) throws ObservationException {
+	public Observation create(Observation pObservation) throws ObservationException {
 
 		Observation createdObservation;
 
@@ -148,7 +148,7 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 	 *             If there was an error reading the Observation from the
 	 *             database.
 	 */
-	public Observation readObservation(Long pPrimaryKey) throws ObservationException {
+	public Observation read(Long pPrimaryKey) throws ObservationException {
 		Observation observation;
 		try {
 			// NOTE: Observation Collections are set up to be 'eager'. Any
@@ -222,7 +222,7 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 	 * @param pPrimaryKey
 	 * @throws OrmException
 	 */
-	public void deleteObservation(Long pPrimaryKey) throws ObservationException {
+	public void delete(Long pPrimaryKey) throws ObservationException {
 		try {
 			// read the full Observation in
 			Observation observation = observationDao.queryForId(pPrimaryKey);
