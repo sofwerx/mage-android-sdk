@@ -2,6 +2,8 @@ package mil.nga.giat.mage.sdk.datastore.location;
 
 import java.util.Collection;
 
+import mil.nga.giat.mage.sdk.datastore.user.User;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -14,6 +16,9 @@ public class Location {
 
 	@DatabaseField(unique = true)
 	private String remote_id;
+	
+	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
+	private User user;
 
 	@DatabaseField(canBeNull = false, version = true)
 	private long lastModified;
@@ -29,19 +34,20 @@ public class Location {
 
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
 	private LocationGeometry locationGeometry;
-
+	
 	public Location() {
 		// ORMLite needs a no-arg constructor
 	}
 
-	public Location(String type, Collection<LocationProperty> properties, LocationGeometry locationGeometry) {
-		this(null, System.currentTimeMillis(), type, properties, locationGeometry);
+	public Location(String type, User user, Collection<LocationProperty> properties, LocationGeometry locationGeometry) {
+		this(null, user, System.currentTimeMillis(), type, properties, locationGeometry);
 		this.setDirty(true);
 	}
 
-	public Location(String remoteId, long lastModified, String type, Collection<LocationProperty> properties, LocationGeometry locationGeometry) {
+	public Location(String remoteId, User user, long lastModified, String type, Collection<LocationProperty> properties, LocationGeometry locationGeometry) {
 		super();
 		this.remote_id = remoteId;
+		this.user = user;
 		this.lastModified = lastModified;
 		this.type = type;
 		this.properties = properties;
@@ -59,6 +65,14 @@ public class Location {
 
 	public void setRemote_id(String remote_id) {
 		this.remote_id = remote_id;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
 	}
 
 	public String getType() {

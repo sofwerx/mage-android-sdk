@@ -53,6 +53,10 @@ public class User {
 		return pk_id;
 	}
 
+	public void setPk_id(Long pk_id) {
+		this.pk_id = pk_id;
+	}
+
 	public String getRemoteId() {
 		return remoteId;
 	}

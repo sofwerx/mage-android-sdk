@@ -91,14 +91,20 @@ public class UserHelper {
 		User createdUser = null;
 		try {
 			createdUser = userDao.createIfNotExists(pUser);
-
-			// TODO : create role?
-
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "There was a problem creating user: " + pUser);
 			throw new UserException("There was a problem creating user: " + pUser, sqle);
 		}
 		return createdUser;
+	}
+
+	public void update(User pUser) throws UserException {
+		try {
+			userDao.update(pUser);
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "There was a problem creating user: " + pUser);
+			throw new UserException("There was a problem creating user: " + pUser, sqle);
+		}
 	}
 
 	/**

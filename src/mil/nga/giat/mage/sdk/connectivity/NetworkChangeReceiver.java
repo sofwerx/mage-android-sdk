@@ -142,8 +142,9 @@ public class NetworkChangeReceiver extends BroadcastReceiver implements IEventDi
 	}
 
 	@Override
-	public boolean addListener(IEventListener<Void> listener) {
-		return listeners.add((IConnectivityEventListener) listener);
+	public List<Void> addListener(IEventListener<Void> listener) {
+		listeners.add((IConnectivityEventListener) listener);
+		return null;
 	}
 
 	@Override

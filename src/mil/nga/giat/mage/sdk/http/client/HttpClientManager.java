@@ -105,8 +105,9 @@ public class HttpClientManager implements IEventDispatcher<Void> {
 	}
 
 	@Override
-	public boolean addListener(IEventListener<Void> listener) {
-		return listeners.add((IUserEventListener) listener);
+	public List<Void> addListener(IEventListener<Void> listener) {
+		listeners.add((IUserEventListener) listener);
+		return null;
 	}
 
 	@Override

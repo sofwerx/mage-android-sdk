@@ -6,11 +6,15 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
+import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.exceptions.LoginException;
+import mil.nga.giat.mage.sdk.exceptions.UserException;
+import mil.nga.giat.mage.sdk.gson.deserializer.UserDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import mil.nga.giat.mage.sdk.utils.DateUtility;
@@ -29,6 +33,8 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.google.gson.Gson;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -44,6 +50,8 @@ import android.util.Log;
  */
 public class FormAuthLoginTask extends AbstractAccountTask {
 
+	private static final String LOG_NAME = FormAuthLoginTask.class.getName();
+	
 	public FormAuthLoginTask(AccountDelegate delegate, Context context) {
 		super(delegate, context);
 	}
@@ -152,6 +160,34 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 					editor.putString(mApplicationContext.getString(R.string.tokenExpirationDateKey), DateUtility.getISO8601().format(DateUtility.getISO8601().parse(json.getString("expirationDate").trim()))).commit();
 				} catch (java.text.ParseException e) {
 				}
+				
+				// initialize local active user
+				try {
+					JSONObject userJson = json.getJSONObject("user");
+					final Gson userDeserializer = UserDeserializer.getGsonBuilder(mApplicationContext);
+
+					User user = userDeserializer.fromJson(userJson.toString(), User.class);
+					if (user != null) {
+						User oldUser = userHelper.read(user.getRemoteId());
+						if (oldUser == null) {
+							user.setCurrentUser(true);
+							user.setFetchedDate(new Date());
+							user = userHelper.create(user);
+							Log.d(LOG_NAME, "created user with remote_id " + user.getRemoteId());
+						} else {
+							// TODO: perform update?
+							user.setPk_id(oldUser.getPk_id());
+							user.setCurrentUser(true);
+							user.setFetchedDate(new Date());
+							userHelper.update(user);
+							Log.d(LOG_NAME, "updated user with remote_id " + user.getRemoteId());
+						}
+					}
+				} catch (UserException e) {
+					// for now, treat as a warning. Not a great state to be in.
+					Log.w(LOG_NAME, "Unable to initialize a local Active User.");
+				}
+				
 				return new AccountStatus(AccountStatus.Status.SUCCESSFUL_LOGIN, new ArrayList<Integer>(), new ArrayList<String>(), json);
 			} else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
 				

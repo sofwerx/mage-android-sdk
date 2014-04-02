@@ -3,8 +3,11 @@ package mil.nga.giat.mage.sdk.fetch;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -61,6 +64,14 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 		return PreferenceHelper.getInstance(mContext).getValue(R.string.observationFetchFrequencyKey, Long.class, R.string.observationFetchFrequencyDefaultValue);
 	}
 
+	UserServerFetchAsyncTask userTask;
+	
+	@Override
+	protected void onPreExecute() {
+		super.onPreExecute();
+		userTask = new UserServerFetchAsyncTask(mContext);
+	}
+	
 	@Override
 	protected Boolean doInBackground(Object... params) {
 
@@ -125,7 +136,7 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 					HttpResponse response = httpclient.execute(get);
 					if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 						JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-						List<String> unrecognizedOrExpiredUsers = new ArrayList<String>();
+						Set<String> unrecognizedOrExpiredUsers = new HashSet<String>();
 						
 						if (json != null && json.has("features")) {
 							JSONArray features = json.getJSONArray("features");
@@ -143,6 +154,7 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 											String userId = observation.getPropertiesMap().get("userId");
 											if (userId != null) {
 												User user = userHelper.read(userId);
+												// TODO : test the timer to make sure users are updated as needed!!!
 												final long tenHoursInMillseconds = 10 * 60 * 60 * 1000;
 												if (user == null || (new Date(user.getFetchedDate().getTime() + tenHoursInMillseconds)).after(new Date())) {
 													unrecognizedOrExpiredUsers.add(userId);
@@ -159,8 +171,7 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 						}
 						
 						// get any users that were not recognized!
-						/*UserServerFetchAsyncTask userTask = new UserServerFetchAsyncTask(mContext);
-						userTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, unrecognizedOrExpiredUsers.toArray(new String[unrecognizedOrExpiredUsers.size()])).get(60, TimeUnit.SECONDS);*/
+						new UserServerFetch().fetch(mContext, unrecognizedOrExpiredUsers.toArray(new String[unrecognizedOrExpiredUsers.size()]));
 					}
 				} catch (Exception e) {
 					// this block should never flow exceptions up! Log for now.

@@ -6,10 +6,12 @@ import java.util.Collection;
 import java.util.List;
 
 import mil.nga.giat.mage.sdk.datastore.DBHelper;
+import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.IEventListener;
 import mil.nga.giat.mage.sdk.event.location.ILocationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
+import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import android.content.Context;
 import android.util.Log;
 
@@ -77,6 +79,17 @@ public class LocationHelper implements IEventDispatcher<Location> {
 
 	}
 
+	public List<Location> readAll() throws LocationException {
+		List<Location> locations = new ArrayList<Location>();
+		try {
+			locations = locationDao.queryForAll();
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "Unable to read Locations", sqle);
+			throw new LocationException("Unable to read Locations.", sqle);
+		}
+		return locations;
+	}
+	
 	/**
 	 * This utility method abstracts the complexities of persisting a new
 	 * Location. All the caller needs to to is construct a Location object and
@@ -122,8 +135,9 @@ public class LocationHelper implements IEventDispatcher<Location> {
 	}
 
 	@Override
-	public boolean addListener(IEventListener<Location> listener) {
-		return listeners.add((ILocationEventListener) listener);
+	public List<Location> addListener(IEventListener<Location> listener) throws LocationException {
+		listeners.add((ILocationEventListener) listener);
+		return readAll();
 	}
 
 	@Override

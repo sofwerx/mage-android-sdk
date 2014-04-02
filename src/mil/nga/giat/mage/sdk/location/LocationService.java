@@ -11,8 +11,11 @@ import mil.nga.giat.mage.sdk.datastore.common.PointGeometry;
 import mil.nga.giat.mage.sdk.datastore.location.LocationGeometry;
 import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
+import mil.nga.giat.mage.sdk.datastore.user.User;
+import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
+import mil.nga.giat.mage.sdk.exceptions.UserException;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import android.app.AlertDialog;
 import android.app.Service;
@@ -47,6 +50,8 @@ public class LocationService extends Service implements LocationListener, OnShar
 	private static final String LOG_NAME = LocationService.class.getName();
 
 	private final Context mContext;
+	
+	private final UserHelper userHelper;
 
 	// Minimum milliseconds between updates
 	private static final long MIN_TIME_BW_UPDATES = 0 * 1000;
@@ -118,6 +123,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 	 */
 	public LocationService(Context context) {
 		this.mContext = context;
+		this.userHelper = UserHelper.getInstance(mContext);
 		this.locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
 		PreferenceManager.getDefaultSharedPreferences(mContext).registerOnSharedPreferenceChangeListener(this);
 		preferenceSemaphore.set(false);
@@ -380,8 +386,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 
 	}
 
-	public class saveLocation extends AsyncTask<Object, Void, Void> {
-
+	public class saveLocation extends AsyncTask<Object, Void, Void> {		
 		@Override
 		protected Void doInBackground(Object... params) {
 
@@ -405,8 +410,19 @@ public class LocationService extends Service implements LocationListener, OnShar
 				// build geometry
 				LocationGeometry locationGeometry = new LocationGeometry(new PointGeometry(location.getLatitude(), location.getLongitude()));
 
+				User currentUser = null;
+				List<User> currentUsers;
+				try {
+					currentUsers = userHelper.readCurrentUsers();
+					if(currentUsers.size() > 0) {
+						currentUser = currentUsers.get(0);
+					}
+				} catch (UserException e) {
+					Log.e(LOG_NAME, "Could not get current User!");
+				}
+				
 				// build location
-				mil.nga.giat.mage.sdk.datastore.location.Location loc = new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", locationProperties, locationGeometry);
+				mil.nga.giat.mage.sdk.datastore.location.Location loc = new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", currentUser, locationProperties, locationGeometry);
 
 				loc.setLocationGeometry(locationGeometry);
 				loc.setProperties(locationProperties);

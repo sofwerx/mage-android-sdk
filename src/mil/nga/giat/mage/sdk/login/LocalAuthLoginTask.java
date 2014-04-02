@@ -8,7 +8,6 @@ import java.util.List;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.user.User;
-import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.exceptions.LoginException;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
 import mil.nga.giat.mage.sdk.utils.DateUtility;
@@ -29,11 +28,8 @@ public class LocalAuthLoginTask extends AbstractAccountTask {
 
 	private static final String LOG_NAME = LocalAuthLoginTask.class.getName();
 
-	private UserHelper userHelper;
-
 	public LocalAuthLoginTask(AccountDelegate delegate, Context applicationContext) {
 		super(delegate, applicationContext);
-		userHelper = UserHelper.getInstance(applicationContext);
 	}
 
 	/**

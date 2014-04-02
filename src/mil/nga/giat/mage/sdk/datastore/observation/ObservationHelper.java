@@ -162,6 +162,17 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 		return observation;
 	}
 
+	public List<Observation> readAll() throws ObservationException {
+		List<Observation> observations = new ArrayList<Observation>();
+		try {
+			observations = observationDao.queryForAll();
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "Unable to read Observations", sqle);
+			throw new ObservationException("Unable to read Observations.", sqle);
+		}
+		return observations;
+	}
+
 	/**
 	 * Gets the latest last modified date.  Used when fetching.
 	 * 
@@ -279,14 +290,14 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 	}
 
 	@Override
-	public boolean addListener(IEventListener<Observation> listener) {
-		return listeners.add((IObservationEventListener) listener);
+	public List<Observation> addListener(IEventListener<Observation> listener) throws ObservationException {
+		listeners.add((IObservationEventListener) listener);
+		return readAll();
 	}
 
 	@Override
 	public boolean removeListener(IEventListener<Observation> listener) {
-		return listeners.remove((IObservationEventListener)listener);
+		return listeners.remove((IObservationEventListener) listener);
 	}
 }
-
 
