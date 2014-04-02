@@ -34,10 +34,10 @@ public class Observation {
 	private ObservationGeometry observationGeometry;
 
 	@ForeignCollectionField(eager = true)
-	private Collection<ObservationProperty> properties;
+	private Collection<ObservationProperty> properties = new ArrayList<ObservationProperty>();
 
 	@ForeignCollectionField(eager = true)
-	private Collection<Attachment> attachments;
+	private Collection<Attachment> attachments = new ArrayList<Attachment>();
 
 	public Observation() {
 		// ORMLite needs a no-arg constructor
@@ -158,7 +158,7 @@ public class Observation {
 
 	@Override
 	public String toString() {
-		return "Observation [pk_id=" + id + ", remote_id=" + remoteId + ", state=" + state + ", lastModified=" + lastModified +  ", observationGeometry=" + observationGeometry + ", properties=" + properties + ", attachments=" + attachments + "]";
+		return "Observation [pk_id=" + id + ", dirty=" + dirty + ", remote_id=" + remoteId + ", state=" + state + ", lastModified=" + lastModified +  ", observationGeometry=" + observationGeometry + ", properties=" + properties + ", attachments=" + attachments + "]";
 	}
 
 }
