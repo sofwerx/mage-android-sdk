@@ -6,12 +6,10 @@ import java.util.Collection;
 import java.util.List;
 
 import mil.nga.giat.mage.sdk.datastore.DBHelper;
-import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.IEventListener;
 import mil.nga.giat.mage.sdk.event.location.ILocationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
-import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import android.content.Context;
 import android.util.Log;
 

@@ -2,7 +2,6 @@ package mil.nga.giat.mage.sdk.preferences;
 
 import mil.nga.giat.mage.sdk.R;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.preference.ListPreference;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;

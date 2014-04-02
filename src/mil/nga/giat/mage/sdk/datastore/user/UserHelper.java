@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import mil.nga.giat.mage.sdk.datastore.DBHelper;
-import mil.nga.giat.mage.sdk.exceptions.ObservationException;
-import mil.nga.giat.mage.sdk.exceptions.RoleException;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
 import android.content.Context;
 import android.util.Log;

@@ -7,7 +7,6 @@ import mil.nga.giat.mage.sdk.datastore.common.PointGeometry;
 import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationProperty;
-import mil.nga.giat.mage.sdk.gson.deserializer.ObservationDeserializer;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

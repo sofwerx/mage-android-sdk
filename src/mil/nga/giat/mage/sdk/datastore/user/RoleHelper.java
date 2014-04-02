@@ -4,10 +4,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import mil.nga.giat.mage.sdk.datastore.DBHelper;
-import mil.nga.giat.mage.sdk.datastore.observation.Observation;
-import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import mil.nga.giat.mage.sdk.exceptions.RoleException;
-import mil.nga.giat.mage.sdk.exceptions.UserException;
 import android.content.Context;
 import android.util.Log;
 

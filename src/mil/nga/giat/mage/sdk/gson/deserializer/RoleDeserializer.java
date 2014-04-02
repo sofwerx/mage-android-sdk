@@ -8,6 +8,7 @@ import java.util.Locale;
 import mil.nga.giat.mage.sdk.datastore.user.Permission;
 import mil.nga.giat.mage.sdk.datastore.user.Permissions;
 import mil.nga.giat.mage.sdk.datastore.user.Role;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -60,7 +61,7 @@ public class RoleDeserializer implements JsonDeserializer<Role> {
 					Permission permission = Permission.valueOf(jsonPermission);
 					permissions.add(permission);
 				} catch (IllegalArgumentException iae) {
-					iae.printStackTrace();
+					Log.e(LOG_NAME, "Could not find matching permission for user.");
 				}
 			}
 		}
