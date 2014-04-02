@@ -95,8 +95,10 @@ public class HttpClientManager implements IEventDispatcher<Void> {
 						for (IUserEventListener listener : listeners) {
 							listener.onTokenExpired();
 						}
-						Log.d(LOG_NAME, "TOKEN EXPIRED");
+						Log.w(LOG_NAME, "TOKEN EXPIRED");
 						return;
+					} else if(statusCode == HttpStatus.SC_NOT_FOUND) {
+						Log.w(LOG_NAME, "404 Not Found.");
 					}
 				}
 			});

@@ -61,7 +61,15 @@ public class UserDeserializer implements JsonDeserializer<User> {
 		if(roleJSON != null) {
 			String roleId = roleJSON.get("_id").getAsString();
 			try {
+				// see if roles exists already
 				role = RoleHelper.getInstance(mContext).read(roleId);
+				// if it doesn't, then make it!
+				if(role == null) {
+					final Gson roleDeserializer = RoleDeserializer.getGsonBuilder();
+					role = RoleHelper.getInstance(mContext).create(roleDeserializer.fromJson(roleJSON.toString(), Role.class));
+					Log.d(LOG_NAME, "created role with remote_id " + role.getRemoteId());
+				}
+				
 			} catch (RoleException e) {
 				Log.e(LOG_NAME, "Could not find matching role for user.");
 			}

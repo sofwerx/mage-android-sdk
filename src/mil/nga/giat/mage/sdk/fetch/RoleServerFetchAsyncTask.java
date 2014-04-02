@@ -19,14 +19,12 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import com.google.gson.Gson;
 
 /**
- * Gets roles from server. Does not loop!!! Should be called on initialization
- * to populate the roles and permissions tables.
+ * Gets roles from server. Not currently used!
  * 
  * @author wiedemannse
  * 
@@ -34,19 +32,9 @@ import com.google.gson.Gson;
 public class RoleServerFetchAsyncTask extends ServerFetchAsyncTask {
 
 	private static final String LOG_NAME = RoleServerFetchAsyncTask.class.getName();
-
-	/**
-	 * Controls the program flow initialization lifecycle
-	 */
-	private boolean isInitialization = false;
 	
 	public RoleServerFetchAsyncTask(Context context) {
 		super(context);
-	}
-	
-	public RoleServerFetchAsyncTask(Context context, boolean isInitialization) {
-		super(context);
-		this.isInitialization = isInitialization;
 	}
 
 	@Override
@@ -104,25 +92,12 @@ public class RoleServerFetchAsyncTask extends ServerFetchAsyncTask {
 		return status;
 	}
 	
-	UserServerFetchAsyncTask userTask = null;
-	
 	@Override
 	protected void onPostExecute(Boolean status) {
 		super.onPostExecute(status);
 		
 		if(!status) {
 			Log.e(LOG_NAME, "Error getting roles!");
-		} else if(isInitialization) {
-			// start the next fetching tasks!
-			userTask = new UserServerFetchAsyncTask(mContext, true);
-			userTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "myself");
-		}
-	}
-	
-	public void destroy() {
-		cancel(true);
-		if(userTask != null) {
-			userTask.destroy();
 		}
 	}
 }

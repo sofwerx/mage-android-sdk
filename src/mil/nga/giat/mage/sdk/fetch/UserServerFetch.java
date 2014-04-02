@@ -24,21 +24,25 @@ import com.google.gson.Gson;
 import android.content.Context;
 import android.util.Log;
 
-public class UserServerFetch {
+public class UserServerFetch extends AbstractServerFetch {
+
+	public UserServerFetch(Context context) {
+		super(context);
+	}
 
 	private static final String LOG_NAME = UserServerFetch.class.getName();
-
+	
 	// TODO : should the context be a member variable?
-	public void fetch(Context context, String... userids) throws Exception {
+	public void fetch(String... userids) throws Exception {
 
 		// TODO : account for deserialization when no userids are given!
-		URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
+		URL serverURL = new URL(PreferenceHelper.getInstance(mContext).getValue(R.string.serverURLKey));
 
 		HttpEntity entity = null;
 		try {
-			final Gson userDeserializer = UserDeserializer.getGsonBuilder(context);
-			DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
-			UserHelper userHelper = UserHelper.getInstance(context);
+			final Gson userDeserializer = UserDeserializer.getGsonBuilder(mContext);
+			DefaultHttpClient httpclient = HttpClientManager.getInstance(mContext).getHttpClient();
+			UserHelper userHelper = UserHelper.getInstance(mContext);
 
 			// loop over all the ids
 			for (String userId : userids) {
@@ -80,7 +84,7 @@ public class UserServerFetch {
 								user = userHelper.create(user);
 								Log.d(LOG_NAME, "created user with remote_id " + user.getRemoteId());
 							} else {
-								// TODO: perform update?
+								// perform update?
 								user.setPk_id(oldUser.getPk_id());
 								user.setCurrentUser(isCurrentUser);
 								user.setFetchedDate(new Date());
