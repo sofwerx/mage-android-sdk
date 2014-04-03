@@ -10,13 +10,13 @@ public class ObservationProperty {
 	@DatabaseField(generatedId = true)
 	private Long pk_id;
 
-	@DatabaseField(canBeNull = false)
+	@DatabaseField(canBeNull = false, uniqueCombo = true)
 	private String key;
 
 	@DatabaseField(canBeNull = false)
 	private String value;
 
-	@DatabaseField(foreign = true)
+	@DatabaseField(foreign = true, uniqueCombo = true)
 	private Observation observation;
 
 	public ObservationProperty() {
@@ -30,6 +30,10 @@ public class ObservationProperty {
 
 	public Long getPk_id() {
 		return pk_id;
+	}
+	
+	public void setPk_id(Long pk_id) {
+		this.pk_id = pk_id;
 	}
 
 	public String getKey() {

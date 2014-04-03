@@ -29,7 +29,7 @@ public class MageServerGetRequests {
 	 * @param context
 	 * @return
 	 */
-	public static Integer getFieldObservationLayerId(Context context) {
+	public static int getFieldObservationLayerId(Context context) {
 
 		int fieldObservationLayerId = 0;
 		String fieldObservationLayerName = "Field Observations";

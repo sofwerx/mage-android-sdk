@@ -135,7 +135,38 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 			listener.onObservationCreated(createdObservation);
 		}
 		return createdObservation;
+	}
+	
+	public void update(Observation pObservation) throws ObservationException {
+		try {
+			geometryDao.update(pObservation.getObservationGeometry());
+			observationDao.update(pObservation);
 
+			Collection<ObservationProperty> properties = pObservation.getProperties();
+			if (properties != null) {
+				for (ObservationProperty property : properties) {
+					property.setObservation(pObservation);
+					propertyDao.createOrUpdate(property);
+				}
+			}
+
+			Collection<Attachment> attachments = pObservation.getAttachments();
+			if (attachments != null) {
+				for (Attachment attachment : attachments) {
+					attachment.setObservation(pObservation);
+					attachmentDao.createOrUpdate(attachment);
+				}
+			}
+
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "There was a problem updating the observation: " + pObservation + ".", sqle);
+			throw new ObservationException("There was a problem updating the observation: " + pObservation + ".", sqle);
+		}
+		
+		// fire the event
+		for (IObservationEventListener listener : listeners) {
+			listener.onObservationUpdated(pObservation);
+		}
 	}
 
 	/**
@@ -148,7 +179,7 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 	 *             If there was an error reading the Observation from the
 	 *             database.
 	 */
-	public Observation read(Long pPrimaryKey) throws ObservationException {
+	public Observation readByPrimaryKey(Long pPrimaryKey) throws ObservationException {
 		Observation observation;
 		try {
 			// NOTE: Observation Collections are set up to be 'eager'. Any
@@ -218,24 +249,12 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 		return observations;
 	}
 	
-	/**
-	 * Does a record already exist in the local DB?
-	 * 
-	 * @param pRemoteId
-	 *            The remote ID assigned to an observation by an external entity
-	 *            (server).
-	 * @return If an Observation exists locally.
-	 * @throws ObservationException
-	 *             Unable to read Observation from the database
-	 */
-	public Boolean observationExists(String pRemoteId) throws ObservationException {
-		
-		Boolean exists = Boolean.FALSE;
-		
+	public Observation read(String pRemoteId) throws ObservationException {
+		Observation observation = null;
 		try {					
 			List<Observation> results = observationDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
 			if(results != null && results.size() > 0) {
-				exists = Boolean.TRUE;
+				observation = results.get(0);
 			}
 		}
 		catch(SQLException sqle) {
@@ -243,7 +262,7 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 			throw new ObservationException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
 		}
 		
-		return exists;
+		return observation;
 	}
 	
 	/**

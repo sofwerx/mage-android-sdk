@@ -27,6 +27,10 @@ public class ObservationGeometry {
 		return pk_id;
 	}
 	
+	public void setPk_id(Long pk_id) {
+		this.pk_id = pk_id;
+	}
+	
 	public Geometry getGeometry() {
 		return geometry;
 	}

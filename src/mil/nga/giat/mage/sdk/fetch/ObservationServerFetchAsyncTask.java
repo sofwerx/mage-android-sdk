@@ -3,18 +3,19 @@ package mil.nga.giat.mage.sdk.fetch;
 import java.net.URI;
 import java.net.URL;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
+import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
+import mil.nga.giat.mage.sdk.datastore.observation.ObservationProperty;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.gson.deserializer.ObservationDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
+import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import mil.nga.giat.mage.sdk.utils.DateUtility;
 
@@ -66,46 +67,14 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 	protected Boolean doInBackground(Object... params) {
 
 		Boolean status = Boolean.TRUE;
-
+		
+		int fieldObservationLayerId = MageServerGetRequests.getFieldObservationLayerId(mContext);
+		final Gson observationDeserializer = ObservationDeserializer.getGsonBuilder();
 		ObservationHelper observationHelper = ObservationHelper.getInstance(mContext);
 		UserHelper userHelper = UserHelper.getInstance(mContext);
 
-		int fieldObservationLayerId = 0;
-		String fieldObservationLayerName = "Field Observations";
-		// get the correct feature server id
 		DefaultHttpClient httpclient = HttpClientManager.getInstance(mContext).getHttpClient();
 		HttpEntity entity = null;
-		try {
-			URL serverURL = new URL(PreferenceHelper.getInstance(mContext).getValue(R.string.serverURLKey));
-
-			HttpGet get = new HttpGet(new URL(serverURL, "api/layers").toURI());
-			HttpResponse response = httpclient.execute(get);
-			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				entity = response.getEntity();
-				JSONArray json = new JSONArray(EntityUtils.toString(entity));
-				for (int i = 0; i < json.length(); i++) {
-					JSONObject j = json.getJSONObject(i);
-					if (j.getString("name").equals(fieldObservationLayerName)) {
-						fieldObservationLayerId = j.getInt("id");
-						break;
-					}
-				}
-			}
-		} catch (Exception e) {
-			// this block should never flow exceptions up! Log for now.
-			e.printStackTrace();
-			Log.e(LOG_NAME, "There was a failure while performing an Observation Fetch opperation.", e);
-		} finally {
-			try {
-				if (entity != null) {
-					entity.consumeContent();
-				}
-			} catch (Exception e) {
-			}
-		}
-
-		final Gson observationDeserializer = ObservationDeserializer.getGsonBuilder();
-
 		while (Status.RUNNING.equals(getStatus()) && !isCancelled()) {
 
 			if (IS_CONNECTED) {
@@ -115,6 +84,7 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 				try {
 					URL serverURL = new URL(PreferenceHelper.getInstance(mContext).getValue(R.string.serverURLKey));
 
+					// TODO : should we add one millisecond to this?
 					Date lastModifiedDate = observationHelper.getLatestRemoteLastModified();
 
 					URL observationURL = new URL(serverURL, "/FeatureServer/" + fieldObservationLayerId + "/features");
@@ -125,7 +95,8 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 					HttpGet get = new HttpGet(new URI(uriBuilder.build().toString()));
 					HttpResponse response = httpclient.execute(get);
 					if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-						JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
+						entity = response.getEntity();
+						JSONObject json = new JSONObject(EntityUtils.toString(entity));
 						
 						if (json != null && json.has("features")) {
 							JSONArray features = json.getJSONArray("features");
@@ -135,37 +106,71 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 									Observation observation = observationDeserializer.fromJson(feature.toString(), Observation.class);
 
 									if (observation != null) {
-										if (!observationHelper.observationExists(observation.getRemoteId())) {
-											observation = observationHelper.create(observation);
-
-											// TODO: if the observation has a userid that we've not seen before, then request the user info!
-											// TODO: the server is going to move the user id to a different section of the json
-											String userId = observation.getPropertiesMap().get("userId");
-											if (userId != null) {
-												User user = userHelper.read(userId);
-												// TODO : test the timer to make sure users are updated as needed!!!
-												final long sixHoursInMillseconds = 6 * 60 * 60 * 1000;
-												if (user == null || (new Date()).after(new Date(user.getFetchedDate().getTime() + sixHoursInMillseconds))) {
-													new UserServerFetch(mContext).fetch(new String[]{userId});
-												}
+										
+										// TODO: the server is going to move the user id to a different section of the json
+										String userId = observation.getPropertiesMap().get("userId");
+										if (userId != null) {
+											User user = userHelper.read(userId);
+											// TODO : test the timer to make sure users are updated as needed!
+											final long sixHoursInMillseconds = 6 * 60 * 60 * 1000;
+											if (user == null || (new Date()).after(new Date(user.getFetchedDate().getTime() + sixHoursInMillseconds))) {
+												// get any users that were not recognized or expired
+												new UserServerFetch(mContext).fetch(new String[]{userId});
 											}
+										}
+										
+										Observation oldObservation = observationHelper.read(observation.getRemoteId());
+										if (oldObservation == null) {
+											observation = observationHelper.create(observation);
 											Log.d(LOG_NAME, "created observation with remote_id " + observation.getRemoteId());
 										} else {
-											// TODO: perform update?
-											Log.d(LOG_NAME, "observation with remote_id " + observation.getRemoteId() + " already exists!");
+											// perform update?
+											// we have to realign all the foreign ids so the update works correctly
+											observation.setId(oldObservation.getId());
+
+											if(observation.getObservationGeometry() != null && oldObservation.getObservationGeometry() != null) {
+												observation.getObservationGeometry().setPk_id(oldObservation.getObservationGeometry().getPk_id());
+											}
+											
+											// FIXME : make this run faster?
+											for(ObservationProperty op : observation.getProperties()) {
+												for(ObservationProperty oop : oldObservation.getProperties()) {
+													if(op.getKey().equalsIgnoreCase(oop.getKey())) {
+														op.setPk_id(oop.getPk_id());
+														break;
+													}
+												}
+											}
+											
+											// FIXME : make this run faster?
+											for(Attachment a : observation.getAttachments()) {
+												for(Attachment oa : oldObservation.getAttachments()) {
+													if(a.getRemoteId().equalsIgnoreCase(oa.getRemoteId())) {
+														a.setId(oa.getId());
+														break;
+													}
+												}
+											}
+
+											observationHelper.update(observation);
+											Log.d(LOG_NAME, "updated observation with remote_id " + observation.getRemoteId());
 										}
 									}
 								}
 							}
 						}
-						
-						// get any users that were not recognized!
-
 					}
 				} catch (Exception e) {
 					// this block should never flow exceptions up! Log for now.
 					e.printStackTrace();
 					Log.e(LOG_NAME, "There was a failure while performing an Observation Fetch opperation.", e);
+				} finally {
+					try {
+						if (entity != null) {
+							entity.consumeContent();
+						}
+					} catch (Exception e) {
+					}
 				}
 			} else {
 				Log.d(LOG_NAME, "The device is currently disconnected. Nothing to fetch.");

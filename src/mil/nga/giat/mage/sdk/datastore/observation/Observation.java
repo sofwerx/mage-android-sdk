@@ -32,7 +32,7 @@ public class Observation {
 
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
 	private ObservationGeometry observationGeometry;
-
+	
 	@ForeignCollectionField(eager = true)
 	private Collection<ObservationProperty> properties = new ArrayList<ObservationProperty>();
 
@@ -60,6 +60,10 @@ public class Observation {
 
 	public Long getId() {
 		return id;
+	}
+	
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	public String getRemoteId() {

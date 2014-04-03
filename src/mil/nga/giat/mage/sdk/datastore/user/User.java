@@ -23,7 +23,7 @@ public class User {
 	@DatabaseField
 	private String lastname;
 
-	@DatabaseField(canBeNull = false)
+	@DatabaseField(canBeNull = false, unique = true)
 	private String username;
 
 	@DatabaseField(canBeNull = false)
@@ -32,7 +32,7 @@ public class User {
 	@DatabaseField(canBeNull = false, columnName="fetched_date")
 	private Date fetchedDate = new Date(0);
 
-	@DatabaseField(canBeNull = true, foreign = true, foreignAutoRefresh = true)
+	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
 	private Role role;
 
 	public User() {

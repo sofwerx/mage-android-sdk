@@ -7,5 +7,7 @@ public interface IObservationEventListener extends IEventListener<Observation> {
 
 	public void onObservationCreated(Observation observation);
 	
+	public void onObservationUpdated(Observation observation);
+	
 	public void onObservationDeleted(Observation observation);
 }
