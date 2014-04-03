@@ -25,7 +25,7 @@ public class Observation {
 	private Date lastModified = new Date(0);
 	
 	@DatabaseField(canBeNull = false, columnName="dirty")
-	private boolean dirty;
+	private boolean dirty = Boolean.TRUE;
 
 	@DatabaseField(canBeNull = false, columnName="state")
 	private State state = State.ACTIVE;

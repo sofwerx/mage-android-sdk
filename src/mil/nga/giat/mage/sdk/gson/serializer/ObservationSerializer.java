@@ -1,12 +1,17 @@
 package mil.nga.giat.mage.sdk.gson.serializer;
 
 import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
+import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.common.GeometryType;
 import mil.nga.giat.mage.sdk.datastore.common.PointGeometry;
 import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationProperty;
+import android.content.Context;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -20,6 +25,17 @@ import com.google.gson.JsonSerializer;
 
 public class ObservationSerializer implements JsonSerializer<Observation> {
 
+	private Set<String> dateProperties = new HashSet<String>();
+	
+	public ObservationSerializer(Context context) {
+		super();
+		//initialize a Set of known properties that are to be treated as Dates.
+		String[] dateFields = context.getResources().getStringArray(R.array.date_fields_array);
+		if(dateFields != null && dateFields.length > 0) {
+			dateProperties = new HashSet<String>(Arrays.asList(dateFields));
+		}
+	}
+
 	/**
 	 * Convenience method for returning a Gson object with a registered GSon
 	 * TypeAdaptor i.e. custom serializer.
@@ -27,9 +43,9 @@ public class ObservationSerializer implements JsonSerializer<Observation> {
 	 * @return A Gson object that can be used to convert {@link Observation} object
 	 * into a JSON string.
 	 */
-	public static Gson getGsonBuilder() {
+	public static Gson getGsonBuilder(Context context) {
 		GsonBuilder gsonBuilder = new GsonBuilder();
-		gsonBuilder.registerTypeAdapter(Observation.class, new ObservationSerializer());
+		gsonBuilder.registerTypeAdapter(Observation.class, new ObservationSerializer(context));
 		return gsonBuilder.create();
 	}	
 
@@ -40,14 +56,14 @@ public class ObservationSerializer implements JsonSerializer<Observation> {
 		
 		JsonObject feature = new JsonObject();
 		feature.add("type", new JsonPrimitive("Feature"));
-		conditionalAdd("id", feature, pObs.getRemoteId());		
+		conditionalAdd("id", pObs.getRemoteId(), feature);		
 		
 		//serialize the observation's geometry.  POINT only for now.
 		if(GeometryType.POINT.equals(pObs.getObservationGeometry().getGeometry().getType())) {			
 			PointGeometry pointGeometry = (PointGeometry)pObs.getObservationGeometry().getGeometry();
 			JsonArray coordinates = new JsonArray();
-			coordinates.add(new JsonPrimitive(pointGeometry.getLatitude()));
 			coordinates.add(new JsonPrimitive(pointGeometry.getLongitude()));
+			coordinates.add(new JsonPrimitive(pointGeometry.getLatitude()));
 			JsonObject geometry = new JsonObject();
 			geometry.add("coordinates", coordinates);
 			geometry.add("type", new JsonPrimitive("Point"));
@@ -62,7 +78,20 @@ public class ObservationSerializer implements JsonSerializer<Observation> {
 		//serialize the observation's properties.
 		JsonObject properties = new JsonObject();
 		for(ObservationProperty property : pObs.getProperties()) {			
-			conditionalAdd(property.getKey(), properties, property.getValue());
+			
+			String key = property.getKey();
+			String value = property.getValue();
+			
+			if(dateProperties.contains(key)) {				
+				//TODO: This will eventually be changed to a Date...
+				//TODO: Perhaps we should wrap in an Exception?
+				Long convertedValue = Long.valueOf(value);
+				properties.add(key, new JsonPrimitive(convertedValue));
+			}
+			else {
+				conditionalAdd(key, value, properties);
+			}
+			
 		}
 		feature.add("properties", properties);
 		
@@ -70,12 +99,12 @@ public class ObservationSerializer implements JsonSerializer<Observation> {
 		JsonArray attachments = new JsonArray();
 		for(Attachment attachment : pObs.getAttachments()) {
 			JsonObject jsonAttachment = new JsonObject();		
-			conditionalAdd("id",jsonAttachment,attachment.getRemoteId());
-			conditionalAdd("contentType",jsonAttachment,attachment.getContentType());
-			conditionalAdd("size",jsonAttachment,attachment.getSize());
-			conditionalAdd("name",jsonAttachment,attachment.getName());
-			conditionalAdd("relativePath",jsonAttachment,attachment.getRemotePath());
-			conditionalAdd("url",jsonAttachment,attachment.getUrl());			
+			conditionalAdd("id",attachment.getRemoteId(),jsonAttachment);
+			conditionalAdd("contentType",attachment.getContentType(),jsonAttachment);
+			conditionalAdd("size",attachment.getSize(),jsonAttachment);
+			conditionalAdd("name",attachment.getName(),jsonAttachment);
+			conditionalAdd("relativePath",attachment.getRemotePath(),jsonAttachment);
+			conditionalAdd("url",attachment.getUrl(),jsonAttachment);			
 			attachments.add(jsonAttachment);
 		}
 		feature.add("attachments", attachments);
@@ -88,7 +117,8 @@ public class ObservationSerializer implements JsonSerializer<Observation> {
 		return feature;
 	}	
 	
-	private JsonObject conditionalAdd(String property, final JsonObject pJsonObject, Object toAdd) {
+	
+	private JsonObject conditionalAdd(String property, Object toAdd, final JsonObject pJsonObject) {
 		if(toAdd != null) {
 			pJsonObject.add(property, new JsonPrimitive(toAdd.toString()));
 		}

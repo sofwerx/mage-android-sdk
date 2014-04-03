@@ -18,6 +18,11 @@ import org.json.JSONObject;
 import android.content.Context;
 import android.util.Log;
 
+/**
+ * A class that contains common GET requests to the MAGE server.
+ * @author travis
+ *
+ */
 public class MageServerGetRequests {
 
 	private static final String LOG_NAME = MageServerGetRequests.class.getName();
