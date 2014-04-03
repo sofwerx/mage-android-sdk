@@ -7,6 +7,9 @@ public abstract class ServerPushAsyncTask extends AsyncTask<Object, Object, Bool
 
 	protected final Context mContext;
 	
+	//assume connected for now...
+	public Boolean IS_CONNECTED = Boolean.TRUE;
+	
 	public ServerPushAsyncTask(Context context) {
 		super();
 		mContext = context;

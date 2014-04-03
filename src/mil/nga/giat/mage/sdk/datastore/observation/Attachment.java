@@ -1,7 +1,31 @@
 package mil.nga.giat.mage.sdk.datastore.observation;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.net.URL;
+
+import mil.nga.giat.mage.sdk.gson.deserializer.AttachmentDeserializer;
+import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
+import mil.nga.giat.mage.sdk.utils.MediaUtility;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.FormBodyPart;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+
+import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
+import android.webkit.MimeTypeMap;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -162,5 +186,67 @@ public class Attachment implements Parcelable {
 	            return new Attachment[size];
 	      }
 	};
+	
+	public void stageForUpload() {
+		try {
+			File stageDir = MediaUtility.getMediaStageDirectory();
+			InputStream in = new FileInputStream(localPath);
+			File stagedFile = new File(stageDir, new File(localPath).getName());
+		    OutputStream out = new FileOutputStream(stagedFile);
+	
+		    // Transfer bytes from in to out
+		    byte[] buf = new byte[1024];
+		    int len;
+		    while ((len = in.read(buf)) > 0) {
+		        out.write(buf, 0, len);
+		    }
+		    in.close();
+		    out.close();
+		    setLocalPath(stagedFile.getAbsolutePath());
+		} catch (Exception e) {
+			Log.e("Attachment", "Unable to stage for upload", e);
+		}
+	}
+	
+	public void saveToServer(Context c) {
+		
+		Observation o = getObservation();
+		DefaultHttpClient httpClient = HttpClientManager.getInstance(c).getHttpClient();	
+		try {
+			URI endpointUri = new URL(o.getUrl() + "/attachments").toURI();	
+			
+			HttpPost request = new HttpPost(endpointUri);
+			String mimeType = MediaUtility.getMimeType(getLocalPath());
+
+			FileBody fileBody = new FileBody(new File(getLocalPath()));
+			FormBodyPart fbp = new FormBodyPart("attachment", fileBody);
+			fbp.addField("Content-Type", mimeType);
+
+			MultipartEntity reqEntity = new MultipartEntity();
+			reqEntity.addPart(fbp);
+
+			request.setEntity(reqEntity);
+
+			HttpResponse response = httpClient.execute(request);
+
+			HttpEntity resEntity = response.getEntity();
+
+			if (resEntity != null) {
+				String json = EntityUtils.toString(resEntity);
+				Attachment a = AttachmentDeserializer.getGsonBuilder().fromJson(json, Attachment.class);
+				this.setContentType(a.getContentType());
+				this.setName(a.getName());
+				this.setRemoteId(a.getRemoteId());
+				this.setRemotePath(a.getRemotePath());
+				this.setSize(a.getSize());
+				this.setUrl(a.getUrl());
+				
+				// TODO go save this attachment again
+			}
+
+		} catch (Exception e) {
+			Log.e("Attachment", "Error posting attachment " + getLocalPath(), e);
+		}
+	}
 
 }

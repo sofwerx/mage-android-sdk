@@ -20,6 +20,9 @@ public class Observation {
 
 	@DatabaseField(unique = true, columnName="remote_id")
 	private String remoteId;
+	
+	@DatabaseField(unique = true, columnName="url")
+	private String url;
 
 	@DatabaseField(canBeNull = false, columnName="last_modified")
 	private Date lastModified = new Date(0);
@@ -74,6 +77,14 @@ public class Observation {
 		this.remoteId = remoteId;
 	}
 
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+	
 	public State getState() {
 		return state;
 	}

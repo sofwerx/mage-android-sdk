@@ -60,6 +60,11 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 		Observation observation = new Observation();
 		observation.setRemoteId(feature.get("id").getAsString());
 
+		//if the remote id is defined, then assume not dirty for now.
+		if(observation.getRemoteId() != null && !"".equals(observation.getRemoteId())) {
+			observation.setDirty(Boolean.FALSE);
+		}		
+		
 		try {
 			Date d = DateUtility.getISO8601().parse(feature.get("timestamp").getAsString());
 			observation.setLastModified(d);
@@ -80,6 +85,8 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 				iae.printStackTrace();
 			}
 		}
+		
+		observation.setUrl(feature.get("url").getAsString());
 
 		// deserialize geometry
 		JsonObject geometryFeature = feature.get("geometry").getAsJsonObject();
