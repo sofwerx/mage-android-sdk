@@ -1,31 +1,82 @@
 package mil.nga.giat.mage.sdk.push;
 
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.http.post.MageServerPostRequests;
 import android.content.Context;
+import android.os.AsyncTask.Status;
+import android.util.Log;
 
 public class ObservationServerPushAsyncTask extends ServerPushAsyncTask {
 
-	private static final String LOG_NAME = ObservationServerPushAsyncTask.class.getName();
-	
+	private static final String LOG_NAME = ObservationServerPushAsyncTask.class
+			.getName();
+
+	protected AtomicBoolean pushSemaphore = new AtomicBoolean(false);
+
 	public ObservationServerPushAsyncTask(Context context) {
-		super(context);		
+		super(context);
 	}
 
 	@Override
 	protected Boolean doInBackground(Object... params) {
-		
-		ObservationHelper observationHelper = ObservationHelper.getInstance(mContext);
-		List<Observation> observations = observationHelper.getDirty();				
-		for(Observation observation : observations) {
-			MageServerPostRequests.postObservation(observation, mContext);
+
+		Boolean status = Boolean.TRUE;
+
+		while (Status.RUNNING.equals(getStatus()) && !isCancelled()) {
+
+			if (IS_CONNECTED) {
+
+				ObservationHelper observationHelper = 
+						ObservationHelper.getInstance(mContext);
+				List<Observation> observations = observationHelper.getDirty();
+				for (Observation observation : observations) {
+					MageServerPostRequests.postObservation(observation,
+							mContext);
+				}
+
+			} 
+			else {
+				Log.d(LOG_NAME, "The device is currently disconnected. Nothing to push.");
+			}
+			long frequency = 60000L;
+			long lastFetchTime = new Date().getTime();
+			long currentTime = new Date().getTime();
+
+			try {
+				while (lastFetchTime + (frequency = 60000L) > (currentTime = new Date()
+						.getTime())) {
+					synchronized (pushSemaphore) {
+						Log.d(LOG_NAME, "Observation push sleeping for "
+								+ (lastFetchTime + frequency - currentTime)
+								+ "ms.");
+						pushSemaphore.wait(lastFetchTime + frequency
+								- currentTime);
+						if (pushSemaphore.get() == true) {
+							break;
+						}
+					}
+				}
+				synchronized (pushSemaphore) {
+					pushSemaphore.set(false);
+				}
+			} catch (InterruptedException ie) {
+				Log.w("Interupted.  Unable to sleep " + frequency, ie);
+				// TODO: should cancel the AsyncTask?
+				cancel(Boolean.TRUE);
+				status = Boolean.FALSE;
+			} finally {
+				IS_CONNECTED = ConnectivityUtility.isOnline(mContext);
+			}
+
 		}
-				
-		return Boolean.TRUE;
-		
-	}	
-	
+		return status;
+
+	}
+
 }
