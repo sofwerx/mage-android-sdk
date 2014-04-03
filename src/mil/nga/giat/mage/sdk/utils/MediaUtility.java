@@ -63,6 +63,17 @@ public class MediaUtility {
 	    );
 	}
 	
+	public static File getMediaStageDirectory() {
+		File sd = Environment.getExternalStorageDirectory();
+		File mediaFolder = new File(sd, "/MAGE/Media");
+		if (sd.canWrite()) {
+			if (!mediaFolder.exists()) {
+				mediaFolder.mkdirs();
+			}
+		}
+		return mediaFolder;
+	}
+	
     /**
      * @param uri The Uri to check.
      * @return Whether the Uri authority is ExternalStorageProvider.

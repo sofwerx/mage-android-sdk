@@ -80,6 +80,8 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 				iae.printStackTrace();
 			}
 		}
+		
+		observation.setUrl(feature.get("url").getAsString());
 
 		// deserialize geometry
 		JsonObject geometryFeature = feature.get("geometry").getAsJsonObject();
