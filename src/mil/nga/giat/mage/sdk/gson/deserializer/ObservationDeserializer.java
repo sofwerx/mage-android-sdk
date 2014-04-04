@@ -71,7 +71,7 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 		} catch (ParseException e) {
 			Log.e(LOG_NAME, "Problem paring date.");
 		}
-
+		
 		// TODO: deal with EVENTCLEAR!?!? will this become a state?
 
 		// deserialize state
@@ -128,25 +128,27 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 		}
 
 		// deserialize attachments
-		JsonArray jsonAttachments = feature.get("attachments").getAsJsonArray();
-		if (jsonAttachments != null) {
-
-			Collection<Attachment> attachments = new ArrayList<Attachment>();
-			for (int i = 0; i < jsonAttachments.size(); i++) {
-				JsonObject jsonAttachment = jsonAttachments.get(i).getAsJsonObject();
-				Attachment attachment = new Attachment();
-				attachment.setContentType(jsonAttachment.get("contentType").getAsString());
-				attachment.setRemotePath(jsonAttachment.get("relativePath").getAsString());
-				attachment.setName(jsonAttachment.get("name").getAsString());
-				attachment.setSize(jsonAttachment.get("size").getAsLong());
-				attachment.setRemoteId(jsonAttachment.get("id").getAsString());
-				if (jsonAttachment.has("url")) {
-					attachment.setUrl(jsonAttachment.get("url").getAsString());
+		if (feature.has("attachments")) {
+			JsonArray jsonAttachments = feature.get("attachments").getAsJsonArray();
+			if (jsonAttachments != null) {
+	
+				Collection<Attachment> attachments = new ArrayList<Attachment>();
+				for (int i = 0; i < jsonAttachments.size(); i++) {
+					JsonObject jsonAttachment = jsonAttachments.get(i).getAsJsonObject();
+					Attachment attachment = new Attachment();
+					attachment.setContentType(jsonAttachment.get("contentType").getAsString());
+					attachment.setRemotePath(jsonAttachment.get("relativePath").getAsString());
+					attachment.setName(jsonAttachment.get("name").getAsString());
+					attachment.setSize(jsonAttachment.get("size").getAsLong());
+					attachment.setRemoteId(jsonAttachment.get("id").getAsString());
+					if (jsonAttachment.has("url")) {
+						attachment.setUrl(jsonAttachment.get("url").getAsString());
+					}
+					attachment.setObservation(observation);
+					attachments.add(attachment);
 				}
-				attachment.setObservation(observation);
-				attachments.add(attachment);
+				observation.setAttachments(attachments);
 			}
-			observation.setAttachments(attachments);
 		}
 
 		return observation;

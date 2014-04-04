@@ -96,6 +96,7 @@ public class ObservationSerializer implements JsonSerializer<Observation> {
 		feature.add("properties", properties);
 		
 		//serialize the observation's attachments.
+		/*
 		JsonArray attachments = new JsonArray();
 		for(Attachment attachment : pObs.getAttachments()) {
 			JsonObject jsonAttachment = new JsonObject();		
@@ -108,6 +109,7 @@ public class ObservationSerializer implements JsonSerializer<Observation> {
 			attachments.add(jsonAttachment);
 		}
 		feature.add("attachments", attachments);
+		*/
 		
 		//serialize the observation's state
 		JsonObject jsonState = new JsonObject();

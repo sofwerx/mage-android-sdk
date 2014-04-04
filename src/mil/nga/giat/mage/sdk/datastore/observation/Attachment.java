@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URL;
 
+import mil.nga.giat.mage.sdk.datastore.DBHelper;
 import mil.nga.giat.mage.sdk.gson.deserializer.AttachmentDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.utils.MediaUtility;
@@ -22,11 +23,16 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Bitmap.CompressFormat;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.resize.load.ImageResizer;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -187,34 +193,33 @@ public class Attachment implements Parcelable {
 	      }
 	};
 	
-	public void stageForUpload() {
+	public void stageForUpload(Context c) {
 		try {
 			File stageDir = MediaUtility.getMediaStageDirectory();
-			InputStream in = new FileInputStream(localPath);
 			File stagedFile = new File(stageDir, new File(localPath).getName());
 		    OutputStream out = new FileOutputStream(stagedFile);
-	
-		    // Transfer bytes from in to out
-		    byte[] buf = new byte[1024];
-		    int len;
-		    while ((len = in.read(buf)) > 0) {
-		        out.write(buf, 0, len);
-		    }
-		    in.close();
+		    
+		    // XXX problem with this is that other exif data is lost
+		    // we either need to grab all the fields and re-write them or this should happen on the server (probably better)
+		    // Only reason we are doing this is because then we guarantee images are oriented properly on all devices
+			Bitmap rotated = ImageResizer.orientImage(localPath, BitmapFactory.decodeFile(localPath));
+			rotated.compress(CompressFormat.JPEG, 100, out);
+			
 		    out.close();
 		    setLocalPath(stagedFile.getAbsolutePath());
+		    DBHelper.getInstance(c).getAttachmentDao().update(this);
+		    rotated.recycle();
 		} catch (Exception e) {
 			Log.e("Attachment", "Unable to stage for upload", e);
 		}
 	}
 	
 	public void saveToServer(Context c) {
-		
+		stageForUpload(c);
 		Observation o = getObservation();
 		DefaultHttpClient httpClient = HttpClientManager.getInstance(c).getHttpClient();	
 		try {
 			URI endpointUri = new URL(o.getUrl() + "/attachments").toURI();	
-			
 			HttpPost request = new HttpPost(endpointUri);
 			String mimeType = MediaUtility.getMimeType(getLocalPath());
 
@@ -242,6 +247,7 @@ public class Attachment implements Parcelable {
 				this.setUrl(a.getUrl());
 				
 				// TODO go save this attachment again
+				DBHelper.getInstance(c).getAttachmentDao().update(this);
 			}
 
 		} catch (Exception e) {
