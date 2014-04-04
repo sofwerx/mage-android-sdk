@@ -2,7 +2,7 @@ package mil.nga.giat.mage.sdk.http.client;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
@@ -41,7 +41,7 @@ public class HttpClientManager implements IEventDispatcher<Void> {
 
 	private static final String LOG_NAME = HttpClientManager.class.getName();
 
-	private static List<IUserEventListener> listeners = new ArrayList<IUserEventListener>();
+	private static Collection<IUserEventListener> listeners = new ArrayList<IUserEventListener>();
 
 	private HttpClientManager() {
 	}
@@ -107,9 +107,8 @@ public class HttpClientManager implements IEventDispatcher<Void> {
 	}
 
 	@Override
-	public List<Void> addListener(IEventListener<Void> listener) {
-		listeners.add((IUserEventListener) listener);
-		return null;
+	public boolean addListener(IEventListener<Void> listener) {
+		return listeners.add((IUserEventListener) listener);
 	}
 
 	@Override

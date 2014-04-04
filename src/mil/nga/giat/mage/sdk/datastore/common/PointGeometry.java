@@ -3,6 +3,8 @@ package mil.nga.giat.mage.sdk.datastore.common;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 /**
  * A point, stores a lat, lon
  * 
@@ -51,7 +53,7 @@ public class PointGeometry implements Geometry {
 
 	@Override
 	public String toString() {
-		return "PointGeometry [latitude=" + getLatitude() + ", longitude=" + getLongitude() + "]";
+		return ToStringBuilder.reflectionToString(this);
 	}
 
 }

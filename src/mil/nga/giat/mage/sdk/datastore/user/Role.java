@@ -1,5 +1,7 @@
 package mil.nga.giat.mage.sdk.datastore.user;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -68,6 +70,11 @@ public class Role {
 
 	public void setPermissions(Permissions permissions) {
 		this.permissions = permissions;
+	}
+	
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this);
 	}
 
 }

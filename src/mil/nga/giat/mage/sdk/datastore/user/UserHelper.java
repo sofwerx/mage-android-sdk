@@ -4,7 +4,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import mil.nga.giat.mage.sdk.datastore.DBHelper;
+import mil.nga.giat.mage.sdk.datastore.DaoHelper;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
 import android.content.Context;
 import android.util.Log;
@@ -23,12 +23,10 @@ import com.j256.ormlite.stmt.Where;
  * @author travis
  * 
  */
-public class UserHelper {
+public class UserHelper extends DaoHelper<User> {
 
 	private static final String LOG_NAME = UserHelper.class.getName();
 
-	// required DBHelper and DAOs for handing CRUD operations for Users
-	private final DBHelper helper;
 	private final Dao<User, Long> userDao;
 
 	/**
@@ -57,20 +55,31 @@ public class UserHelper {
 	 * @param pContext
 	 */
 	private UserHelper(Context pContext) {
-
-		helper = DBHelper.getInstance(pContext);
+		super(pContext);
 
 		try {
-			userDao = helper.getUserDao();
+			userDao = daoStore.getUserDao();
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to communicate with User database.", sqle);
 
-			// Fatal Error!
 			throw new IllegalStateException("Unable to communicate with User database.", sqle);
 		}
 
 	}
+	
+	@Override
+	public User create(User pUser) throws UserException {
+		User createdUser = null;
+		try {
+			createdUser = userDao.createIfNotExists(pUser);
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "There was a problem creating user: " + pUser);
+			throw new UserException("There was a problem creating user: " + pUser, sqle);
+		}
+		return createdUser;
+	}
 
+	@Override
 	public User read(String pRemoteId) throws UserException {
 		User user = null;
 		try {
@@ -83,17 +92,6 @@ public class UserHelper {
 			throw new UserException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
 		}
 		return user;
-	}
-	
-	public User create(User pUser) throws UserException {
-		User createdUser = null;
-		try {
-			createdUser = userDao.createIfNotExists(pUser);
-		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "There was a problem creating user: " + pUser);
-			throw new UserException("There was a problem creating user: " + pUser, sqle);
-		}
-		return createdUser;
 	}
 
 	public void update(User pUser) throws UserException {

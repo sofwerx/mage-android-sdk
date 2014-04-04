@@ -4,12 +4,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentSkipListSet;
 
-import mil.nga.giat.mage.sdk.datastore.DBHelper;
+import mil.nga.giat.mage.sdk.datastore.DaoHelper;
+import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.IEventListener;
 import mil.nga.giat.mage.sdk.event.location.ILocationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
+import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import android.content.Context;
 import android.util.Log;
 
@@ -23,17 +27,15 @@ import com.j256.ormlite.dao.Dao;
  * @author wiedemannse
  * 
  */
-public class LocationHelper implements IEventDispatcher<Location> {
+public class LocationHelper extends DaoHelper<Location> implements IEventDispatcher<Location> {
 
 	private static final String LOG_NAME = LocationHelper.class.getName();
 
-	// required DBHelper and DAOs for handing CRUD operations for Observations
-	private final DBHelper helper;
 	private final Dao<Location, Long> locationDao;
 	private final Dao<LocationGeometry, Long> locationGeometryDao;
 	private final Dao<LocationProperty, Long> locationPropertyDao;
 
-	private List<ILocationEventListener> listeners = new ArrayList<ILocationEventListener>();
+	private Collection<ILocationEventListener> listeners = new ArrayList<ILocationEventListener>();
 	
 	/**
 	 * Singleton.
@@ -61,17 +63,15 @@ public class LocationHelper implements IEventDispatcher<Location> {
 	 * @param context
 	 */
 	private LocationHelper(Context context) {
-
-		helper = DBHelper.getInstance(context);
+		super(context);
 
 		try {
-			locationDao = helper.getLocationDao();
-			locationGeometryDao = helper.getLocationGeometryDao();
-			locationPropertyDao = helper.getLocationPropertyDao();
+			locationDao = daoStore.getLocationDao();
+			locationGeometryDao = daoStore.getLocationGeometryDao();
+			locationPropertyDao = daoStore.getLocationPropertyDao();
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to communicate " + "with Location database.", sqle);
 
-			// Fatal Error!
 			throw new IllegalStateException("Unable to communicate " + "with Location database.", sqle);
 		}
 
@@ -88,19 +88,8 @@ public class LocationHelper implements IEventDispatcher<Location> {
 		return locations;
 	}
 	
-	/**
-	 * This utility method abstracts the complexities of persisting a new
-	 * Location. All the caller needs to to is construct a Location object and
-	 * call the appropriate setters.
-	 * 
-	 * @param pLocation
-	 *            A constructed Location.
-	 * @return A fully constructed Location complete with database primary keys.
-	 * @throws LocationException
-	 *             If the Observation being created violates any database
-	 *             constraints.
-	 */
-	public Location createLocation(Location pLocation) throws LocationException {
+	@Override
+	public Location create(Location pLocation) throws LocationException {
 
 		Location createdLocation;
 
@@ -120,8 +109,10 @@ public class LocationHelper implements IEventDispatcher<Location> {
 			}
 			
 			// fire the event
+			ConcurrentSkipListSet<Location> locations = new ConcurrentSkipListSet<Location>();
+			locations.add(createdLocation);
 			for (ILocationEventListener listener : listeners) {
-				listener.onLocationCreated(createdLocation);
+				listener.onLocationCreated(locations);
 			}
 
 		} catch (SQLException sqle) {
@@ -131,11 +122,36 @@ public class LocationHelper implements IEventDispatcher<Location> {
 
 		return createdLocation;
 	}
+	
+	@Override
+	public Location read(String pRemoteId) throws LocationException {
+		Location location = null;
+		try {
+			List<Location> results = locationDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
+			if(results != null && results.size() > 0) {
+				location = results.get(0);
+			}
+		}
+		catch(SQLException sqle) {
+			Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+			throw new LocationException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+		}
+		
+		return location;
+	}
 
 	@Override
-	public List<Location> addListener(IEventListener<Location> listener) throws LocationException {
-		listeners.add((ILocationEventListener) listener);
-		return readAll();
+	public boolean addListener(final IEventListener<Location> listener) throws LocationException {
+		boolean status = listeners.add((ILocationEventListener) listener);
+		
+		new Callable<Object>() {
+			@Override
+			public Object call() throws LocationException {
+				((ILocationEventListener)listener).onLocationCreated(readAll());
+				return null;
+			}
+		}.call();
+		return status;
 	}
 
 	@Override

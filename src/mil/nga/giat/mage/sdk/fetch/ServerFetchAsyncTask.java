@@ -36,11 +36,6 @@ public abstract class ServerFetchAsyncTask extends AsyncTask<Object, Object, Boo
 	}
 
 	@Override
-	public void onComplete(Void item) {		
-		
-	}
-
-	@Override
 	public void onError(Throwable error) {
 				
 	}

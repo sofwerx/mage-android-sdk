@@ -4,25 +4,29 @@ import java.util.Collection;
 
 import mil.nga.giat.mage.sdk.datastore.user.User;
 
+import org.apache.commons.lang3.builder.CompareToBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "locations")
-public class Location {
+public class Location implements Comparable<Location> {
 
 	@DatabaseField(generatedId = true)
-	private Long pk_id;
+	private Long id;
 
-	@DatabaseField(unique = true)
-	private String remote_id;
-	
+	@DatabaseField(unique = true, columnName = "remote_id")
+	private String remoteId;
+
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
 	private User user;
 
 	@DatabaseField(canBeNull = false, version = true)
 	private long lastModified;
-	
+
 	@DatabaseField(canBeNull = false)
 	private boolean dirty;
 
@@ -34,7 +38,7 @@ public class Location {
 
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
 	private LocationGeometry locationGeometry;
-	
+
 	public Location() {
 		// ORMLite needs a no-arg constructor
 	}
@@ -46,7 +50,7 @@ public class Location {
 
 	public Location(String remoteId, User user, long lastModified, String type, Collection<LocationProperty> properties, LocationGeometry locationGeometry) {
 		super();
-		this.remote_id = remoteId;
+		this.remoteId = remoteId;
 		this.user = user;
 		this.lastModified = lastModified;
 		this.type = type;
@@ -55,16 +59,20 @@ public class Location {
 		this.setDirty(false);
 	}
 
-	public Long getPk_id() {
-		return pk_id;
+	public Long getId() {
+		return id;
 	}
 
-	public String getRemote_id() {
-		return remote_id;
+	public void setId(Long id) {
+		this.id = id;
 	}
 
-	public void setRemote_id(String remote_id) {
-		this.remote_id = remote_id;
+	public String getRemoteId() {
+		return remoteId;
+	}
+
+	public void setRemoteId(String remoteId) {
+		this.remoteId = remoteId;
 	}
 
 	public User getUser() {
@@ -114,10 +122,35 @@ public class Location {
 	public void setLocationGeometry(LocationGeometry geometry) {
 		this.locationGeometry = geometry;
 	}
-
+	
 	@Override
 	public String toString() {
-		return "Location [pk_id=" + pk_id + ", type=" + type + ", properties=" + properties + ", locationGeometry=" + locationGeometry + "]";
+		return ToStringBuilder.reflectionToString(this);
 	}
 
+	@Override
+	public int compareTo(Location another) {
+		return new CompareToBuilder().append(this.id, another.id).append(this.remoteId, another.remoteId).toComparison();
+	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((remoteId == null) ? 0 : remoteId.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Location other = (Location) obj;
+		return new EqualsBuilder().appendSuper(super.equals(obj)).append(id, other.id).append(remoteId, other.remoteId).isEquals();
+	}
 }

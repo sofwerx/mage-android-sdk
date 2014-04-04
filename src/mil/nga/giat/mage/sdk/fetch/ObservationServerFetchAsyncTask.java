@@ -124,6 +124,7 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 											observation = observationHelper.create(observation);
 											Log.d(LOG_NAME, "created observation with remote_id " + observation.getRemoteId());
 										} else {
+											// TODO : move this update code to the Observation helper!!!
 											// perform update?
 											// we have to realign all the foreign ids so the update works correctly
 											observation.setId(oldObservation.getId());

@@ -3,7 +3,7 @@ package mil.nga.giat.mage.sdk.datastore.user;
 import java.sql.SQLException;
 import java.util.List;
 
-import mil.nga.giat.mage.sdk.datastore.DBHelper;
+import mil.nga.giat.mage.sdk.datastore.DaoHelper;
 import mil.nga.giat.mage.sdk.exceptions.RoleException;
 import android.content.Context;
 import android.util.Log;
@@ -19,12 +19,10 @@ import com.j256.ormlite.dao.Dao;
  * @author wiedemannse
  * 
  */
-public class RoleHelper {
+public class RoleHelper extends DaoHelper<Role> {
 
 	private static final String LOG_NAME = RoleHelper.class.getName();
 
-	// required DBHelper and DAOs for handing CRUD operations for Users
-	private final DBHelper helper;
 	private final Dao<Role, Long> roleDao;
 
 	/**
@@ -53,20 +51,32 @@ public class RoleHelper {
 	 * @param pContext
 	 */
 	private RoleHelper(Context pContext) {
-
-		helper = DBHelper.getInstance(pContext);
+		super(pContext);
 
 		try {
-			roleDao = helper.getRoleDao();
+			roleDao = daoStore.getRoleDao();
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to communicate with Role database.", sqle);
 
-			// Fatal Error!
 			throw new IllegalStateException("Unable to communicate with Role database.", sqle);
 		}
 
 	}
 
+	@Override
+	public Role create(Role pRole) throws RoleException {
+		Role createdRole = null;
+		try {
+			createdRole = roleDao.createIfNotExists(pRole);
+
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "There was a problem creating the role: " + pRole);
+			throw new RoleException("There was a problem creating the role: " + pRole, sqle);
+		}
+		return createdRole;
+	}
+
+	@Override
 	public Role read(String pRemoteId) throws RoleException {
 		Role role = null;
 		try {
@@ -79,17 +89,5 @@ public class RoleHelper {
 			throw new RoleException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
 		}
 		return role;
-	}
-	
-	public Role create(Role pRole) throws RoleException {
-		Role createdRole = null;
-		try {
-			createdRole = roleDao.createIfNotExists(pRole);
-
-		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "There was a problem creating the role: " + pRole);
-			throw new RoleException("There was a problem creating the role: " + pRole, sqle);
-		}
-		return createdRole;
 	}
 }
