@@ -21,7 +21,7 @@ public class Observation {
 	@DatabaseField(unique = true, columnName="remote_id")
 	private String remoteId;
 	
-	@DatabaseField(unique = true, columnName="url")
+	@DatabaseField(columnName="url")
 	private String url;
 
 	@DatabaseField(canBeNull = false, columnName="last_modified")
@@ -173,7 +173,7 @@ public class Observation {
 
 	@Override
 	public String toString() {
-		return "Observation [pk_id=" + id + ", dirty=" + dirty + ", remote_id=" + remoteId + ", state=" + state + ", lastModified=" + lastModified +  ", observationGeometry=" + observationGeometry + ", properties=" + properties + ", attachments=" + attachments + "]";
+		return "Observation [pk_id=" + id + ", url=" + url + ", dirty=" + dirty + ", remote_id=" + remoteId + ", state=" + state + ", lastModified=" + lastModified +  ", observationGeometry=" + observationGeometry + ", properties=" + properties + ", attachments=" + attachments + "]";
 	}
 
 }
