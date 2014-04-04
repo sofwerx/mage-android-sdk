@@ -34,6 +34,7 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 /**
  * Loads the default configuration from the local property files, and also loads
@@ -46,6 +47,8 @@ import android.preference.PreferenceManager;
  */
 public class PreferenceHelper {
 
+	private static final String LOG_NAME = PreferenceHelper.class.getName();
+	
 	private PreferenceHelper() {
 	}
 
@@ -140,7 +143,9 @@ public class PreferenceHelper {
 					} else {
 						SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
 						Editor editor = sharedPreferences.edit();
-						editor.putString(sharedPreferenceName + Character.toUpperCase(key.charAt(0)) + ((key.length() > 1) ? key.substring(1) : ""), value.toString()).commit();
+						String keyString = sharedPreferenceName + Character.toUpperCase(key.charAt(0)) + ((key.length() > 1) ? key.substring(1) : "");
+						Log.i(LOG_NAME, keyString + " is " + sharedPreferences.getString(keyString, "empty") + ".  Setting it to " + value.toString() + ".");
+						editor.putString(keyString, value.toString()).commit();
 					}
 				} catch (JSONException je) {
 					je.printStackTrace();
