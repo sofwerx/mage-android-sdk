@@ -8,7 +8,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URL;
 
-import mil.nga.giat.mage.sdk.datastore.DBHelper;
+import mil.nga.giat.mage.sdk.datastore.DaoStore;
 import mil.nga.giat.mage.sdk.gson.deserializer.AttachmentDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.utils.MediaUtility;
@@ -207,7 +207,7 @@ public class Attachment implements Parcelable {
 			
 		    out.close();
 		    setLocalPath(stagedFile.getAbsolutePath());
-		    DBHelper.getInstance(c).getAttachmentDao().update(this);
+		    DaoStore.getInstance(c).getAttachmentDao().update(this);
 		    rotated.recycle();
 		} catch (Exception e) {
 			Log.e("Attachment", "Unable to stage for upload", e);
@@ -247,7 +247,7 @@ public class Attachment implements Parcelable {
 				this.setUrl(a.getUrl());
 				
 				// TODO go save this attachment again
-				DBHelper.getInstance(c).getAttachmentDao().update(this);
+				DaoStore.getInstance(c).getAttachmentDao().update(this);
 			}
 
 		} catch (Exception e) {
