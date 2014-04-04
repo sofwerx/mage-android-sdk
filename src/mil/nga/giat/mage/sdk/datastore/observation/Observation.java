@@ -8,34 +8,38 @@ import java.util.Map;
 
 import mil.nga.giat.mage.sdk.datastore.common.State;
 
+import org.apache.commons.lang3.builder.CompareToBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "observations")
-public class Observation {
+public class Observation implements Comparable<Observation> {
 
-	@DatabaseField(generatedId = true, columnName="pk_id")
+	@DatabaseField(generatedId = true)
 	private Long id;
 
-	@DatabaseField(unique = true, columnName="remote_id")
+	@DatabaseField(unique = true, columnName = "remote_id")
 	private String remoteId;
-	
-	@DatabaseField(unique = true, columnName="url")
+
+	@DatabaseField(unique = true)
 	private String url;
 
-	@DatabaseField(canBeNull = false, columnName="last_modified")
+	@DatabaseField(canBeNull = false, columnName = "last_modified")
 	private Date lastModified = new Date(0);
-	
-	@DatabaseField(canBeNull = false, columnName="dirty")
+
+	@DatabaseField(canBeNull = false)
 	private boolean dirty = Boolean.TRUE;
 
-	@DatabaseField(canBeNull = false, columnName="state")
+	@DatabaseField(canBeNull = false)
 	private State state = State.ACTIVE;
 
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
 	private ObservationGeometry observationGeometry;
-	
+
 	@ForeignCollectionField(eager = true)
 	private Collection<ObservationProperty> properties = new ArrayList<ObservationProperty>();
 
@@ -64,7 +68,7 @@ public class Observation {
 	public Long getId() {
 		return id;
 	}
-	
+
 	public void setId(Long id) {
 		this.id = id;
 	}
@@ -84,7 +88,7 @@ public class Observation {
 	public void setUrl(String url) {
 		this.url = url;
 	}
-	
+
 	public State getState() {
 		return state;
 	}
@@ -108,7 +112,7 @@ public class Observation {
 	public Date getLastModified() {
 		return lastModified;
 	}
-	
+
 	public void setDirty(boolean dirty) {
 		this.dirty = dirty;
 	}
@@ -173,7 +177,33 @@ public class Observation {
 
 	@Override
 	public String toString() {
-		return "Observation [pk_id=" + id + ", dirty=" + dirty + ", remote_id=" + remoteId + ", state=" + state + ", lastModified=" + lastModified +  ", observationGeometry=" + observationGeometry + ", properties=" + properties + ", attachments=" + attachments + "]";
+		return ToStringBuilder.reflectionToString(this);
+	}
+	
+	@Override
+	public int compareTo(Observation another) {
+		return new CompareToBuilder().append(this.id, another.id).append(this.remoteId, another.remoteId).toComparison();
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((remoteId == null) ? 0 : remoteId.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Observation other = (Observation) obj;
+		return new EqualsBuilder().appendSuper(super.equals(obj)).append(id, other.id).append(remoteId, other.remoteId).isEquals();
 	}
 
 }

@@ -1,7 +1,5 @@
 package mil.nga.giat.mage.sdk.event;
 
-import java.util.List;
-
 /**
  * Part of a small event framework. Used to pass events to different parts of
  * the mdk. When locations are saved, when tokens expire, etc...
@@ -13,20 +11,20 @@ import java.util.List;
 public interface IEventDispatcher<T> {
 
 	/**
-	 * Returns a collection of stuff the listener has missed out on.
+	 * Adds a listener
 	 * 
 	 * @param listener
 	 * @return
 	 * @throws Exception
 	 */
-	public List<T> addListener(IEventListener<T> listener) throws Exception;
+	public boolean addListener(final IEventListener<T> listener) throws Exception;
 
 	/**
-	 * Removes the listerner
+	 * Removes the listener
 	 * 
 	 * @param listener
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean removeListener(IEventListener<T> listener) throws Exception;
+	public boolean removeListener(final IEventListener<T> listener) throws Exception;
 }

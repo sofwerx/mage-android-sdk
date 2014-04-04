@@ -11,7 +11,5 @@ import java.util.EventListener;
  * @param <T>
  */
 public interface IEventListener<T> extends EventListener {
-	void onComplete(T item);
-
 	void onError(Throwable error);
 }

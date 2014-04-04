@@ -1,5 +1,7 @@
 package mil.nga.giat.mage.sdk.datastore.observation;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import mil.nga.giat.mage.sdk.datastore.common.Geometry;
 
 import com.j256.ormlite.field.DataType;
@@ -41,6 +43,6 @@ public class ObservationGeometry {
 
 	@Override
 	public String toString() {
-		return "ObservationGeometry [pk_id=" + pk_id + ", geometry=" + getGeometry() + "]";
+		return ToStringBuilder.reflectionToString(this);
 	}
 }

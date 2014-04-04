@@ -429,7 +429,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 
 				// save the location
 				try {
-					Log.d(LOG_NAME, locationHelper.createLocation(loc).toString());
+					Log.d(LOG_NAME, locationHelper.create(loc).toString());
 				} catch (LocationException le) {
 					// TODO: is this good enough?
 					Log.w(LOG_NAME, "Unable to record current location locally!", le);

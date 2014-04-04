@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentSkipListSet;
 
-import mil.nga.giat.mage.sdk.datastore.DBHelper;
+import mil.nga.giat.mage.sdk.datastore.DaoHelper;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.IEventListener;
 import mil.nga.giat.mage.sdk.event.observation.IObservationEventListener;
@@ -25,18 +27,16 @@ import com.j256.ormlite.stmt.QueryBuilder;
  * @author travis
  * 
  */
-public class ObservationHelper implements IEventDispatcher<Observation> {
+public class ObservationHelper extends DaoHelper<Observation> implements IEventDispatcher<Observation> {
 
 	private static final String LOG_NAME = ObservationHelper.class.getName();
 
-	// required DBHelper and DAOs for handing CRUD operations for Observations
-	private final DBHelper helper;
 	private final Dao<Observation, Long> observationDao;
 	private final Dao<ObservationGeometry, Long> geometryDao;
 	private final Dao<ObservationProperty, Long> propertyDao;
 	private final Dao<Attachment, Long> attachmentDao;
 
-	private List<IObservationEventListener> listeners = new ArrayList<IObservationEventListener>();
+	private Collection<IObservationEventListener> listeners = new ArrayList<IObservationEventListener>();
 	
 	/**
 	 * Singleton.
@@ -64,36 +64,22 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 	 * @param pContext
 	 */
 	private ObservationHelper(Context pContext) {
-
-		helper = DBHelper.getInstance(pContext);
+		super(pContext);
 		try {
 			// Set up DAOs
-			observationDao = helper.getObservationDao();
-			geometryDao = helper.getObservationGeometryDao();
-			propertyDao = helper.getObservationPropertyDao();
-			attachmentDao = helper.getAttachmentDao();
+			observationDao = daoStore.getObservationDao();
+			geometryDao = daoStore.getObservationGeometryDao();
+			propertyDao = daoStore.getObservationPropertyDao();
+			attachmentDao = daoStore.getAttachmentDao();
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to communicate " + "with Observation database.", sqle);
 
-			// Fatal Error!
 			throw new IllegalStateException("Unable to communicate " + "with Observation database.", sqle);
 		}
 
 	}
 
-	/**
-	 * This utility method abstracts the complexities of persisting a new
-	 * Observation. All the caller needs to to is construct an Observation
-	 * object and call the appropriate setters.
-	 * 
-	 * @param pObservation
-	 *            A constructed Observation.
-	 * @return A fully constructed Observation complete with database primary
-	 *         keys.
-	 * @throws ObservationException
-	 *             If the Observation being created violates any database
-	 *             constraints.
-	 */
+	@Override
 	public Observation create(Observation pObservation) throws ObservationException {
 
 		Observation createdObservation;
@@ -131,10 +117,29 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 		}
 		
 		// fire the event
+		ConcurrentSkipListSet<Observation> observations = new ConcurrentSkipListSet<Observation>();
+		observations.add(createdObservation);
 		for (IObservationEventListener listener : listeners) {
-			listener.onObservationCreated(createdObservation);
+			listener.onObservationCreated(observations);
 		}
 		return createdObservation;
+	}
+
+	@Override
+	public Observation read(String pRemoteId) throws ObservationException {
+		Observation observation = null;
+		try {					
+			List<Observation> results = observationDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
+			if(results != null && results.size() > 0) {
+				observation = results.get(0);
+			}
+		}
+		catch(SQLException sqle) {
+			Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+			throw new ObservationException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+		}
+		
+		return observation;
 	}
 	
 	public void update(Observation pObservation) throws ObservationException {
@@ -193,10 +198,10 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 		return observation;
 	}
 
-	public List<Observation> readAll() throws ObservationException {
-		List<Observation> observations = new ArrayList<Observation>();
+	public Collection<Observation> readAll() throws ObservationException {
+		ConcurrentSkipListSet<Observation> observations = new ConcurrentSkipListSet<Observation>();
 		try {
-			observations = observationDao.queryForAll();
+			observations.addAll(observationDao.queryForAll());
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to read Observations", sqle);
 			throw new ObservationException("Unable to read Observations.", sqle);
@@ -249,22 +254,6 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 		return observations;
 	}
 	
-	public Observation read(String pRemoteId) throws ObservationException {
-		Observation observation = null;
-		try {					
-			List<Observation> results = observationDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
-			if(results != null && results.size() > 0) {
-				observation = results.get(0);
-			}
-		}
-		catch(SQLException sqle) {
-			Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
-			throw new ObservationException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
-		}
-		
-		return observation;
-	}
-	
 	/**
 	 * Deletes an Observation. This will also delete an Observation's child
 	 * Attachments, child Properties and Geometry data.
@@ -309,14 +298,23 @@ public class ObservationHelper implements IEventDispatcher<Observation> {
 	}
 
 	@Override
-	public List<Observation> addListener(IEventListener<Observation> listener) throws ObservationException {
-		listeners.add((IObservationEventListener) listener);
-		return readAll();
+	public boolean addListener(final IEventListener<Observation> listener) throws ObservationException {
+		boolean status = listeners.add((IObservationEventListener) listener);
+		
+		new Callable<Object>() {
+			@Override
+			public Object call() throws ObservationException {
+				((IObservationEventListener)listener).onObservationCreated(readAll());
+				return null;
+			}
+		}.call();
+		return status;
 	}
 
 	@Override
 	public boolean removeListener(IEventListener<Observation> listener) {
 		return listeners.remove((IObservationEventListener) listener);
 	}
+
 }
 

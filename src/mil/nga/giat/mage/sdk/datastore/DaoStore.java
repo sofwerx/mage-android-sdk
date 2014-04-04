@@ -28,12 +28,12 @@ import com.j256.ormlite.table.TableUtils;
  * @author travis, wiedemannse
  * 
  */
-public class DBHelper extends OrmLiteSqliteOpenHelper {
+public class DaoStore extends OrmLiteSqliteOpenHelper {
 
-	private static DBHelper helperInstance;
+	private static DaoStore helperInstance;
 
 	private static final String DATABASE_NAME = "mage.db";
-	private static final String LOG_NAME = DBHelper.class.getName();
+	private static final String LOG_NAME = DaoStore.class.getName();
 	private static final int DATABASE_VERSION = 1;
 
 	// Observation DAOS
@@ -55,9 +55,9 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	 * @param context
 	 * @return
 	 */
-	public static DBHelper getInstance(Context context) {
+	public static DaoStore getInstance(Context context) {
 		if (helperInstance == null) {
-			helperInstance = new DBHelper(context);
+			helperInstance = new DaoStore(context);
 		}
 		return helperInstance;
 	}
@@ -69,7 +69,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 	 * 
 	 * @return
 	 */
-	private DBHelper(Context context) {
+	private DaoStore(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
 
 		// initialize DAOs

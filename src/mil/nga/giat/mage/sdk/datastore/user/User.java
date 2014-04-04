@@ -2,6 +2,8 @@ package mil.nga.giat.mage.sdk.datastore.user;
 
 import java.util.Date;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -103,6 +105,11 @@ public class User {
 
 	public void setFetchedDate(Date fetchedDate) {
 		this.fetchedDate = fetchedDate;
+	}
+	
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this);
 	}
 
 }
