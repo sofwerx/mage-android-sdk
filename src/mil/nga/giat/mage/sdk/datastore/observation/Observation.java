@@ -21,6 +21,10 @@ public class Observation implements Comparable<Observation> {
 
 	@DatabaseField(generatedId = true)
 	private Long id;
+	
+	// Needed for cursor adapters
+	@DatabaseField(unique = true, columnName = "_id")
+	private Long _id;
 
 	@DatabaseField(unique = true, columnName = "remote_id")
 	private String remoteId;
@@ -71,6 +75,7 @@ public class Observation implements Comparable<Observation> {
 
 	public void setId(Long id) {
 		this.id = id;
+		this._id = id;
 	}
 
 	public String getRemoteId() {
