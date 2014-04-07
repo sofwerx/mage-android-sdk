@@ -62,8 +62,8 @@ public class NetworkChangeReceiver extends BroadcastReceiver implements IEventDi
 		final NetworkInfo wifi = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 		final NetworkInfo mobile = connMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 		
-		final boolean newWifiAvailabilityState = wifi.isAvailable();
-		final boolean newMobileDataAvailabilityState = mobile.isAvailable();
+		final boolean newWifiAvailabilityState = wifi.isConnected();
+		final boolean newMobileDataAvailabilityState = mobile.isConnected();
 		final boolean newConnectionAvailabilityState = newWifiAvailabilityState || newMobileDataAvailabilityState;
 		
 		// set the old state if it's the first time through!
@@ -85,10 +85,10 @@ public class NetworkChangeReceiver extends BroadcastReceiver implements IEventDi
 			if(newWifiAvailabilityState) {
 				Runnable task = new Runnable() {
 					public void run() {
+						Log.d(LOG_NAME, "WIFI IS ON");
 						for (IConnectivityEventListener listener : listeners) {
 							listener.onWifiConnected();
 						}
-						Log.d(LOG_NAME, "WIFI IS ON");
 					}
 				};
 				wifiFuture = wifiFutureWorker.schedule(task, sleepDelay, TimeUnit.SECONDS);	
@@ -97,10 +97,10 @@ public class NetworkChangeReceiver extends BroadcastReceiver implements IEventDi
 					wifiFuture.cancel(false);
 					wifiFuture = null;
 				}
+				Log.d(LOG_NAME, "WIFI IS OFF");
 				for (IConnectivityEventListener listener : listeners) {
 					listener.onWifiDisconnected();
 				}
-				Log.d(LOG_NAME, "WIFI IS OFF");
 			}
 		}
 		
@@ -110,10 +110,10 @@ public class NetworkChangeReceiver extends BroadcastReceiver implements IEventDi
 			if(newMobileDataAvailabilityState) {
 				Runnable task = new Runnable() {
 					public void run() {
+						Log.d(LOG_NAME, "MOBILE DATA IS ON");
 						for (IConnectivityEventListener listener : listeners) {
 							listener.onMobileDataConnected();
 						}
-						Log.d(LOG_NAME, "MOBILE DATA IS ON");
 					}
 				};
 				mobileDataFuture = mobileFutureWorker.schedule(task, sleepDelay, TimeUnit.SECONDS);	
@@ -122,10 +122,10 @@ public class NetworkChangeReceiver extends BroadcastReceiver implements IEventDi
 					mobileDataFuture.cancel(false);
 					mobileDataFuture = null;
 				}
+				Log.d(LOG_NAME, "MOBILE DATA IS OFF");
 				for (IConnectivityEventListener listener : listeners) {
 					listener.onMobileDataDisconnected();
 				}
-				Log.d(LOG_NAME, "MOBILE DATA IS OFF");
 			}
 		}
 		
@@ -135,10 +135,10 @@ public class NetworkChangeReceiver extends BroadcastReceiver implements IEventDi
 			if(newConnectionAvailabilityState) {
 				Runnable task = new Runnable() {
 					public void run() {
+						Log.d(LOG_NAME, "CONNECTIVITY IS ON");
 						for (IConnectivityEventListener listener : listeners) {
 							listener.onAnyConnected();
 						}
-						Log.d(LOG_NAME, "CONNECTIVITY IS ON");
 					}
 				};
 				connectionDataFuture = connectionFutureWorker.schedule(task, sleepDelay, TimeUnit.SECONDS);	
@@ -147,10 +147,10 @@ public class NetworkChangeReceiver extends BroadcastReceiver implements IEventDi
 					connectionDataFuture.cancel(false);
 					connectionDataFuture = null;
 				}
+				Log.d(LOG_NAME, "CONNECTIVITY IS OFF");
 				for (IConnectivityEventListener listener : listeners) {
 					listener.onAllDisconnected();
 				}
-				Log.d(LOG_NAME, "CONNECTIVITY IS OFF");
 			}
 		}
 		
