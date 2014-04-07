@@ -20,5 +20,7 @@
     <string name="observationFetchFrequencyDefaultValue">30000</string>
     <string name="userFetchFrequencyKey">userFetchFrequency</string>
     <string name="userFetchFrequencyDefaultValue">30000</string>
+    <string name="observationPushFrequencyKey">observationPushFrequency</string>
+    <string name="observationPushFrequencyDefaultValue">60000</string>
 
 </resources>

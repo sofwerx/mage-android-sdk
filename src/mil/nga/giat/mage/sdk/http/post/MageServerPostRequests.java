@@ -3,7 +3,6 @@ package mil.nga.giat.mage.sdk.http.post;
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
-import java.util.Iterator;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.DaoStore;

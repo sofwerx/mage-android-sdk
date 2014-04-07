@@ -142,7 +142,8 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 		return observation;
 	}
 	
-	public void update(Observation pObservation) throws ObservationException {
+	
+	private void update(Observation pObservation) throws ObservationException {
 		try {
 			geometryDao.update(pObservation.getObservationGeometry());
 			observationDao.update(pObservation);
@@ -172,6 +173,43 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 		for (IObservationEventListener listener : listeners) {
 			listener.onObservationUpdated(pObservation);
 		}
+	}
+
+	/**
+	 * We have to realign all the foreign ids so the update works correctly
+	 * 
+	 * @param pNewObservation
+	 * @param pOldObservation
+	 * @throws ObservationException
+	 */
+	public void update(Observation pNewObservation, Observation pOldObservation) throws ObservationException {
+		pNewObservation.setId(pOldObservation.getId());
+
+		if (pNewObservation.getObservationGeometry() != null && pOldObservation.getObservationGeometry() != null) {
+			pNewObservation.getObservationGeometry().setPk_id(pOldObservation.getObservationGeometry().getPk_id());
+		}
+
+		// FIXME : make this run faster?
+		for (ObservationProperty op : pNewObservation.getProperties()) {
+			for (ObservationProperty oop : pOldObservation.getProperties()) {
+				if (op.getKey().equalsIgnoreCase(oop.getKey())) {
+					op.setPk_id(oop.getPk_id());
+					break;
+				}
+			}
+		}
+
+		// FIXME : make this run faster?
+		for (Attachment a : pNewObservation.getAttachments()) {
+			for (Attachment oa : pOldObservation.getAttachments()) {
+				if (a.getRemoteId().equalsIgnoreCase(oa.getRemoteId())) {
+					a.setId(oa.getId());
+					break;
+				}
+			}
+		}
+
+		update(pNewObservation);
 	}
 
 	/**

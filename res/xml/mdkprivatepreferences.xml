@@ -16,4 +16,9 @@
         android:defaultValue="https://mage.geointapps.org"
         android:key="@string/serverURLKey" />
 
+    <!-- How often to push obersvations? -->
+    <EditTextPreference
+        android:defaultValue="@string/observationPushFrequencyDefaultValue"
+        android:key="@string/observationPushFrequencyKey" />
+
 </PreferenceScreen>
