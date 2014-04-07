@@ -1,15 +1,17 @@
 package mil.nga.giat.mage.sdk.push;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
+import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
+import mil.nga.giat.mage.sdk.datastore.observation.AttachmentHelper;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.http.post.MageServerPostRequests;
 import android.content.Context;
-import android.os.AsyncTask.Status;
 import android.util.Log;
 
 public class ObservationServerPushAsyncTask extends ServerPushAsyncTask {
@@ -36,8 +38,21 @@ public class ObservationServerPushAsyncTask extends ServerPushAsyncTask {
 						ObservationHelper.getInstance(mContext);
 				List<Observation> observations = observationHelper.getDirty();
 				for (Observation observation : observations) {
-					MageServerPostRequests.postObservation(observation,
-							mContext);
+					Observation savedObservation = 
+							MageServerPostRequests.postObservation(observation, mContext);
+					
+					//sync the observation's attachments.  NOTE: this can be 
+					//moved into a separate task if needed.
+					Collection<Attachment> attachments = savedObservation.getAttachments();
+					for(Attachment attachment : attachments) {
+
+						//stage the attachment
+						AttachmentHelper.stageForUpload(attachment, mContext);
+						
+						//persist the attachment
+						MageServerPostRequests.postAttachment(attachment, mContext);
+					}					
+					
 				}
 
 			} 
@@ -65,12 +80,14 @@ public class ObservationServerPushAsyncTask extends ServerPushAsyncTask {
 				synchronized (pushSemaphore) {
 					pushSemaphore.set(false);
 				}
-			} catch (InterruptedException ie) {
+			} 
+			catch (InterruptedException ie) {
 				Log.w("Interupted.  Unable to sleep " + frequency, ie);
 				// TODO: should cancel the AsyncTask?
 				cancel(Boolean.TRUE);
 				status = Boolean.FALSE;
-			} finally {
+			} 
+			finally {
 				IS_CONNECTED = ConnectivityUtility.isOnline(mContext);
 			}
 
