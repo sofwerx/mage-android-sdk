@@ -42,6 +42,11 @@ public class ObservationServerPushAsyncTask extends ServerPushAsyncTask {
 				ObservationHelper observationHelper = ObservationHelper.getInstance(mContext);
 				List<Observation> observations = observationHelper.getDirty();
 				for (Observation observation : observations) {
+					
+					// TODO : Is this the right thing to do?
+					if(isCancelled()) {
+						break;
+					}
 					Observation savedObservation = MageServerPostRequests.postObservation(observation, mContext);
 
 					// sync the observation's attachments. NOTE: this can be
