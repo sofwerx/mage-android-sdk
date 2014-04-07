@@ -225,8 +225,4 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 			fetchSemaphore.notifyAll();
 		}
 	}
-	
-	public void destroy() {
-		cancel(true);
-	}
 }

@@ -159,6 +159,7 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 	 */
 	public void resetDatabase() {
 		try {
+			Log.d(LOG_NAME, "Reseting Database.");
 			dropTables();
 			createTables();
 			Log.d(LOG_NAME, "Reset Database.");

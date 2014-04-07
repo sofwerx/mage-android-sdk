@@ -5,8 +5,13 @@
     <EditTextPreference
         android:defaultValue="@string/loginTaskDefaultValue"
         android:key="@string/loginTaskKey" />
-    
-        <!-- Default server to connect to -->
+
+    <!-- The username field -->
+    <EditTextPreference
+        android:defaultValue=""
+        android:key="@string/usernameKey" />
+
+    <!-- Default server to connect to -->
     <EditTextPreference
         android:defaultValue="https://mage.geointapps.org"
         android:key="@string/serverURLKey" />

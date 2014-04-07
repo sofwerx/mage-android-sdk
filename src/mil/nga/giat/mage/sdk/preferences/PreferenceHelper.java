@@ -14,8 +14,6 @@ import java.util.concurrent.TimeoutException;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
-import mil.nga.giat.mage.sdk.login.FormAuthLoginTask;
-import mil.nga.giat.mage.sdk.login.LocalAuthLoginTask;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -54,6 +52,7 @@ public class PreferenceHelper {
 
 	private static PreferenceHelper preferenceHelper;
 	private static Context mContext;
+	private boolean initialized = false;
 
 	public static PreferenceHelper getInstance(final Context context) {
 		if (context == null) {
@@ -61,8 +60,8 @@ public class PreferenceHelper {
 		}
 		if (preferenceHelper == null) {
 			preferenceHelper = new PreferenceHelper();
+			mContext = context;
 		}
-		mContext = context;
 		return preferenceHelper;
 	}
 
@@ -71,48 +70,33 @@ public class PreferenceHelper {
 	 * properties.
 	 * 
 	 */
-	public synchronized void initializeAll(int... xmlFiles) {
-		// load preferences from mdk xml files first
-		initializeLocal(new int[] { R.xml.mdkprivatepreferences, R.xml.mdkpublicpreferences, R.xml.locationpreferences });
+	public synchronized void initialize(int... xmlFiles) {
+		if (!initialized) {
+			// load preferences from mdk xml files first
+			initializeLocal(new int[] { R.xml.mdkprivatepreferences, R.xml.mdkpublicpreferences, R.xml.locationpreferences });
 
-		// add programmatic preferences
-		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-		Editor editor = sharedPreferences.edit();
-		try {
-			editor.putString("appVersion", mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionName).commit();
-		} catch (NameNotFoundException nnfe) {
-			nnfe.printStackTrace();
-		}
-
-		// load other xml files
-		initializeLocal(xmlFiles);
-
-		// see if we need to load preferences from a server
-		String serverURLString = sharedPreferences.getString("serverURL", "");
-		String className = sharedPreferences.getString("loginTask", FormAuthLoginTask.class.getCanonicalName());
-		try {
-			Class<?> c = Class.forName(className);
-			// if this is not a local login
-			if (!c.equals(LocalAuthLoginTask.class.getCanonicalName()) && !serverURLString.trim().isEmpty()) {
-				try {
-					// load preferences from server
-					initializeRemote(new URL(serverURLString));
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+			// add programmatic preferences
+			SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+			Editor editor = sharedPreferences.edit();
+			try {
+				editor.putString("appVersion", mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionName).commit();
+			} catch (NameNotFoundException nnfe) {
+				nnfe.printStackTrace();
 			}
-		} catch (ClassNotFoundException cnfe) {
-			cnfe.printStackTrace();
+
+			// load other xml files
+			initializeLocal(xmlFiles);
+			initialized = true;
 		}
 	}
 
-	public synchronized void initializeLocal(int... xmlFiles) {
+	private synchronized void initializeLocal(int... xmlFiles) {
 		for (int id : xmlFiles) {
 			PreferenceManager.setDefaultValues(mContext, id, true);
 		}
 	}
 
-	public synchronized void initializeRemote(URL serverURL) throws InterruptedException, ExecutionException, TimeoutException {
+	public synchronized void readRemote(URL serverURL) throws InterruptedException, ExecutionException, TimeoutException {
 		new RemotePreferenceColonization().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, serverURL).get(30, TimeUnit.SECONDS);
 	}
 

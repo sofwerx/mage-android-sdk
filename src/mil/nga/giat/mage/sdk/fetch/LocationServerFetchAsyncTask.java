@@ -15,8 +15,4 @@ public class LocationServerFetchAsyncTask extends ServerFetchAsyncTask {
 
 		return Boolean.TRUE;
 	}
-	
-	public void destroy() {
-		cancel(true);
-	}
 }

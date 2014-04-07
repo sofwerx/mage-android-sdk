@@ -11,6 +11,7 @@ import java.util.List;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
+import mil.nga.giat.mage.sdk.datastore.DaoStore;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.exceptions.LoginException;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
@@ -108,7 +109,7 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 			}
 			
 			try {
-				PreferenceHelper.getInstance(mApplicationContext).initializeRemote(sURL);
+				PreferenceHelper.getInstance(mApplicationContext).readRemote(sURL);
 			} catch (Exception e) {
 				List<Integer> errorIndices = new ArrayList<Integer>();
 				errorIndices.add(2);
@@ -151,9 +152,8 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				entity = response.getEntity();
 				JSONObject json = new JSONObject(EntityUtils.toString(entity));
-
-				// put the token information in the shared preferences
 				
+				// put the token information in the shared preferences
 				Editor editor = sharedPreferences.edit();
 				editor.putString(mApplicationContext.getString(R.string.tokenKey), json.getString("token").trim()).commit();				
 				try {
@@ -164,6 +164,14 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 				// initialize local active user
 				try {
 					JSONObject userJson = json.getJSONObject("user");
+					
+					// if username is different, then clear the db
+					String oldUsername = PreferenceHelper.getInstance(mApplicationContext).getValue(R.string.usernameKey);
+					String newUsername = userJson.getString("username");
+					if (oldUsername == null || !oldUsername.equals(newUsername)) {
+						DaoStore.getInstance(mApplicationContext).resetDatabase();
+					}
+					
 					final Gson userDeserializer = UserDeserializer.getGsonBuilder(mApplicationContext);
 
 					User user = userDeserializer.fromJson(userJson.toString(), User.class);

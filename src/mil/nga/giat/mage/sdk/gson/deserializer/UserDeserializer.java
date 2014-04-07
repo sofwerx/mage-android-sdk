@@ -57,22 +57,28 @@ public class UserDeserializer implements JsonDeserializer<User> {
 		String username = feature.get("username").getAsString();
 
 		Role role = null;
-		JsonObject roleJSON = feature.get("role").getAsJsonObject();
-		if(roleJSON != null) {
-			String roleId = roleJSON.get("_id").getAsString();
-			try {
-				// see if roles exists already
-				role = RoleHelper.getInstance(mContext).read(roleId);
-				// if it doesn't, then make it!
-				if(role == null) {
-					final Gson roleDeserializer = RoleDeserializer.getGsonBuilder();
-					role = RoleHelper.getInstance(mContext).create(roleDeserializer.fromJson(roleJSON.toString(), Role.class));
-					Log.d(LOG_NAME, "created role with remote_id " + role.getRemoteId());
+		if (feature.get("role") != null) {
+			JsonObject roleJSON = feature.get("role").getAsJsonObject();
+			if (roleJSON != null) {
+				String roleId = roleJSON.get("_id").getAsString();
+				try {
+					// see if roles exists already
+					role = RoleHelper.getInstance(mContext).read(roleId);
+					// if it doesn't, then make it!
+					if (role == null) {
+						final Gson roleDeserializer = RoleDeserializer.getGsonBuilder();
+						role = RoleHelper.getInstance(mContext).create(roleDeserializer.fromJson(roleJSON.toString(), Role.class));
+						Log.d(LOG_NAME, "created role with remote_id " + role.getRemoteId());
+					}
+
+				} catch (RoleException e) {
+					Log.e(LOG_NAME, "Could not find matching role for user.");
 				}
-				
-			} catch (RoleException e) {
-				Log.e(LOG_NAME, "Could not find matching role for user.");
+			} else {
+				Log.e(LOG_NAME, "User has no role!");
 			}
+		} else {
+			Log.e(LOG_NAME, "User has no role!");
 		}
 
 		User user = new User(remoteId, email, firstname, lastname, username, role);

@@ -11,8 +11,6 @@ public abstract class ServerFetchAsyncTask extends AsyncTask<Object, Object, Boo
 
 	protected final Context mContext;
 	protected final NetworkChangeReceiver mNetworkChangeReceiver = new NetworkChangeReceiver();;
-
-	//assume connected for now...
 	public Boolean IS_CONNECTED = Boolean.TRUE;
 	
 	/**
@@ -72,6 +70,10 @@ public abstract class ServerFetchAsyncTask extends AsyncTask<Object, Object, Boo
 
 	@Override
 	public void onTokenExpired() {
+		cancel(true);
+	}
+	
+	public void destroy() {
 		cancel(true);
 	}
 }
