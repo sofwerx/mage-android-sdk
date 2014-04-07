@@ -19,7 +19,26 @@ import android.util.Log;
 
 public class NetworkChangeReceiver extends BroadcastReceiver implements IEventDispatcher<Void> {
 
-	private static final int sleepDelay = 10; // in seconds
+	/**
+	 * Singleton.
+	 */
+	private static NetworkChangeReceiver mNetworkChangeReceiver;
+
+	/**
+	 * Do not use!
+	 */
+	public NetworkChangeReceiver() {
+		
+	}
+	
+	public static NetworkChangeReceiver getInstance() {
+		if (mNetworkChangeReceiver == null) {
+			mNetworkChangeReceiver = new NetworkChangeReceiver();
+		}
+		return mNetworkChangeReceiver;
+	}	
+	
+	private static final int sleepDelay = 15; // in seconds
 	
 	private static final String LOG_NAME = NetworkChangeReceiver.class.getName();
 

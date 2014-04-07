@@ -77,7 +77,7 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 		HttpEntity entity = null;
 		while (Status.RUNNING.equals(getStatus()) && !isCancelled()) {
 
-			if (IS_CONNECTED) {
+			if (isConnected) {
 
 				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch...");
 
@@ -199,7 +199,7 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 				cancel(Boolean.TRUE);
 				status = Boolean.FALSE;
 			} finally {
-				IS_CONNECTED = ConnectivityUtility.isOnline(mContext);
+				isConnected = ConnectivityUtility.isOnline(mContext);
 			}
 		}
 		return status;

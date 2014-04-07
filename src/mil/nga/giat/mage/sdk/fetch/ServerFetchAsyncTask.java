@@ -10,8 +10,7 @@ import android.os.AsyncTask;
 public abstract class ServerFetchAsyncTask extends AsyncTask<Object, Object, Boolean> implements IConnectivityEventListener, IUserEventListener {
 
 	protected final Context mContext;
-	protected final NetworkChangeReceiver mNetworkChangeReceiver = new NetworkChangeReceiver();;
-	public Boolean IS_CONNECTED = Boolean.TRUE;
+	protected Boolean isConnected = Boolean.TRUE;
 	
 	/**
 	 * Construct task with a Context.
@@ -24,13 +23,10 @@ public abstract class ServerFetchAsyncTask extends AsyncTask<Object, Object, Boo
 		//initialize this task's Context
 		mContext = context;
 		
-		//enable connectivity event handling
-		NetworkChangeReceiver networkChangeReceiver = new NetworkChangeReceiver();
-		networkChangeReceiver.addListener(this);
-		
 		//set up initial connection state
-		IS_CONNECTED = ConnectivityUtility.isOnline(context);
-		
+		isConnected = ConnectivityUtility.isOnline(context);
+		//enable connectivity event handling
+		NetworkChangeReceiver.getInstance().addListener(this);
 	}
 
 	@Override
@@ -40,12 +36,12 @@ public abstract class ServerFetchAsyncTask extends AsyncTask<Object, Object, Boo
 
 	@Override
 	public void onAllDisconnected() {
-		IS_CONNECTED = Boolean.FALSE;
+		isConnected = Boolean.FALSE;
 	}
 
 	@Override
 	public void onAnyConnected() {
-		IS_CONNECTED = Boolean.TRUE;
+		isConnected = Boolean.TRUE;
 	}
 
 	@Override
