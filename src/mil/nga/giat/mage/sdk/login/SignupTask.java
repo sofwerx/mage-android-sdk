@@ -73,7 +73,7 @@ public class SignupTask extends AbstractAccountTask {
 			List<Integer> errorIndices = new ArrayList<Integer>();
 			errorIndices.add(5);
 			List<String> errorMessages = new ArrayList<String>();
-			errorMessages.add("No mac address found on device");
+			errorMessages.add("No mac address found on device. Try again when wifi is on");
 			return new AccountStatus(AccountStatus.Status.FAILED_SIGNUP, errorIndices, errorMessages);
 		}
 

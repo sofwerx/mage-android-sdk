@@ -5,10 +5,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 import mil.nga.giat.mage.sdk.R;
+import mil.nga.giat.mage.sdk.datastore.layer.Layer;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
+import mil.nga.giat.mage.sdk.gson.deserializer.LayerDeserializer;
 import mil.nga.giat.mage.sdk.gson.deserializer.ObservationDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
@@ -40,16 +43,16 @@ public class MageServerGetRequests {
 	private static final String LOG_NAME = MageServerGetRequests.class.getName();
 
 	/**
-	 * Makes a GET request to the MAGE server for the Field Observation Layer
-	 * Id.
+	 * Gets layers from the server.
 	 * 
 	 * @param context
+	 * @param key
+	 * @param value
 	 * @return
 	 */
-	public static int getFieldObservationLayerId(Context context) {
-
-		int fieldObservationLayerId = 0;
-		String fieldObservationLayerName = "Field Observations";
+	private static List<Layer> getLayers(Context context) {
+		final Gson layerDeserializer = LayerDeserializer.getGsonBuilder();
+		List<Layer> layers = new ArrayList<Layer>();
 		DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
 		HttpEntity entity = null;
 		try {
@@ -59,18 +62,17 @@ public class MageServerGetRequests {
 			HttpResponse response = httpclient.execute(get);
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				entity = response.getEntity();
-				JSONArray json = new JSONArray(EntityUtils.toString(entity));
-				for (int i = 0; i < json.length(); i++) {
-					JSONObject j = json.getJSONObject(i);
-					if (j.getString("name").equals(fieldObservationLayerName)) {
-						fieldObservationLayerId = j.getInt("id");
-						break;
+				JSONArray featureArray = new JSONArray(EntityUtils.toString(entity));
+				for (int i = 0; i < featureArray.length(); i++) {
+					JSONObject feature = featureArray.getJSONObject(i);
+					if (feature != null) {
+						layers.add(layerDeserializer.fromJson(feature.toString(), Layer.class));
 					}
 				}
 			}
 		} catch (Exception e) {
 			// this block should never flow exceptions up! Log for now.
-			Log.e(LOG_NAME, "There was a failure while getting the " + fieldObservationLayerName + "layer.", e);
+			Log.e(LOG_NAME, "Failure parsing layer information.", e);
 		} finally {
 			try {
 				if (entity != null) {
@@ -78,6 +80,24 @@ public class MageServerGetRequests {
 				}
 			} catch (Exception e) {
 				Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
+			}
+		}
+		return layers;
+	}
+
+	/**
+	 * Makes a GET request to the MAGE server for the Field Observation Layer
+	 * Id.
+	 * 
+	 * @param context
+	 * @return
+	 */
+	public static Long getFieldObservationLayerId(Context context) {
+		Long fieldObservationLayerId = 0l;
+		List<Layer> layers = MageServerGetRequests.getLayers(context);
+		for (Layer layer : layers) {
+			if (layer.getName().equals("Field Observations")) {
+				fieldObservationLayerId = layer.getRemoteId();
 			}
 		}
 		return fieldObservationLayerId;
@@ -92,7 +112,7 @@ public class MageServerGetRequests {
 	 */
 	public static Collection<Observation> getObservations(Context context) {
 		Collection<Observation> observations = new ArrayList<Observation>();
-		int fieldObservationLayerId = MageServerGetRequests.getFieldObservationLayerId(context);
+		long fieldObservationLayerId = MageServerGetRequests.getFieldObservationLayerId(context);
 		HttpEntity entity = null;
 		try {
 			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));

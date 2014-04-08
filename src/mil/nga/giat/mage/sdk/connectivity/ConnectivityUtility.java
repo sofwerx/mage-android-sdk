@@ -21,6 +21,8 @@ import android.net.wifi.WifiManager;
  */
 public class ConnectivityUtility {
 
+	private static final String LOG_NAME = ConnectivityUtility.class.getName();
+	
 	/**
 	 * Used to check for connectivity
 	 * 
@@ -68,11 +70,38 @@ public class ConnectivityUtility {
 
 		return true;
 	}
-
+	
 	/**
 	 * Get the Wi-Fi mac address, used to login
 	 */
 	public static String getMacAddress(Context context) {
-		return ((WifiManager) context.getSystemService(Context.WIFI_SERVICE)).getConnectionInfo().getMacAddress();
+		WifiManager wifiManager = ((WifiManager) context.getSystemService(Context.WIFI_SERVICE));
+		String macAddress = wifiManager.getConnectionInfo().getMacAddress();
+		if(macAddress == null && !wifiManager.isWifiEnabled()) {
+			wifiManager.setWifiEnabled(true);
+		}
+//		if (macAddress == null || macAddress.isEmpty()) {
+//			try {
+//				Collection<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
+//				for (NetworkInterface i : interfaces) {
+//					if (i != null) {
+//						byte[] mac = i.getHardwareAddress();
+//						if (mac != null) {
+//							StringBuilder buf = new StringBuilder();
+//							for (int idx = 0; idx < mac.length; idx++) {
+//								buf.append(String.format("%02X:", mac[idx]));								
+//							}
+//							macAddress = buf.toString().trim();
+//							macAddress.substring(0, macAddress.length() - 1);
+//						}
+//						break;
+//					}
+//				}
+//			} catch (Exception e) {
+//				Log.e(LOG_NAME, "Error retriving mac address.", e);
+//			}
+//		}
+		return macAddress;
 	}
+	
 }

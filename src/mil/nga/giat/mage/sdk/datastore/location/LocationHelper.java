@@ -8,12 +8,10 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
-import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.IEventListener;
 import mil.nga.giat.mage.sdk.event.location.ILocationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
-import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import android.content.Context;
 import android.util.Log;
 
@@ -70,9 +68,9 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 			locationGeometryDao = daoStore.getLocationGeometryDao();
 			locationPropertyDao = daoStore.getLocationPropertyDao();
 		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "Unable to communicate " + "with Location database.", sqle);
+			Log.e(LOG_NAME, "Unable to communicate with Location database.", sqle);
 
-			throw new IllegalStateException("Unable to communicate " + "with Location database.", sqle);
+			throw new IllegalStateException("Unable to communicate with Location database.", sqle);
 		}
 
 	}

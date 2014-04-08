@@ -2,6 +2,7 @@ package mil.nga.giat.mage.sdk.datastore;
 
 import java.sql.SQLException;
 
+import mil.nga.giat.mage.sdk.datastore.layer.Layer;
 import mil.nga.giat.mage.sdk.datastore.location.Location;
 import mil.nga.giat.mage.sdk.datastore.location.LocationGeometry;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
@@ -48,6 +49,9 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 	private Dao<Location, Long> locationDao;
 	private Dao<LocationGeometry, Long> locationGeometryDao;
 	private Dao<LocationProperty, Long> locationPropertyDao;
+	
+	// Layer DAOS
+	private Dao<Layer, Long> layerDao;
 
 	/**
 	 * Singleton implementation.
@@ -289,6 +293,19 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 			locationPropertyDao = getDao(LocationProperty.class);
 		}
 		return locationPropertyDao;
+	}
+	
+	/**
+	 * Getter for the LayerDao
+	 * 
+	 * @return This instance's LayerDao
+	 * @throws SQLException
+	 */
+	public Dao<Layer, Long> getLayerDao() throws SQLException {
+		if (layerDao == null) {
+			layerDao = getDao(Layer.class);
+		}
+		return layerDao;
 	}
 
 }
