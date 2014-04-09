@@ -9,9 +9,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import mil.nga.giat.mage.sdk.datastore.common.Geometry;
-import mil.nga.giat.mage.sdk.datastore.common.GeometryType;
-import mil.nga.giat.mage.sdk.datastore.common.PointGeometry;
 import mil.nga.giat.mage.sdk.datastore.common.State;
 import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
@@ -28,6 +25,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * JSON to {@link Observation}
@@ -91,25 +89,7 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 		// deserialize geometry
 		JsonObject geometryFeature = feature.get("geometry").getAsJsonObject();
 		if (geometryFeature != null) {
-			GeometryType geometryType = GeometryType.POINT;
-			String geometryTypeString = geometryFeature.get("type").getAsString().toUpperCase(Locale.US);
-			try {
-				geometryType = GeometryType.valueOf(geometryTypeString);
-			} catch (IllegalArgumentException iae) {
-				iae.printStackTrace();
-			}
-
-			Geometry geometry = null;
-			switch (geometryType) {
-			case POINT:
-				String coordinates = geometryFeature.get("coordinates").getAsJsonArray().toString();
-				geometry = new PointGeometry(coordinates);
-				break;
-			default:
-				Log.e(LOG_NAME, "Not a valid geomerty");
-				return null;
-			}
-			observation.setObservationGeometry(new ObservationGeometry(geometry));
+			observation.setObservationGeometry(new ObservationGeometry(GeometryDeserializer.getGsonBuilder().fromJson(geometryFeature, Geometry.class)));
 		}
 
 		// deserialize properties

@@ -2,11 +2,10 @@ package mil.nga.giat.mage.sdk.datastore.observation;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import mil.nga.giat.mage.sdk.datastore.common.Geometry;
-
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import com.vividsolutions.jts.geom.Geometry;
 
 @DatabaseTable(tableName = "observation_geometries")
 public class ObservationGeometry {

@@ -1,10 +1,9 @@
 package mil.nga.giat.mage.sdk.datastore.location;
 
-import mil.nga.giat.mage.sdk.datastore.common.Geometry;
-
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import com.vividsolutions.jts.geom.Geometry;
 
 @DatabaseTable(tableName = "location_geometries")
 public class LocationGeometry {
