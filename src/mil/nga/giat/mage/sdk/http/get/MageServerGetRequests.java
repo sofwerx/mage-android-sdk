@@ -92,8 +92,8 @@ public class MageServerGetRequests {
 	 * @param context
 	 * @return
 	 */
-	public static Long getFieldObservationLayerId(Context context) {
-		Long fieldObservationLayerId = 0l;
+	public static String getFieldObservationLayerId(Context context) {
+		String fieldObservationLayerId = null;
 		List<Layer> layers = MageServerGetRequests.getLayers(context);
 		for (Layer layer : layers) {
 			if (layer.getName().equals("Field Observations")) {
@@ -112,7 +112,7 @@ public class MageServerGetRequests {
 	 */
 	public static Collection<Observation> getObservations(Context context) {
 		Collection<Observation> observations = new ArrayList<Observation>();
-		long fieldObservationLayerId = MageServerGetRequests.getFieldObservationLayerId(context);
+		String fieldObservationLayerId = MageServerGetRequests.getFieldObservationLayerId(context);
 		HttpEntity entity = null;
 		try {
 			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));

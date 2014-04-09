@@ -66,7 +66,7 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 		}		
 		
 		try {
-			Date d = DateUtility.getISO8601().parse(feature.get("timestamp").getAsString());
+			Date d = DateUtility.getISO8601().parse(feature.get("lastModified").getAsString());
 			observation.setLastModified(d);
 		} catch (ParseException e) {
 			Log.e(LOG_NAME, "Problem paring date.");

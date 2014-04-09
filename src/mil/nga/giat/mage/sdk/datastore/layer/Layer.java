@@ -12,7 +12,7 @@ public class Layer {
 	private Long id;
 
 	@DatabaseField(unique = true, columnName = "remote_id")
-	private Long remoteId;
+	private String remoteId;
 
 	@DatabaseField
 	private String type;
@@ -20,18 +20,18 @@ public class Layer {
 	@DatabaseField
 	private String name;
 
-	public Layer(Long remoteId, String type, String name) {
+	public Layer(String remoteId, String type, String name) {
 		super();
 		this.remoteId = remoteId;
 		this.type = type;
 		this.name = name;
 	}
 
-	public Long getRemoteId() {
+	public String getRemoteId() {
 		return remoteId;
 	}
 
-	public void setRemoteId(Long remoteId) {
+	public void setRemoteId(String remoteId) {
 		this.remoteId = remoteId;
 	}
 

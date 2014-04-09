@@ -1,5 +1,5 @@
 <resources>
     <string-array name="date_fields_array">
-        <item >EVENTDATE</item>
+        <item>timestamp</item>
     </string-array>
 </resources>

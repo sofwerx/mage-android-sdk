@@ -38,7 +38,7 @@ public class LayerDeserializer implements JsonDeserializer<Layer> {
 	public Layer deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 
 		JsonObject feature = json.getAsJsonObject();
-		Long remoteId = feature.get("id").getAsLong();
+		String remoteId = feature.get("id").getAsString();
 		String type = feature.get("type").getAsString();
 		String name = feature.get("name").getAsString();
 

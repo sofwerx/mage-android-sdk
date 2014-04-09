@@ -53,7 +53,7 @@ public class MageServerPostRequests {
 		Observation savedObservation = observation;
 		
 		try {
-			long fieldObservationLayerId = MageServerGetRequests.getFieldObservationLayerId(context);
+			String fieldObservationLayerId = MageServerGetRequests.getFieldObservationLayerId(context);
 			
 			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
 			URI endpointUri = new URL(serverURL +  "/FeatureServer/" + fieldObservationLayerId + "/features").toURI();

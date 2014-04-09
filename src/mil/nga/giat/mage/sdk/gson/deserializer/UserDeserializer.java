@@ -51,7 +51,12 @@ public class UserDeserializer implements JsonDeserializer<User> {
 		JsonObject feature = json.getAsJsonObject();
 
 		String remoteId = feature.get("_id").getAsString();
-		String email = feature.get("email").getAsString();
+		
+		String email = "";
+		JsonElement emailElement = feature.get("email");
+		if (emailElement != null) {
+		    email = emailElement.getAsString();
+		}
 		String firstname = feature.get("firstname").getAsString();
 		String lastname = feature.get("lastname").getAsString();
 		String username = feature.get("username").getAsString();
