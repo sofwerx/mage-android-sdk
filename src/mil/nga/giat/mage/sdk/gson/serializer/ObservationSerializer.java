@@ -6,18 +6,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 import mil.nga.giat.mage.sdk.R;
-import mil.nga.giat.mage.sdk.datastore.common.GeometryType;
-import mil.nga.giat.mage.sdk.datastore.common.PointGeometry;
-import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationProperty;
 import android.content.Context;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
@@ -47,51 +44,32 @@ public class ObservationSerializer implements JsonSerializer<Observation> {
 		GsonBuilder gsonBuilder = new GsonBuilder();
 		gsonBuilder.registerTypeAdapter(Observation.class, new ObservationSerializer(context));
 		return gsonBuilder.create();
-	}	
+	}
 
 	@Override
-	public JsonElement serialize(Observation pObs, Type pType,
-			JsonSerializationContext pContext) {
+	public JsonElement serialize(Observation pObs, Type pType, JsonSerializationContext pContext) {
 
-		
 		JsonObject feature = new JsonObject();
 		feature.add("type", new JsonPrimitive("Feature"));
-		conditionalAdd("id", pObs.getRemoteId(), feature);		
-		
-		//serialize the observation's geometry.  POINT only for now.
-		if(GeometryType.POINT.equals(pObs.getObservationGeometry().getGeometry().getType())) {			
-			PointGeometry pointGeometry = (PointGeometry)pObs.getObservationGeometry().getGeometry();
-			JsonArray coordinates = new JsonArray();
-			coordinates.add(new JsonPrimitive(pointGeometry.getLongitude()));
-			coordinates.add(new JsonPrimitive(pointGeometry.getLatitude()));
-			JsonObject geometry = new JsonObject();
-			geometry.add("coordinates", coordinates);
-			geometry.add("type", new JsonPrimitive("Point"));
-			feature.add("geometry", geometry);
-		}
-		else {
-			throw new UnsupportedOperationException("Unable to Serialize "
-					+ pObs.getObservationGeometry().getGeometry().getType()
-					+ " geometries.");
-		}
-		
-		//serialize the observation's properties.
+		conditionalAdd("id", pObs.getRemoteId(), feature);
+		feature.add("geometry", new JsonParser().parse(GeometrySerializer.getGsonBuilder().toJson(pObs.getObservationGeometry().getGeometry())));
+
+		// serialize the observation's properties.
 		JsonObject properties = new JsonObject();
-		for(ObservationProperty property : pObs.getProperties()) {			
-			
+		for (ObservationProperty property : pObs.getProperties()) {
+
 			String key = property.getKey();
 			String value = property.getValue();
-			
-			if(dateProperties.contains(key)) {				
-				//TODO: This will eventually be changed to a Date...
-				//TODO: Perhaps we should wrap in an Exception?
+
+			if (dateProperties.contains(key)) {
+				// TODO: This will eventually be changed to a Date...
+				// TODO: Perhaps we should wrap in an Exception?
 				Long convertedValue = Long.valueOf(value);
 				properties.add(key, new JsonPrimitive(convertedValue));
-			}
-			else {
+			} else {
 				conditionalAdd(key, value, properties);
 			}
-			
+
 		}
 		feature.add("properties", properties);
 		
@@ -115,17 +93,14 @@ public class ObservationSerializer implements JsonSerializer<Observation> {
 		JsonObject jsonState = new JsonObject();
 		jsonState.add("name", new JsonPrimitive(pObs.getState().toString()));
 		feature.add("state", jsonState);
-				
+
 		return feature;
-	}	
-	
-	
+	}
+
 	private JsonObject conditionalAdd(String property, Object toAdd, final JsonObject pJsonObject) {
-		if(toAdd != null) {
+		if (toAdd != null) {
 			pJsonObject.add(property, new JsonPrimitive(toAdd.toString()));
 		}
 		return pJsonObject;
 	}
-	
-	
 }

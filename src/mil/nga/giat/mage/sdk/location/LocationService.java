@@ -6,8 +6,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+
 import mil.nga.giat.mage.sdk.R;
-import mil.nga.giat.mage.sdk.datastore.common.PointGeometry;
 import mil.nga.giat.mage.sdk.datastore.location.LocationGeometry;
 import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
@@ -79,6 +81,8 @@ public class LocationService extends Service implements LocationListener, OnShar
 	protected synchronized void setLastLocationPullTime(long lastLocationPullTime) {
 		this.lastLocationPullTime = lastLocationPullTime;
 	}
+	
+	private final GeometryFactory geometryFactory = new GeometryFactory();
 	
 	/**
 	 * GPS Sensitivity Setting
@@ -408,7 +412,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 				locationProperties.add(new LocationProperty("ALTITUDE", String.valueOf(location.getAltitude())));
 
 				// build geometry
-				LocationGeometry locationGeometry = new LocationGeometry(new PointGeometry(location.getLatitude(), location.getLongitude()));
+				LocationGeometry locationGeometry = new LocationGeometry(geometryFactory.createPoint(new Coordinate(location.getLongitude(), location.getLatitude())));
 
 				User currentUser = null;
 				List<User> currentUsers;
@@ -429,7 +433,8 @@ public class LocationService extends Service implements LocationListener, OnShar
 
 				// save the location
 				try {
-					Log.d(LOG_NAME, locationHelper.create(loc).toString());
+					loc = locationHelper.create(loc);
+					Log.d(LOG_NAME, "Save location: " + loc.getLocationGeometry().getGeometry());
 				} catch (LocationException le) {
 					// TODO: is this good enough?
 					Log.w(LOG_NAME, "Unable to record current location locally!", le);

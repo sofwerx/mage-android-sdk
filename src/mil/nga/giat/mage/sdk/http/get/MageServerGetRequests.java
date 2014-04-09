@@ -127,6 +127,7 @@ public class MageServerGetRequests {
 			URL observationURL = new URL(serverURL, "/FeatureServer/" + fieldObservationLayerId + "/features");
 			Uri.Builder uriBuilder = Uri.parse(observationURL.toURI().toString()).buildUpon();
 			uriBuilder.appendQueryParameter("startDate", DateUtility.getISO8601().format(lastModifiedDate));
+			uriBuilder.appendQueryParameter("states", "active");
 
 			DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
 			Log.d(LOG_NAME, uriBuilder.build().toString());
