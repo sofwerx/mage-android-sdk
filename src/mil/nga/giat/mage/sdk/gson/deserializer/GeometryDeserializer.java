@@ -28,7 +28,7 @@ public class GeometryDeserializer implements JsonDeserializer<Geometry> {
 	}
 	
 	@Override
-	public Geometry deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext arg2) throws JsonParseException {
+	public Geometry deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext jsonSerializationContext) throws JsonParseException {
 		return parseGeometry(json);
 	}
 
@@ -36,6 +36,9 @@ public class GeometryDeserializer implements JsonDeserializer<Geometry> {
 		Geometry geometry = null;
 		JsonObject root = json.getAsJsonObject();
 		String typeName = root.get("type").getAsString();
+		if(typeName == null) {
+			throw new IllegalArgumentException("Must provide a geometry type.");
+		}
 		if (typeName.equals("Point")) {
 			geometry = geometryFactory.createPoint(parseCoordinate(root.get("coordinates").getAsJsonArray()));
 		} else if (typeName.equals("MultiPoint")) {
@@ -51,7 +54,7 @@ public class GeometryDeserializer implements JsonDeserializer<Geometry> {
 		} else if (typeName.equals("GeometryCollection")) {
 			geometry = geometryFactory.createGeometryCollection(parseGeometries(root.get("geometries").getAsJsonArray()));
 		} else {
-			throw new UnsupportedOperationException();
+			throw new IllegalArgumentException("Unknown geometry type " + typeName);
 		}
 		return geometry;
 	}
