@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
-import mil.nga.giat.mage.sdk.exceptions.LocationException;
+import mil.nga.giat.mage.sdk.exceptions.LayerException;
 import android.content.Context;
 import android.util.Log;
 
@@ -63,33 +63,52 @@ public class LayerHelper extends DaoHelper<Layer> {
 
 	}
 
-	public List<Layer> readAll() throws LocationException {
+	public List<Layer> readAll() throws LayerException {
 		List<Layer> locations = new ArrayList<Layer>();
 		try {
 			locations = layerDao.queryForAll();
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to read Layers", sqle);
-			throw new LocationException("Unable to read Layers.", sqle);
+			throw new LayerException("Unable to read Layers.", sqle);
 		}
 		return locations;
 	}
 
 	@Override
-	public Layer create(Layer pLayer) throws LocationException {
+	public Layer create(Layer pLayer) throws LayerException {
 
-		Layer createdLocation = null;
+		Layer createdLayer = null;
 		try {
-			createdLocation = layerDao.createIfNotExists(pLayer);
+			createdLayer = layerDao.createIfNotExists(pLayer);
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "There was a problem creating the layer: " + pLayer + ".", sqle);
-			throw new LocationException("There was a problem creating the layer: " + pLayer + ".", sqle);
+			throw new LayerException("There was a problem creating the layer: " + pLayer + ".", sqle);
 		}
 
-		return createdLocation;
+		return createdLayer;
+	}
+	
+	public List<Layer> createAll(List<Layer> pLayers) throws LayerException {
+
+		List<Layer> createdLayers = new ArrayList<Layer>();
+		for (Layer layer : pLayers) {
+			try {
+				if(read(layer.getRemoteId()) == null) {
+					createdLayers.add(layerDao.createIfNotExists(layer));					
+				}
+			} catch (SQLException sqle) {
+				Log.e(LOG_NAME, "There was a problem creating the layer: " + layer + ".", sqle);
+				// TODO  Throw exception?
+			}
+		}
+		
+		// TODO: fire event
+
+		return createdLayers;
 	}
 
 	@Override
-	public Layer read(String pRemoteId) throws LocationException {
+	public Layer read(String pRemoteId) throws LayerException {
 		Layer layer = null;
 		try {
 			List<Layer> results = layerDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
@@ -98,7 +117,7 @@ public class LayerHelper extends DaoHelper<Layer> {
 			}
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
-			throw new LocationException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+			throw new LayerException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
 		}
 
 		return layer;

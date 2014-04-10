@@ -1,10 +1,11 @@
 package mil.nga.giat.mage.sdk.datastore.staticfeature;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
-import mil.nga.giat.mage.sdk.exceptions.ObservationException;
+import mil.nga.giat.mage.sdk.exceptions.StaticFeatureException;
 import android.content.Context;
 import android.util.Log;
 
@@ -56,7 +57,7 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> {
 	}
 
 	@Override
-	public StaticFeature create(StaticFeature pStaticFeature) throws ObservationException {
+	public StaticFeature create(StaticFeature pStaticFeature) throws StaticFeatureException {
 
 		StaticFeature createdStaticFeature;
 		try {
@@ -65,14 +66,14 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> {
 
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "There was a problem creating the static feature: " + pStaticFeature + ".", sqle);
-			throw new ObservationException("There was a problem creating the static feature: " + pStaticFeature + ".", sqle);
+			throw new StaticFeatureException("There was a problem creating the static feature: " + pStaticFeature + ".", sqle);
 		}
 
 		return createdStaticFeature;
 	}
 
 	@Override
-	public StaticFeature read(String pRemoteId) throws ObservationException {
+	public StaticFeature read(String pRemoteId) throws StaticFeatureException {
 		StaticFeature staticFeature = null;
 		try {
 			List<StaticFeature> results = staticFeatureDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
@@ -81,9 +82,24 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> {
 			}
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
-			throw new ObservationException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+			throw new StaticFeatureException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
 		}
 
 		return staticFeature;
+	}
+	
+	public List<StaticFeature> readAll(String pLayerId) throws StaticFeatureException {
+		List<StaticFeature> staticFeatures = new ArrayList<StaticFeature>();
+		try {
+			List<StaticFeature> results = staticFeatureDao.queryBuilder().where().eq("layer_id", pLayerId).query();
+			if (results != null) {
+				staticFeatures.addAll(results);
+			}
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "Unable to query for features with layer id = '" + pLayerId + "'", sqle);
+			throw new StaticFeatureException("Unable to query for features with layer id = '" + pLayerId + "'", sqle);
+		}
+
+		return staticFeatures;
 	}
 }
