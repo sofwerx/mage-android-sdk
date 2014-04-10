@@ -8,14 +8,17 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
+import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.IEventListener;
 import mil.nga.giat.mage.sdk.event.ILocationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
+import mil.nga.giat.mage.sdk.exceptions.UserException;
 import android.content.Context;
 import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.DeleteBuilder;
 
 /**
  * A utility class for accessing {@link Location} data from the physical data
@@ -137,7 +140,31 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 		
 		return location;
 	}
-
+	
+	/**
+	 * This will delete the user's location(s) that have remote_ids.  Locations that do NOT have 
+	 * remote_ids have not been sync'ed w/ the server.
+	 * 
+	 * @param userLocalId The user's local id
+	 * @throws LocationException 
+	 */
+	public Integer deleteUserLocations(String userLocalId) throws LocationException {
+		
+		int numberLocationsDeleted = 0; 
+		
+		try {
+			DeleteBuilder<Location, Long> db = locationDao.deleteBuilder();
+			db.where().eq("user_id", userLocalId).and().isNotNull("remote_id");
+			numberLocationsDeleted = locationDao.delete(db.prepare());
+		} 
+		catch (SQLException sqle) {
+			Log.e(LOG_NAME, "Unable to delete user's locations", sqle);
+			throw new LocationException("Unable to delete user's locations", sqle);
+		}	
+		Log.d(LOG_NAME, "Successfully deleted " + numberLocationsDeleted + " for user " + userLocalId);
+		return numberLocationsDeleted;
+	}
+	
 	@Override
 	public boolean addListener(final IEventListener<Location> listener) throws LocationException {
 		boolean status = listeners.add((ILocationEventListener) listener);
