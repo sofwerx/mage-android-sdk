@@ -12,6 +12,7 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -29,7 +30,7 @@ public class Observation implements Comparable<Observation> {
 	@DatabaseField(unique = true, columnName="url")
 	private String url;
 
-	@DatabaseField(canBeNull = false, columnName = "last_modified")
+	@DatabaseField(canBeNull = false, columnName = "last_modified", dataType = DataType.DATE_LONG)
 	private Date lastModified = new Date(0);
 
 	@DatabaseField(canBeNull = false)
