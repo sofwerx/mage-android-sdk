@@ -81,8 +81,9 @@ public class LocationServerFetchAsyncTask extends ServerFetchAsyncTask {
 								location.setUser(user);
 								locationHelper.deleteUserLocations(String.valueOf(user.getPk_id()));
 								locationHelper.create(location);
+								Log.d(LOG_NAME, "created location with remote_id " + location.getRemoteId());
 							} else {
-								Log.e(LOG_NAME, "Warning, a location was trying to be saved w/ no user.");
+								Log.w(LOG_NAME, "Warning, a location was trying to be saved w/ no user.");
 							}
 						}
 					}
