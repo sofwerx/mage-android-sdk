@@ -2,8 +2,8 @@ package mil.nga.giat.mage.sdk;
 
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.connectivity.NetworkChangeReceiver;
-import mil.nga.giat.mage.sdk.event.connectivity.IConnectivityEventListener;
-import mil.nga.giat.mage.sdk.event.user.IUserEventListener;
+import mil.nga.giat.mage.sdk.event.IConnectivityEventListener;
+import mil.nga.giat.mage.sdk.event.IUserEventListener;
 import android.content.Context;
 import android.os.AsyncTask;
 

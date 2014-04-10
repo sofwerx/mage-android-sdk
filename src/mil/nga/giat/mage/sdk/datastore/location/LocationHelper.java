@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.IEventListener;
-import mil.nga.giat.mage.sdk.event.location.ILocationEventListener;
+import mil.nga.giat.mage.sdk.event.ILocationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
 import android.content.Context;
 import android.util.Log;

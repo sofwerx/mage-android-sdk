@@ -7,9 +7,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import mil.nga.giat.mage.sdk.event.IConnectivityEventListener;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.IEventListener;
-import mil.nga.giat.mage.sdk.event.connectivity.IConnectivityEventListener;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;

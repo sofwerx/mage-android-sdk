@@ -1,6 +1,5 @@
-package mil.nga.giat.mage.sdk.event.connectivity;
+package mil.nga.giat.mage.sdk.event;
 
-import mil.nga.giat.mage.sdk.event.IEventListener;
 
 public interface IConnectivityEventListener extends IEventListener<Void> {
 

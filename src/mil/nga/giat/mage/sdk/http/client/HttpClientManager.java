@@ -7,7 +7,7 @@ import java.util.Collection;
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.IEventListener;
-import mil.nga.giat.mage.sdk.event.user.IUserEventListener;
+import mil.nga.giat.mage.sdk.event.IUserEventListener;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 
 import org.apache.http.HttpException;
