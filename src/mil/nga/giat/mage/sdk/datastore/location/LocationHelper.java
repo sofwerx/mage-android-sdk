@@ -12,6 +12,7 @@ import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.IEventListener;
 import mil.nga.giat.mage.sdk.event.ILocationEventListener;
+import mil.nga.giat.mage.sdk.event.IObservationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
 import android.content.Context;
@@ -156,6 +157,11 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 			DeleteBuilder<Location, Long> db = locationDao.deleteBuilder();
 			db.where().eq("user_id", userLocalId).and().isNotNull("remote_id");
 			numberLocationsDeleted = locationDao.delete(db.prepare());
+			
+			for (ILocationEventListener listener : listeners) {
+				listener.onLocationDeleted(userLocalId);
+			}
+			
 		} 
 		catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to delete user's locations", sqle);

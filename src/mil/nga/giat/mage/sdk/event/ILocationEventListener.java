@@ -6,9 +6,9 @@ import mil.nga.giat.mage.sdk.datastore.location.Location;
 
 public interface ILocationEventListener extends IEventListener<Location> {
 
-	public void onLocationCreated(final Collection<Location> observations);
+	public void onLocationCreated(final Collection<Location> location);
 	
-	public void onLocationUpdated(final Location observation);
+	public void onLocationUpdated(final Location location);
 	
-	public void onLocationDeleted(final Location observation);
+	public void onLocationDeleted(final String pUserLocalId);
 }
