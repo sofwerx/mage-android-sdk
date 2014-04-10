@@ -11,8 +11,10 @@ import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.layer.Layer;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
+import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeature;
 import mil.nga.giat.mage.sdk.gson.deserializer.LayerDeserializer;
 import mil.nga.giat.mage.sdk.gson.deserializer.ObservationDeserializer;
+import mil.nga.giat.mage.sdk.gson.deserializer.StaticFeatureDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import mil.nga.giat.mage.sdk.utils.DateUtility;
@@ -50,7 +52,7 @@ public class MageServerGetRequests {
 	 * @param value
 	 * @return
 	 */
-	private static List<Layer> getLayers(Context context) {
+	public static List<Layer> getLayers(Context context) {
 		final Gson layerDeserializer = LayerDeserializer.getGsonBuilder();
 		List<Layer> layers = new ArrayList<Layer>();
 		DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
@@ -101,6 +103,50 @@ public class MageServerGetRequests {
 			}
 		}
 		return fieldObservationLayerId;
+	}
+	
+	public static Collection<StaticFeature> getStaticFeatures(Context context, Layer pLayer) {
+		Collection<StaticFeature> staticFeatures = new ArrayList<StaticFeature>();
+		HttpEntity entity = null;
+		try {
+			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
+			final Gson staticFeatureDeserializer = StaticFeatureDeserializer.getGsonBuilder();
+
+			URL staticFeatureURL = new URL(serverURL, "/FeatureServer/" + pLayer.getRemoteId() + "/features");
+			DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
+			Log.d(LOG_NAME, staticFeatureURL.toString());
+			HttpGet get = new HttpGet(staticFeatureURL.toURI());
+			HttpResponse response = httpclient.execute(get);
+
+			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+				entity = response.getEntity();
+				JSONObject json = new JSONObject(EntityUtils.toString(entity));
+
+				if (json != null && json.has("features")) {
+					JSONArray features = json.getJSONArray("features");
+					for (int i = 0; i < features.length(); i++) {
+						JSONObject feature = (JSONObject) features.get(i);
+						if (feature != null) {
+							staticFeatures.add(staticFeatureDeserializer.fromJson(feature.toString(), StaticFeature.class));
+						}
+					}
+				}
+			} else {
+				Log.e(LOG_NAME, "Bad request.");
+			}
+		} catch (Exception e) {
+			// this block should never flow exceptions up! Log for now.
+			Log.e(LOG_NAME, "There was a failure while retriving static features.", e);
+		} finally {
+			try {
+				if (entity != null) {
+					entity.consumeContent();
+				}
+			} catch (Exception e) {
+				Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
+			}
+		}
+		return staticFeatures;
 	}
 
 	/**

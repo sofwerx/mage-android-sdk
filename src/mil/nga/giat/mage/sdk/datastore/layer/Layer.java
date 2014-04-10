@@ -20,11 +20,19 @@ public class Layer {
 	@DatabaseField
 	private String name;
 
+	public Layer() {
+		// ORMLite needs a no-arg constructor
+	}
+
 	public Layer(String remoteId, String type, String name) {
 		super();
 		this.remoteId = remoteId;
 		this.type = type;
 		this.name = name;
+	}
+
+	public Long getId() {
+		return id;
 	}
 
 	public String getRemoteId() {
@@ -49,10 +57,6 @@ public class Layer {
 
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public Long getId() {
-		return id;
 	}
 
 	@Override

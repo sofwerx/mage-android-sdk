@@ -32,8 +32,8 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 	private static final String LOG_NAME = ObservationHelper.class.getName();
 
 	private final Dao<Observation, Long> observationDao;
-	private final Dao<ObservationGeometry, Long> geometryDao;
-	private final Dao<ObservationProperty, Long> propertyDao;
+	private final Dao<ObservationGeometry, Long> observationGeometryDao;
+	private final Dao<ObservationProperty, Long> observationPropertyDao;
 	private final Dao<Attachment, Long> attachmentDao;
 
 	private Collection<IObservationEventListener> listeners = new ArrayList<IObservationEventListener>();
@@ -68,13 +68,13 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 		try {
 			// Set up DAOs
 			observationDao = daoStore.getObservationDao();
-			geometryDao = daoStore.getObservationGeometryDao();
-			propertyDao = daoStore.getObservationPropertyDao();
+			observationGeometryDao = daoStore.getObservationGeometryDao();
+			observationPropertyDao = daoStore.getObservationPropertyDao();
 			attachmentDao = daoStore.getAttachmentDao();
 		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "Unable to communicate " + "with Observation database.", sqle);
+			Log.e(LOG_NAME, "Unable to communicate with Observation database.", sqle);
 
-			throw new IllegalStateException("Unable to communicate " + "with Observation database.", sqle);
+			throw new IllegalStateException("Unable to communicate with Observation database.", sqle);
 		}
 
 	}
@@ -88,7 +88,7 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 		try {
 
 			// create Observation geometry.
-			geometryDao.create(pObservation.getObservationGeometry());
+			observationGeometryDao.create(pObservation.getObservationGeometry());
 
 			// create the Observation.
 			createdObservation = observationDao.createIfNotExists(pObservation);
@@ -98,7 +98,7 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 			if (properties != null) {
 				for (ObservationProperty property : properties) {
 					property.setObservation(createdObservation);
-					propertyDao.create(property);
+					observationPropertyDao.create(property);
 				}
 			}
 
@@ -128,31 +128,29 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 	@Override
 	public Observation read(String pRemoteId) throws ObservationException {
 		Observation observation = null;
-		try {					
+		try {
 			List<Observation> results = observationDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
-			if(results != null && results.size() > 0) {
+			if (results != null && results.size() > 0) {
 				observation = results.get(0);
 			}
-		}
-		catch(SQLException sqle) {
+		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
 			throw new ObservationException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
 		}
-		
+
 		return observation;
 	}
 	
-	
 	private void update(Observation pObservation) throws ObservationException {
 		try {
-			geometryDao.update(pObservation.getObservationGeometry());
+			observationGeometryDao.update(pObservation.getObservationGeometry());
 			observationDao.update(pObservation);
 
 			Collection<ObservationProperty> properties = pObservation.getProperties();
 			if (properties != null) {
 				for (ObservationProperty property : properties) {
 					property.setObservation(pObservation);
-					propertyDao.createOrUpdate(property);
+					observationPropertyDao.createOrUpdate(property);
 				}
 			}
 
@@ -308,7 +306,7 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 			Collection<ObservationProperty> properties = observation.getProperties();
 			if (properties != null) {
 				for (ObservationProperty property : properties) {
-					propertyDao.deleteById(property.getPk_id());
+					observationPropertyDao.deleteById(property.getPk_id());
 				}
 			}
 
@@ -321,7 +319,7 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 			}
 
 			// delete Geometry (but not corresponding GeometryType).
-			geometryDao.deleteById(observation.getObservationGeometry().getPk_id());
+			observationGeometryDao.deleteById(observation.getObservationGeometry().getPk_id());
 
 			// finally, delete the Observation.
 			observationDao.deleteById(pPrimaryKey);

@@ -10,6 +10,8 @@ import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationGeometry;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationProperty;
+import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeature;
+import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeatureGeometry;
 import mil.nga.giat.mage.sdk.datastore.user.Role;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import android.content.Context;
@@ -50,8 +52,10 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 	private Dao<LocationGeometry, Long> locationGeometryDao;
 	private Dao<LocationProperty, Long> locationPropertyDao;
 	
-	// Layer DAOS
+	// Layer and StaticFeature DAOS
 	private Dao<Layer, Long> layerDao;
+	private Dao<StaticFeature, Long> staticFeatureDao;
+	private Dao<StaticFeatureGeometry, Long> staticFeatureGeometryDao;
 
 	/**
 	 * Singleton implementation.
@@ -87,6 +91,9 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 			getLocationDao();
 			getLocationGeometryDao();
 			getLocationPropertyDao();
+			getLayerDao();
+			getStaticFeatureDao();
+			getStaticFeatureGeometryDao();
 		} catch (SQLException sqle) {
 			// TODO: handle this...
 			sqle.printStackTrace();
@@ -106,6 +113,9 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 			countOfAllRecords += getLocationDao().countOf();
 			countOfAllRecords += getLocationGeometryDao().countOf();
 			countOfAllRecords += getLocationPropertyDao().countOf();
+			countOfAllRecords += getLayerDao().countOf();
+			countOfAllRecords += getStaticFeatureDao().countOf();
+			countOfAllRecords += getStaticFeatureGeometryDao().countOf();
 		} catch (SQLException sqle) {
 			sqle.printStackTrace();
 			return false;
@@ -124,6 +134,10 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 		TableUtils.createTable(connectionSource, Location.class);
 		TableUtils.createTable(connectionSource, LocationGeometry.class);
 		TableUtils.createTable(connectionSource, LocationProperty.class);
+		
+		TableUtils.createTable(connectionSource, Layer.class);
+		TableUtils.createTable(connectionSource, StaticFeature.class);
+		TableUtils.createTable(connectionSource, StaticFeatureGeometry.class);
 	}
 
 	@Override
@@ -147,6 +161,10 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 		TableUtils.dropTable(connectionSource, Location.class, Boolean.TRUE);
 		TableUtils.dropTable(connectionSource, LocationGeometry.class, Boolean.TRUE);
 		TableUtils.dropTable(connectionSource, LocationProperty.class, Boolean.TRUE);
+		
+		TableUtils.dropTable(connectionSource, Layer.class, Boolean.TRUE);
+		TableUtils.dropTable(connectionSource, StaticFeature.class, Boolean.TRUE);
+		TableUtils.dropTable(connectionSource, StaticFeatureGeometry.class, Boolean.TRUE);
 	}
 
 	@Override
@@ -307,5 +325,30 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 		}
 		return layerDao;
 	}
-
+	
+	/**
+	 * Getter for the StaticFeatureDao
+	 * 
+	 * @return This instance's StaticFeatureDao
+	 * @throws SQLException
+	 */
+	public Dao<StaticFeature, Long> getStaticFeatureDao() throws SQLException {
+		if (staticFeatureDao == null) {
+			staticFeatureDao = getDao(StaticFeature.class);
+		}
+		return staticFeatureDao;
+	}
+	
+	/**
+	 * Getter for the StaticFeatureGeometryDao
+	 * 
+	 * @return This instance's StaticFeatureGeometryDao
+	 * @throws SQLException
+	 */
+	public Dao<StaticFeatureGeometry, Long> getStaticFeatureGeometryDao() throws SQLException {
+		if (staticFeatureGeometryDao == null) {
+			staticFeatureGeometryDao = getDao(StaticFeatureGeometry.class);
+		}
+		return staticFeatureGeometryDao;
+	}
 }

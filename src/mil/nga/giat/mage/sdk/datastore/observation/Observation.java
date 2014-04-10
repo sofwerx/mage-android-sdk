@@ -19,11 +19,8 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable(tableName = "observations")
 public class Observation implements Comparable<Observation> {
 
+	// name _id needed for cursor adapters
 	@DatabaseField(generatedId = true)
-	private Long id;
-	
-	// Needed for cursor adapters
-	@DatabaseField(unique = true, columnName = "_id")
 	private Long _id;
 
 	@DatabaseField(unique = true, columnName = "remote_id")
@@ -70,11 +67,10 @@ public class Observation implements Comparable<Observation> {
 	}
 
 	public Long getId() {
-		return id;
+		return _id;
 	}
 
 	public void setId(Long id) {
-		this.id = id;
 		this._id = id;
 	}
 
@@ -187,14 +183,14 @@ public class Observation implements Comparable<Observation> {
 	
 	@Override
 	public int compareTo(Observation another) {
-		return new CompareToBuilder().append(this.id, another.id).append(this.remoteId, another.remoteId).toComparison();
+		return new CompareToBuilder().append(this._id, another._id).append(this.remoteId, another.remoteId).toComparison();
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((_id == null) ? 0 : _id.hashCode());
 		result = prime * result + ((remoteId == null) ? 0 : remoteId.hashCode());
 		return result;
 	}
@@ -208,7 +204,7 @@ public class Observation implements Comparable<Observation> {
 		if (getClass() != obj.getClass())
 			return false;
 		Observation other = (Observation) obj;
-		return new EqualsBuilder().appendSuper(super.equals(obj)).append(id, other.id).append(remoteId, other.remoteId).isEquals();
+		return new EqualsBuilder().appendSuper(super.equals(obj)).append(_id, other._id).append(remoteId, other.remoteId).isEquals();
 	}
 
 }

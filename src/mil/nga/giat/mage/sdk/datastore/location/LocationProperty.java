@@ -9,13 +9,13 @@ public class LocationProperty {
 	@DatabaseField(generatedId = true)
 	private Long pk_id;
 
-	@DatabaseField(canBeNull = false)
+	@DatabaseField(canBeNull = false, uniqueCombo = true)
 	private String key;
 
 	@DatabaseField(canBeNull = false)
 	private String value;
 
-	@DatabaseField(foreign = true)
+	@DatabaseField(foreign = true, uniqueCombo = true)
 	private Location location;
 
 	public LocationProperty() {
@@ -61,7 +61,7 @@ public class LocationProperty {
 
 	@Override
 	public String toString() {
-		return "LocationProperty [pk_id=" + pk_id + ", key=" + key + ", value=" + value + "]";
+		return "LocationProperty [pk_id=" + pk_id + ", key=" + key + ", value=" + value + ", location=" + location.getId() + "]";
 	}
 
 }
