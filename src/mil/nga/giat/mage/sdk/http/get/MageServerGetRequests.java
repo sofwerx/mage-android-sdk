@@ -129,7 +129,9 @@ public class MageServerGetRequests {
 					for (int i = 0; i < features.length(); i++) {
 						JSONObject feature = (JSONObject) features.get(i);
 						if (feature != null) {
-							staticFeatures.add(staticFeatureDeserializer.fromJson(feature.toString(), StaticFeature.class));
+							StaticFeature staticFeature = staticFeatureDeserializer.fromJson(feature.toString(), StaticFeature.class);
+							staticFeature.setLayer(pLayer);
+							staticFeatures.add(staticFeature);
 						}
 					}
 				}
@@ -175,7 +177,6 @@ public class MageServerGetRequests {
 			URL observationURL = new URL(serverURL, "/FeatureServer/" + fieldObservationLayerId + "/features");
 			Uri.Builder uriBuilder = Uri.parse(observationURL.toURI().toString()).buildUpon();
 			uriBuilder.appendQueryParameter("startDate", DateUtility.getISO8601().format(lastModifiedDate));
-			uriBuilder.appendQueryParameter("states", "active");
 
 			DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
 			Log.d(LOG_NAME, uriBuilder.build().toString());

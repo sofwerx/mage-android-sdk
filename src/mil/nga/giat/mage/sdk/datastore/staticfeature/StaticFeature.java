@@ -1,5 +1,7 @@
 package mil.nga.giat.mage.sdk.datastore.staticfeature;
 
+import mil.nga.giat.mage.sdk.datastore.layer.Layer;
+
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -15,6 +17,9 @@ public class StaticFeature implements Comparable<StaticFeature> {
 
 	@DatabaseField(unique = true, columnName = "remote_id")
 	private String remoteId;
+	
+	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
+	private Layer layer;
 
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
 	private StaticFeatureGeometry staticFeatureGeometry;
@@ -23,14 +28,15 @@ public class StaticFeature implements Comparable<StaticFeature> {
 		// ORMLite needs a no-arg constructor
 	}
 
-	public StaticFeature(StaticFeatureGeometry observationGeometry) {
-		this(null, observationGeometry);
+	public StaticFeature(StaticFeatureGeometry observationGeometry, Layer layer) {
+		this(null, observationGeometry, layer);
 	}
 
-	public StaticFeature(String remoteId, StaticFeatureGeometry observationGeometry) {
+	public StaticFeature(String remoteId, StaticFeatureGeometry observationGeometry, Layer layer) {
 		super();
 		this.remoteId = remoteId;
 		this.staticFeatureGeometry = observationGeometry;
+		this.layer = layer;
 	}
 
 	public Long getId() {
@@ -43,6 +49,14 @@ public class StaticFeature implements Comparable<StaticFeature> {
 
 	public void setRemoteId(String remoteId) {
 		this.remoteId = remoteId;
+	}
+
+	public Layer getLayer() {
+		return layer;
+	}
+
+	public void setLayer(Layer layer) {
+		this.layer = layer;
 	}
 
 	public StaticFeatureGeometry getStaticFeatureGeometry() {

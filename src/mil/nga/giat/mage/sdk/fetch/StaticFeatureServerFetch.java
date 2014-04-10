@@ -1,6 +1,9 @@
 package mil.nga.giat.mage.sdk.fetch;
 
+import java.util.List;
+
 import mil.nga.giat.mage.sdk.datastore.layer.Layer;
+import mil.nga.giat.mage.sdk.datastore.layer.LayerHelper;
 import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeature;
 import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeatureHelper;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
@@ -19,8 +22,12 @@ public class StaticFeatureServerFetch extends AbstractServerFetch {
 	public void fetch() throws Exception {
 
 		StaticFeatureHelper staticFeatureHelper = StaticFeatureHelper.getInstance(mContext);
+		LayerHelper layerHelper = LayerHelper.getInstance(mContext);
 		
-		for (Layer layer : MageServerGetRequests.getLayers(mContext)) {
+		List<Layer> layers = MageServerGetRequests.getLayers(mContext);
+		layerHelper.createAll(layers);
+		
+		for (Layer layer : layers) {
 			if(layer.getType().equalsIgnoreCase("external")) {
 				for (StaticFeature staticFeature : MageServerGetRequests.getStaticFeatures(mContext, layer)) {
 					Log.i(LOG_NAME, staticFeatureHelper.create(staticFeature).toString());

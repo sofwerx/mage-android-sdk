@@ -80,14 +80,13 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 						}
 
 						Observation oldObservation = observationHelper.read(observation.getRemoteId());
-						if (oldObservation == null) {
+						if (observation.getState().equals(State.ARCHIVE) && oldObservation != null) {
+							observationHelper.delete(oldObservation.getId());
+							Log.d(LOG_NAME, "delete observation with remote_id " + observation.getRemoteId());
+						} else if (!observation.getState().equals(State.ARCHIVE) && oldObservation == null) {
 							observation = observationHelper.create(observation);
 							Log.d(LOG_NAME, "created observation with remote_id " + observation.getRemoteId());
-						} else if (observation.getState().equals(State.ARCHIVE)) {
-							observationHelper.delete(observation.getId());
-							// TODO : delete?
-							Log.d(LOG_NAME, "delete observation with remote_id " + observation.getRemoteId());
-						} else {
+						} else if (!observation.getState().equals(State.ARCHIVE) && oldObservation != null) {
 							observationHelper.update(observation, oldObservation);
 							Log.d(LOG_NAME, "updated observation with remote_id " + observation.getRemoteId());
 						}
