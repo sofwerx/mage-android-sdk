@@ -12,7 +12,7 @@
     <!-- mdkpublicpreferences.xml -->
     <string name="locationServiceEnabledKey">locationServiceEnabled</string>
     <string name="gpsSensitivityKey">gpsSensitivity</string>
-    <string name="gpsSensitivityDefaultValue">0</string>
+    <string name="gpsSensitivityDefaultValue">10</string>
     <string name="reportLocationKey">reportLocation</string>
     <string name="userReportingFrequencyKey">userReportingFrequency</string>
     <string name="userReportingFrequencyDefaultValue">15000</string>
