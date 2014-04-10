@@ -27,7 +27,7 @@ public class Observation implements Comparable<Observation> {
 	@DatabaseField(unique = true, columnName = "remote_id")
 	private String remoteId;
 
-	@DatabaseField(unique = true, columnName="url")
+	@DatabaseField(unique = true, columnName = "url")
 	private String url;
 
 	@DatabaseField(canBeNull = false, columnName = "last_modified", dataType = DataType.DATE_LONG)
@@ -181,7 +181,7 @@ public class Observation implements Comparable<Observation> {
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this);
 	}
-	
+
 	@Override
 	public int compareTo(Observation another) {
 		return new CompareToBuilder().append(this._id, another._id).append(this.remoteId, another.remoteId).toComparison();

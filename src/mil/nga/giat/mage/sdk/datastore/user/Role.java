@@ -11,7 +11,7 @@ public class Role {
 
 	@DatabaseField(generatedId = true)
 	private Long pk_id;
-	
+
 	@DatabaseField(unique = true, columnName = "remote_id")
 	private String remoteId;
 
@@ -21,7 +21,7 @@ public class Role {
 	@DatabaseField
 	private String description;
 
-	@DatabaseField(dataType=DataType.SERIALIZABLE)
+	@DatabaseField(dataType = DataType.SERIALIZABLE)
 	private Permissions permissions = new Permissions();
 
 	public Role() {
@@ -39,7 +39,7 @@ public class Role {
 	public Long getPk_id() {
 		return pk_id;
 	}
-	
+
 	public String getRemoteId() {
 		return remoteId;
 	}
@@ -71,7 +71,7 @@ public class Role {
 	public void setPermissions(Permissions permissions) {
 		this.permissions = permissions;
 	}
-	
+
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this);

@@ -10,6 +10,6 @@ import java.util.EventListener;
  * 
  * @param <T>
  */
-public interface IEventListener<T> extends EventListener {
+public interface IEventListener extends EventListener {
 	void onError(Throwable error);
 }

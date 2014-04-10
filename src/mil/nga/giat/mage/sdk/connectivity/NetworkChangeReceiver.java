@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit;
 
 import mil.nga.giat.mage.sdk.event.IConnectivityEventListener;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
-import mil.nga.giat.mage.sdk.event.IEventListener;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -17,7 +16,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
 
-public class NetworkChangeReceiver extends BroadcastReceiver implements IEventDispatcher<Void> {
+public class NetworkChangeReceiver extends BroadcastReceiver implements IEventDispatcher<IConnectivityEventListener> {
 
 	/**
 	 * Singleton.
@@ -161,12 +160,12 @@ public class NetworkChangeReceiver extends BroadcastReceiver implements IEventDi
 	}
 
 	@Override
-	public boolean addListener(IEventListener<Void> listener) {
-		return listeners.add((IConnectivityEventListener) listener);
+	public boolean addListener(IConnectivityEventListener listener) {
+		return listeners.add(listener);
 	}
 
 	@Override
-	public boolean removeListener(IEventListener<Void> listener) {
-		return listeners.remove((IConnectivityEventListener) listener);
+	public boolean removeListener(IConnectivityEventListener listener) {
+		return listeners.remove(listener);
 	}
 }

@@ -17,7 +17,7 @@ public class StaticFeature implements Comparable<StaticFeature> {
 
 	@DatabaseField(unique = true, columnName = "remote_id")
 	private String remoteId;
-	
+
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
 	private Layer layer;
 

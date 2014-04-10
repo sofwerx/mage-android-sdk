@@ -11,7 +11,7 @@ public class LocationGeometry {
 	@DatabaseField(generatedId = true)
 	private Long pk_id;
 
-	@DatabaseField(canBeNull = false, dataType=DataType.SERIALIZABLE)
+	@DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
 	private Geometry geometry;
 
 	public LocationGeometry() {
@@ -25,7 +25,7 @@ public class LocationGeometry {
 	public Long getPk_id() {
 		return pk_id;
 	}
-	
+
 	public Geometry getGeometry() {
 		return geometry;
 	}

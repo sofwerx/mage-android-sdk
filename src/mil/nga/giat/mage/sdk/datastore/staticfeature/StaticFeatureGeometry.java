@@ -13,7 +13,7 @@ public class StaticFeatureGeometry {
 	@DatabaseField(generatedId = true)
 	private Long pk_id;
 
-	@DatabaseField(canBeNull = false, dataType=DataType.SERIALIZABLE)
+	@DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
 	private Geometry geometry;
 
 	public StaticFeatureGeometry() {
@@ -27,11 +27,11 @@ public class StaticFeatureGeometry {
 	public Long getPk_id() {
 		return pk_id;
 	}
-	
+
 	public void setPk_id(Long pk_id) {
 		this.pk_id = pk_id;
 	}
-	
+
 	public Geometry getGeometry() {
 		return geometry;
 	}

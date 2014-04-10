@@ -2,9 +2,12 @@ package mil.nga.giat.mage.sdk.datastore.layer;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
+import mil.nga.giat.mage.sdk.event.IEventDispatcher;
+import mil.nga.giat.mage.sdk.event.ILayerEventListener;
 import mil.nga.giat.mage.sdk.exceptions.LayerException;
 import android.content.Context;
 import android.util.Log;
@@ -19,11 +22,13 @@ import com.j256.ormlite.dao.Dao;
  * @author wiedemannse
  * 
  */
-public class LayerHelper extends DaoHelper<Layer> {
+public class LayerHelper extends DaoHelper<Layer> implements IEventDispatcher<ILayerEventListener> {
 
 	private static final String LOG_NAME = LayerHelper.class.getName();
 
 	private final Dao<Layer, Long> layerDao;
+
+	private Collection<ILayerEventListener> listeners = new ArrayList<ILayerEventListener>();
 
 	/**
 	 * Singleton.
@@ -87,22 +92,27 @@ public class LayerHelper extends DaoHelper<Layer> {
 
 		return createdLayer;
 	}
-	
-	public List<Layer> createAll(List<Layer> pLayers) throws LayerException {
+
+	public List<Layer> createAll(Collection<Layer> pLayers) throws LayerException {
 
 		List<Layer> createdLayers = new ArrayList<Layer>();
 		for (Layer layer : pLayers) {
 			try {
-				if(read(layer.getRemoteId()) == null) {
-					createdLayers.add(layerDao.createIfNotExists(layer));					
+				if (read(layer.getRemoteId()) == null) {
+					createdLayers.add(layerDao.createIfNotExists(layer));
 				}
 			} catch (SQLException sqle) {
 				Log.e(LOG_NAME, "There was a problem creating the layer: " + layer + ".", sqle);
-				// TODO  Throw exception?
+				continue;
+				// TODO Throw exception?
 			}
 		}
-		
-		// TODO: fire event
+
+		Log.d(LOG_NAME, "Layers created: " + createdLayers);
+		// fire the event
+		for (ILayerEventListener listener : listeners) {
+			listener.onLayersCreated(createdLayers);
+		}
 
 		return createdLayers;
 	}
@@ -121,5 +131,15 @@ public class LayerHelper extends DaoHelper<Layer> {
 		}
 
 		return layer;
+	}
+
+	@Override
+	public boolean addListener(ILayerEventListener listener) {
+		return listeners.add(listener);
+	}
+
+	@Override
+	public boolean removeListener(ILayerEventListener listener) {
+		return listeners.remove(listener);
 	}
 }

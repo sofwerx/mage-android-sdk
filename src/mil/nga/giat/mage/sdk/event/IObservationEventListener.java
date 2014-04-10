@@ -4,7 +4,7 @@ import java.util.Collection;
 
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 
-public interface IObservationEventListener extends IEventListener<Observation> {
+public interface IObservationEventListener extends IEventListener {
 
 	public void onObservationCreated(final Collection<Observation> observations);
 	

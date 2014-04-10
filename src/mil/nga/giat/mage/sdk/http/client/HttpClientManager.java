@@ -6,7 +6,6 @@ import java.util.Collection;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
-import mil.nga.giat.mage.sdk.event.IEventListener;
 import mil.nga.giat.mage.sdk.event.IUserEventListener;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 
@@ -37,7 +36,7 @@ import android.util.Log;
  * @author wiedemannse
  * 
  */
-public class HttpClientManager implements IEventDispatcher<Void> {
+public class HttpClientManager implements IEventDispatcher<IUserEventListener> {
 
 	private static final String LOG_NAME = HttpClientManager.class.getName();
 
@@ -107,12 +106,12 @@ public class HttpClientManager implements IEventDispatcher<Void> {
 	}
 
 	@Override
-	public boolean addListener(IEventListener<Void> listener) {
-		return listeners.add((IUserEventListener) listener);
+	public boolean addListener(IUserEventListener listener) {
+		return listeners.add(listener);
 	}
 
 	@Override
-	public boolean removeListener(IEventListener<Void> listener) {
-		return listeners.remove((IUserEventListener) listener);
+	public boolean removeListener(IUserEventListener listener) {
+		return listeners.remove(listener);
 	}
 }

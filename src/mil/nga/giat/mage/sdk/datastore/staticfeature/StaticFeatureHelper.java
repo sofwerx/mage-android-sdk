@@ -2,21 +2,29 @@ package mil.nga.giat.mage.sdk.datastore.staticfeature;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
+import mil.nga.giat.mage.sdk.datastore.layer.Layer;
+import mil.nga.giat.mage.sdk.event.IEventDispatcher;
+import mil.nga.giat.mage.sdk.event.IStaticFeatureEventListener;
 import mil.nga.giat.mage.sdk.exceptions.StaticFeatureException;
 import android.content.Context;
 import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
 
-public class StaticFeatureHelper extends DaoHelper<StaticFeature> {
+public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEventDispatcher<IStaticFeatureEventListener> {
 
 	private static final String LOG_NAME = StaticFeatureHelper.class.getName();
 
 	private final Dao<StaticFeature, Long> staticFeatureDao;
 	private final Dao<StaticFeatureGeometry, Long> staticFeatureGeometryDao;
+
+	private Collection<IStaticFeatureEventListener> listeners = new ArrayList<IStaticFeatureEventListener>();
 
 	/**
 	 * Singleton.
@@ -72,6 +80,36 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> {
 		return createdStaticFeature;
 	}
 
+	/**
+	 * Set of layers that these features were added to.
+	 * 
+	 * @param pStaticFeatures
+	 * @return
+	 * @throws StaticFeatureException
+	 */
+	public Collection<Layer> createAll(Collection<StaticFeature> pStaticFeatures) throws StaticFeatureException {
+		Set<Layer> layers = new HashSet<Layer>();
+		for (StaticFeature staticFeature : pStaticFeatures) {
+			try {
+				staticFeatureGeometryDao.create(staticFeature.getStaticFeatureGeometry());
+				staticFeature = staticFeatureDao.createIfNotExists(staticFeature);
+				Log.d(LOG_NAME, "created static feature: " + staticFeature);
+				layers.add(staticFeature.getLayer());
+			} catch (SQLException sqle) {
+				Log.e(LOG_NAME, "There was a problem creating the static feature: " + staticFeature + ".", sqle);
+				continue;
+				// TODO Throw exception?
+			}
+		}
+
+		// fire the event
+		for (IStaticFeatureEventListener listener : listeners) {
+			listener.onStaticFeaturesCreated(layers);
+		}
+
+		return layers;
+	}
+
 	@Override
 	public StaticFeature read(String pRemoteId) throws StaticFeatureException {
 		StaticFeature staticFeature = null;
@@ -87,7 +125,7 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> {
 
 		return staticFeature;
 	}
-	
+
 	public List<StaticFeature> readAll(String pLayerId) throws StaticFeatureException {
 		List<StaticFeature> staticFeatures = new ArrayList<StaticFeature>();
 		try {
@@ -101,5 +139,15 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> {
 		}
 
 		return staticFeatures;
+	}
+
+	@Override
+	public boolean addListener(IStaticFeatureEventListener listener) {
+		return listeners.add(listener);
+	}
+
+	@Override
+	public boolean removeListener(IStaticFeatureEventListener listener) {
+		return listeners.remove(listener);
 	}
 }

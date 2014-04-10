@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
-import mil.nga.giat.mage.sdk.event.IEventListener;
 import mil.nga.giat.mage.sdk.event.IObservationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import android.content.Context;
@@ -27,7 +26,7 @@ import com.j256.ormlite.stmt.QueryBuilder;
  * @author travis
  * 
  */
-public class ObservationHelper extends DaoHelper<Observation> implements IEventDispatcher<Observation> {
+public class ObservationHelper extends DaoHelper<Observation> implements IEventDispatcher<IObservationEventListener> {
 
 	private static final String LOG_NAME = ObservationHelper.class.getName();
 
@@ -334,13 +333,13 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 	}
 
 	@Override
-	public boolean addListener(final IEventListener<Observation> listener) throws ObservationException {
-		boolean status = listeners.add((IObservationEventListener) listener);
+	public boolean addListener(final IObservationEventListener listener) throws ObservationException {
+		boolean status = listeners.add(listener);
 		
 		new Callable<Object>() {
 			@Override
 			public Object call() throws ObservationException {
-				((IObservationEventListener)listener).onObservationCreated(readAll());
+				listener.onObservationCreated(readAll());
 				return null;
 			}
 		}.call();
@@ -348,8 +347,8 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 	}
 
 	@Override
-	public boolean removeListener(IEventListener<Observation> listener) {
-		return listeners.remove((IObservationEventListener) listener);
+	public boolean removeListener(IObservationEventListener listener) {
+		return listeners.remove(listener);
 	}
 
 }

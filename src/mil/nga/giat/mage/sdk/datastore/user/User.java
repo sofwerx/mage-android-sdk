@@ -31,7 +31,7 @@ public class User {
 	@DatabaseField(canBeNull = false)
 	private Boolean isCurrentUser = Boolean.FALSE;
 
-	@DatabaseField(canBeNull = false, columnName="fetched_date")
+	@DatabaseField(canBeNull = false, columnName = "fetched_date")
 	private Date fetchedDate = new Date(0);
 
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
@@ -106,7 +106,7 @@ public class User {
 	public void setFetchedDate(Date fetchedDate) {
 		this.fetchedDate = fetchedDate;
 	}
-	
+
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this);

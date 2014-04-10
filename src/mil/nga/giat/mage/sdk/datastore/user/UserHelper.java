@@ -20,7 +20,7 @@ import com.j256.ormlite.stmt.Where;
  * The details of ORM DAOs and Lazy Loading should not be exposed past this
  * class.
  * 
- * @author travis
+ * @author travis, wiedemanns
  * 
  */
 public class UserHelper extends DaoHelper<User> {
@@ -66,7 +66,7 @@ public class UserHelper extends DaoHelper<User> {
 		}
 
 	}
-	
+
 	@Override
 	public User create(User pUser) throws UserException {
 		User createdUser = null;
@@ -134,7 +134,7 @@ public class UserHelper extends DaoHelper<User> {
 		return currentUsers;
 
 	}
-	
+
 	/**
 	 * Delete all users that are flagged as isCurrentUser.
 	 * 
@@ -146,7 +146,7 @@ public class UserHelper extends DaoHelper<User> {
 		try {
 			DeleteBuilder<User, Long> db = userDao.deleteBuilder();
 			db.where().eq("isCurrentUser", Boolean.TRUE);
-			
+
 			userDao.delete(db.prepare());
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "There was a problem deleting active users.");
@@ -154,5 +154,5 @@ public class UserHelper extends DaoHelper<User> {
 		}
 
 	}
-	
+
 }

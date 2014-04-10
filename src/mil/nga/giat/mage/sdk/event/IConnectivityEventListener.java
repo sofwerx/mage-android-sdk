@@ -1,7 +1,7 @@
 package mil.nga.giat.mage.sdk.event;
 
 
-public interface IConnectivityEventListener extends IEventListener<Void> {
+public interface IConnectivityEventListener extends IEventListener {
 
 	public void onAllDisconnected();
 	
