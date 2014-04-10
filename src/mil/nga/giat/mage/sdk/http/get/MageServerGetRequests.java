@@ -9,10 +9,12 @@ import java.util.List;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.layer.Layer;
+import mil.nga.giat.mage.sdk.datastore.location.Location;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeature;
 import mil.nga.giat.mage.sdk.gson.deserializer.LayerDeserializer;
+import mil.nga.giat.mage.sdk.gson.deserializer.LocationDeserializer;
 import mil.nga.giat.mage.sdk.gson.deserializer.ObservationDeserializer;
 import mil.nga.giat.mage.sdk.gson.deserializer.StaticFeatureDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
@@ -28,11 +30,11 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.google.gson.Gson;
-
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
+
+import com.google.gson.Gson;
 
 /**
  * A class that contains common GET requests to the MAGE server.
@@ -209,4 +211,51 @@ public class MageServerGetRequests {
 		return observations;
 	}
 
+	
+public static Collection<Location> getLocations(Context context) {
+		
+		Collection<Location> locations = new ArrayList<Location>();
+		final Gson locationDeserializer = LocationDeserializer.getGsonBuilder();
+
+		
+		HttpEntity entity = null;
+		
+		try {
+			URL serverURL = 
+					new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
+			URL locationURL = new URL(serverURL, "/api/locations");
+			
+			
+			DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
+			//Log.d(LOG_NAME, uriBuilder.build().toString());
+			HttpGet get = new HttpGet(locationURL.toURI());
+			HttpResponse response = httpclient.execute(get);
+			
+			if (HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
+				entity = response.getEntity();
+				
+				JSONArray jsonArray = new JSONArray(EntityUtils.toString(entity));						
+				for(int i = 0; i < jsonArray.length(); i++) {
+					JSONObject user = (JSONObject)jsonArray.get(i);
+					JSONArray jsonLocations = user.getJSONArray("locations");
+					//concerned w/ the first (most recent) location for now					
+					if(jsonLocations.length() > 0) {
+						JSONObject jsonLocation = (JSONObject)jsonLocations.get(0);					
+						Location location = locationDeserializer.fromJson(jsonLocation.toString(), Location.class);
+						locations.add(location);						
+					}
+				}
+
+			}
+			
+		} 
+		catch (Exception e) {
+			Log.e(LOG_NAME,
+				  "There was a failure while performing an Location Fetch opperation.", e);
+		}
+				
+		return locations;
+		
+	}
+	
 }

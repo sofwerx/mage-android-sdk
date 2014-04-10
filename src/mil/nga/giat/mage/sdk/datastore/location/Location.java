@@ -1,6 +1,9 @@
 package mil.nga.giat.mage.sdk.datastore.location;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import mil.nga.giat.mage.sdk.datastore.user.User;
 
@@ -124,6 +127,45 @@ public class Location implements Comparable<Location> {
 		this.locationGeometry = geometry;
 	}
 	
+	/**
+	 * A convenience method used for returning a Location's properties in a more
+	 * useful data-structure.
+	 * 
+	 * @return
+	 */
+	public Map<String, String> getPropertiesMap() {
+
+		Map<String, String> propertiesMap = new HashMap<String, String>();
+
+		if (properties != null) {
+			for (LocationProperty property : properties) {
+				propertiesMap.put(property.getKey(), property.getValue());
+			}
+		}
+
+		return propertiesMap;
+	}
+
+	/**
+	 * A convenience method used for setting a Location's properties with a Map
+	 * (instead of a Collection).
+	 * 
+	 * @param propertiesMap
+	 *            A Map of ALL the properties to be set.
+	 */
+	public void setPropertiesMap(Map<String, String> propertiesMap) {
+		Collection<LocationProperty> properties = new ArrayList<LocationProperty>();
+
+		if (propertiesMap != null) {
+			for (String key : propertiesMap.keySet()) {
+				properties
+						.add(new LocationProperty(key, propertiesMap.get(key)));
+			}
+		}
+
+		setProperties(properties);
+	}
+
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this);
