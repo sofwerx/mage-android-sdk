@@ -8,7 +8,7 @@ package mil.nga.giat.mage.sdk.event;
  * 
  * @param <T>
  */
-public interface IEventDispatcher<T> {
+public interface IEventDispatcher<T extends IEventListener> {
 
 	/**
 	 * Adds a listener
