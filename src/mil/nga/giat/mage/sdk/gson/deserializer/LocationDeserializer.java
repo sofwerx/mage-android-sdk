@@ -1,8 +1,10 @@
 package mil.nga.giat.mage.sdk.gson.deserializer;
 
 import java.lang.reflect.Type;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
@@ -10,6 +12,8 @@ import mil.nga.giat.mage.sdk.datastore.location.Location;
 import mil.nga.giat.mage.sdk.datastore.location.LocationGeometry;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
 import mil.nga.giat.mage.sdk.datastore.user.User;
+import mil.nga.giat.mage.sdk.utils.DateUtility;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -69,14 +73,27 @@ public class LocationDeserializer implements JsonDeserializer<Location> {
 			location.setProperties(properties);					
 		}
 
-		// deserialize user
 		Map<String,String> locationProperties = location.getPropertiesMap();
+
+		// deserialize user
 		if(locationProperties.containsKey("user")) {
 			User user = new User();
 			user.setRemoteId(locationProperties.get("user"));		
 			location.setUser(user);	
 		}
 		
+		// deserialize timestamp
+		if(locationProperties.containsKey("timestamp")) {						
+			try{
+				Date d = DateUtility.getISO8601().parse(locationProperties.get("timestamp"));
+				location.setLastModified(d.getTime());
+			}
+			catch(ParseException pe) {
+				Log.w("Unable to parse date: "
+						+ locationProperties.get("timestamp")
+						+ " for location: " + location.getRemoteId(), pe);
+			}
+		}		
 		return location;
 	}
 
