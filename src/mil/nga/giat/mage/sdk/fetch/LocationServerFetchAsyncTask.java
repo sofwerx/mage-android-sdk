@@ -13,7 +13,6 @@ import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import android.content.Context;
-import android.os.AsyncTask.Status;
 import android.util.Log;
 
 public class LocationServerFetchAsyncTask extends ServerFetchAsyncTask {
