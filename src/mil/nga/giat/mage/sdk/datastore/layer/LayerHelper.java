@@ -69,14 +69,14 @@ public class LayerHelper extends DaoHelper<Layer> implements IEventDispatcher<IL
 	}
 
 	public List<Layer> readAll() throws LayerException {
-		List<Layer> locations = new ArrayList<Layer>();
+		List<Layer> layers = new ArrayList<Layer>();
 		try {
-			locations = layerDao.queryForAll();
+			layers = layerDao.queryForAll();
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to read Layers", sqle);
 			throw new LayerException("Unable to read Layers.", sqle);
 		}
-		return locations;
+		return layers;
 	}
 
 	@Override
@@ -93,6 +93,14 @@ public class LayerHelper extends DaoHelper<Layer> implements IEventDispatcher<IL
 		return createdLayer;
 	}
 
+	/**
+	 * Returns only the list of layers that were created from this call. If a
+	 * layer already existed locally, it will not be returned in the list.
+	 * 
+	 * @param pLayers
+	 * @return
+	 * @throws LayerException
+	 */
 	public List<Layer> createAll(Collection<Layer> pLayers) throws LayerException {
 
 		List<Layer> createdLayers = new ArrayList<Layer>();

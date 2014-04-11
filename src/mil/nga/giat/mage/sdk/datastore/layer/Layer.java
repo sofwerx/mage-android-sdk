@@ -1,10 +1,16 @@
 package mil.nga.giat.mage.sdk.datastore.layer;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeature;
+
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "layers")
@@ -21,6 +27,13 @@ public class Layer implements Comparable<Layer> {
 
 	@DatabaseField
 	private String name;
+	
+	/**
+	 * Do NOT eager load the features!
+	 * 
+	 */
+	@ForeignCollectionField(eager = false)
+	private Collection<StaticFeature> staticFeatures = new ArrayList<StaticFeature>();
 
 	public Layer() {
 		// ORMLite needs a no-arg constructor
@@ -59,6 +72,10 @@ public class Layer implements Comparable<Layer> {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public Collection<StaticFeature> getStaticFeatures() {
+		return staticFeatures;
 	}
 
 	@Override

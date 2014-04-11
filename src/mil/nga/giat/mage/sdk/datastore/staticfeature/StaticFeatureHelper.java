@@ -81,7 +81,7 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEv
 	}
 
 	/**
-	 * Set of layers that these features were added to.
+	 * Set of layers that features were added to, or already belonged to.
 	 * 
 	 * @param pStaticFeatures
 	 * @return
@@ -91,9 +91,11 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEv
 		Set<Layer> layers = new HashSet<Layer>();
 		for (StaticFeature staticFeature : pStaticFeatures) {
 			try {
-				staticFeatureGeometryDao.create(staticFeature.getStaticFeatureGeometry());
-				staticFeature = staticFeatureDao.createIfNotExists(staticFeature);
-				Log.d(LOG_NAME, "created static feature: " + staticFeature);
+				if (read(staticFeature.getRemoteId()) == null) {
+					staticFeatureGeometryDao.create(staticFeature.getStaticFeatureGeometry());
+					staticFeature = staticFeatureDao.createIfNotExists(staticFeature);
+					//Log.d(LOG_NAME, "created static feature: " + staticFeature);
+				}
 				layers.add(staticFeature.getLayer());
 			} catch (SQLException sqle) {
 				Log.e(LOG_NAME, "There was a problem creating the static feature: " + staticFeature + ".", sqle);

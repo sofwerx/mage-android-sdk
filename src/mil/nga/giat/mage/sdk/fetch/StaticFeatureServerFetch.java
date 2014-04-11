@@ -28,6 +28,8 @@ public class StaticFeatureServerFetch extends AbstractServerFetch {
 		try {
 			layerHelper.createAll(layers);
 			
+			// get ALL the layers
+			layers = layerHelper.readAll();
 			for (Layer layer : layers) {
 				if(layer.getType().equalsIgnoreCase("external")) {
 					try {
