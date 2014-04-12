@@ -6,11 +6,13 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 
 /**
  * Utility that dealing with connection like information. Connectivity, mac
@@ -38,13 +40,20 @@ public class ConnectivityUtility {
 		return false;
 	}
 
-	public static boolean isResolvable(String hostname) {
-		try {
-			InetAddress.getByName(hostname);
-		} catch (UnknownHostException e) {
-			return false;
+	public static boolean isResolvable(String hostname) throws Exception {
+		return new IsResolvable().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, hostname).get(30, TimeUnit.SECONDS);
+	}
+	
+	private static class IsResolvable extends AsyncTask<String, Void, Boolean> {
+		@Override
+		protected Boolean doInBackground(String... arg0) {
+			try {
+				InetAddress.getByName(arg0[0]);
+			} catch (UnknownHostException e) {
+				return false;
+			}
+			return true;
 		}
-		return true;
 	}
 
 	public static boolean canConnect(InetAddress address, int port) {

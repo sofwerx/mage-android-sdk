@@ -19,6 +19,8 @@ public class StaticFeatureServerFetch extends AbstractServerFetch {
 
 	private static final String LOG_NAME = StaticFeatureServerFetch.class.getName();
 	
+	private Boolean isCanceled = Boolean.FALSE;
+	
 	public void fetch() {
 
 		StaticFeatureHelper staticFeatureHelper = StaticFeatureHelper.getInstance(mContext);
@@ -31,6 +33,9 @@ public class StaticFeatureServerFetch extends AbstractServerFetch {
 			// get ALL the layers
 			layers = layerHelper.readAll();
 			for (Layer layer : layers) {
+				if(isCanceled) {
+					break;
+				}
 				if(layer.getType().equalsIgnoreCase("external")) {
 					try {
 						staticFeatureHelper.createAll(MageServerGetRequests.getStaticFeatures(mContext, layer));
@@ -43,5 +48,9 @@ public class StaticFeatureServerFetch extends AbstractServerFetch {
 		} catch (LayerException e) {
 			Log.e(LOG_NAME, "Problem creating layers.", e);
 		}
+	}
+	
+	public void destroy() {
+		isCanceled = true;
 	}
 }

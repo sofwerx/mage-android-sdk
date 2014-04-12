@@ -100,7 +100,15 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 			URL sURL = new URL(serverURL);
 			
 			// Make sure host exists
-			if (!ConnectivityUtility.isResolvable(sURL.getHost())) {
+			try {
+				if (!ConnectivityUtility.isResolvable(sURL.getHost())) {
+					List<Integer> errorIndices = new ArrayList<Integer>();
+					errorIndices.add(2);
+					List<String> errorMessages = new ArrayList<String>();
+					errorMessages.add("Bad hostname");
+					return new AccountStatus(AccountStatus.Status.FAILED_LOGIN, errorIndices, errorMessages);
+				}
+			} catch (Exception e) {
 				List<Integer> errorIndices = new ArrayList<Integer>();
 				errorIndices.add(2);
 				List<String> errorMessages = new ArrayList<String>();

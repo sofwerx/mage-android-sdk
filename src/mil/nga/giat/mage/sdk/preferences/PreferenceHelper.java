@@ -79,7 +79,7 @@ public class PreferenceHelper {
 			SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
 			Editor editor = sharedPreferences.edit();
 			try {
-				editor.putString("appVersion", mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionName).commit();
+				editor.putString(mContext.getString(R.string.buildVersionKey), mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionName).commit();
 			} catch (NameNotFoundException nnfe) {
 				nnfe.printStackTrace();
 			}
