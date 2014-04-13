@@ -6,11 +6,13 @@ import java.net.URL;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.DaoStore;
+import mil.nga.giat.mage.sdk.datastore.location.Location;
 import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.gson.deserializer.AttachmentDeserializer;
 import mil.nga.giat.mage.sdk.gson.deserializer.ObservationDeserializer;
+import mil.nga.giat.mage.sdk.gson.serializer.LocationSerializer;
 import mil.nga.giat.mage.sdk.gson.serializer.ObservationSerializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
@@ -43,8 +45,8 @@ public class MageServerPostRequests {
 	private static final String LOG_NAME = MageServerPostRequests.class.getName();
 	
 	/**
-	 * POST an attachment to the server.
-	 * @param attachment The attachment to post.
+	 * POST an Observation to the server.
+	 * @param observation The Observation to post.
 	 * @param context
 	 */
 	public static Observation postObservation(Observation observation, Context context) {
@@ -82,12 +84,6 @@ public class MageServerPostRequests {
 	        	observation.setDirty(Boolean.FALSE);
 	        	observationHelper.create(savedObservation);	        	
 	        	
-	        	// TODO: move this to a task
-	        	//Iterator<Attachment> i = savedObservation.getAttachments().iterator();
-	        	//while (i.hasNext()) {
-	        	//	Attachment a = i.next();
-	        	//	postAttachment(a, context);
-	        	//}
 	        }
 	        else {
 	        	Log.e(LOG_NAME, "Bad request made to MAGE server.");
@@ -99,8 +95,7 @@ public class MageServerPostRequests {
 			e.printStackTrace();
 		}		
 		return savedObservation;		
-	}
-	
+	}	
 	
 	/**
 	 * POST an attachment to the server.
@@ -148,6 +143,41 @@ public class MageServerPostRequests {
 		}
 	}
 	
-	
+	public static Location postLocation(Location location, Context context) {
+		
+		Location savedLocation = location;
+		
+		try {			
+			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
+			URI endpointUri = new URL(serverURL + "/api/locations").toURI();
+			
+			DefaultHttpClient httpClient = HttpClientManager.getInstance(context).getHttpClient();
+			HttpPost request = new HttpPost(endpointUri);
+			
+			Gson gson = LocationSerializer.getGsonBuilder(context);
+			String json = gson.toJson(location);
+			StringEntity payload = new StringEntity(json);
+	        
+			request.addHeader("Content-Type", "application/json; charset=utf-8");
+	        request.setEntity(payload);
+	        
+	        HttpResponse response = httpClient.execute(request);
+	        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+	        		        		
+				// TODO: Finish this. We need to update the location w/ a
+				// remote ID in the local datastore.
+	        	 
+	        }
+	        else {
+	        	Log.e(LOG_NAME, "Bad request made to MAGE server.");
+	        }		        		        		        
+							
+		} 
+		catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return savedLocation;
+	}
 	
 }

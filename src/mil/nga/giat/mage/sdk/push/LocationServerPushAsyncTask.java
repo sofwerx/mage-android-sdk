@@ -43,7 +43,7 @@ private static final String LOG_NAME = LocationServerPushAsyncTask.class.getName
 					if(isCancelled()) {
 						break;
 					}
-					//TODO: Implement this method...
+					//TODO: wire this back up after the POST issue is ironed out...
 					//Location savedLocation = MageServerPostRequests.postLocation(location, mContext);
 				}
 			} 
