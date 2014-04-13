@@ -8,6 +8,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
+import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.ILocationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
@@ -16,6 +17,7 @@ import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.DeleteBuilder;
+import com.j256.ormlite.stmt.QueryBuilder;
 
 /**
  * A utility class for accessing {@link Location} data from the physical data
@@ -137,6 +139,27 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 		return location;
 	}
 
+	/**
+	 * Gets a List of Locations from the datastore that are dirty (i.e. should be
+	 * synced with the server).
+	 * @return
+	 */
+	public List<Location> getDirty() {
+		QueryBuilder<Location, Long> queryBuilder = locationDao.queryBuilder();
+		List<Location> locations = new ArrayList<Location>();
+
+		try {
+			queryBuilder.where().eq("dirty", true);
+			locations = locationDao.query(queryBuilder.prepare());
+		} 
+		catch (SQLException e) {
+			// TODO Auto-generated catch block
+			Log.e(LOG_NAME, "Could not get dirty Observations.");
+		}		
+		return locations;
+	}
+	
+	
 	/**
 	 * This will delete the user's location(s) that have remote_ids. Locations
 	 * that do NOT have remote_ids have not been sync'ed w/ the server.

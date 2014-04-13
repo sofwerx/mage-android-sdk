@@ -62,7 +62,7 @@ public class ObservationServerPushAsyncTask extends ServerPushAsyncTask {
 				}
 			} 
 			else {
-				Log.d(LOG_NAME, "The device is currently disconnected. Nothing to push.");
+				Log.d(LOG_NAME, "The device is currently disconnected. Can't push observations.");
 				pushFrequency = Math.min(pushFrequency*2, 10*60*1000);
 			}
 			long lastFetchTime = new Date().getTime();
