@@ -31,8 +31,8 @@ public class Location implements Comparable<Location> {
 	@DatabaseField(canBeNull = false, version = true)
 	private long lastModified;
 
-	@DatabaseField(canBeNull = false)
-	private boolean dirty;
+	@DatabaseField(canBeNull = false, columnName = "current_user")
+	private boolean currentUser;
 
 	@DatabaseField
 	private String type;
@@ -49,7 +49,7 @@ public class Location implements Comparable<Location> {
 
 	public Location(String type, User user, Collection<LocationProperty> properties, LocationGeometry locationGeometry) {
 		this(null, user, System.currentTimeMillis(), type, properties, locationGeometry);
-		this.setDirty(true);
+		this.setIsCurrentUser(true);
 	}
 
 	public Location(String remoteId, User user, long lastModified, String type, Collection<LocationProperty> properties, LocationGeometry locationGeometry) {
@@ -60,7 +60,7 @@ public class Location implements Comparable<Location> {
 		this.type = type;
 		this.properties = properties;
 		this.locationGeometry = locationGeometry;
-		this.setDirty(false);
+		this.setIsCurrentUser(false);
 	}
 
 	public Long getId() {
@@ -103,12 +103,12 @@ public class Location implements Comparable<Location> {
 		return lastModified;
 	}
 
-	public void setDirty(boolean dirty) {
-		this.dirty = dirty;
+	public void setIsCurrentUser(boolean currentUser) {
+		this.currentUser = currentUser;
 	}
 
-	public boolean isDirty() {
-		return dirty;
+	public boolean isCurrentUser() {
+		return currentUser;
 	}
 
 	public Collection<LocationProperty> getProperties() {

@@ -76,11 +76,12 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 
 	}
 
-	public List<Location> readAll() throws LocationException {
+	public List<Location> readAllNonCurrent() throws LocationException {
 		List<Location> locations = new ArrayList<Location>();
 		try {
-			locations = locationDao.queryForAll();
-		} catch (SQLException sqle) {
+			locations = locationDao.queryBuilder().where().eq("current_user", Boolean.FALSE).query(); 
+		} 
+		catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to read Locations", sqle);
 			throw new LocationException("Unable to read Locations.", sqle);
 		}
@@ -143,13 +144,13 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	 * synced with the server).
 	 * @return
 	 */
-	public List<Location> getDirty(Long maxReturn) {
+	public List<Location> getCurrentUserLocations(Long maxReturn) {
 		
 		QueryBuilder<Location, Long> queryBuilder = locationDao.queryBuilder();
 		List<Location> locations = new ArrayList<Location>();
 
 		try {
-			queryBuilder.where().eq("dirty", true);
+			queryBuilder.where().eq("current_user", true);
 		
 			//this is used for psudo-batching...optional.
 			if(maxReturn > 0) {
@@ -242,7 +243,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 		new Callable<Object>() {
 			@Override
 			public Object call() throws LocationException {
-				listener.onLocationCreated(readAll());
+				listener.onLocationCreated(readAllNonCurrent());
 				return null;
 			}
 		}.call();

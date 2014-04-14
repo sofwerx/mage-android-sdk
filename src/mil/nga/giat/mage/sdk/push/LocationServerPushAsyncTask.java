@@ -36,7 +36,7 @@ private static final String LOG_NAME = LocationServerPushAsyncTask.class.getName
 			if (isConnected) {
 				pushFrequency = getLocationPushFrequency();
 				LocationHelper locationHelper = LocationHelper.getInstance(mContext);
-				List<Location> locations = locationHelper.getDirty(10L);
+				List<Location> locations = locationHelper.getCurrentUserLocations(10L);
 				for (Location location : locations) {
 					
 					// TODO : Is this the right thing to do?

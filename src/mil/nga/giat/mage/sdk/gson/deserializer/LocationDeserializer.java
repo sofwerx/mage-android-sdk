@@ -49,7 +49,7 @@ public class LocationDeserializer implements JsonDeserializer<Location> {
 		Location location = new Location();
 		
 		location.setRemoteId(feature.get("_id").getAsString());
-		location.setDirty(Boolean.FALSE);
+		location.setIsCurrentUser(Boolean.FALSE);
 		location.setType("Feature");
 				
 		// deserialize geometry
