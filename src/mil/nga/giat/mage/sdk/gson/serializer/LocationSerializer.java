@@ -1,10 +1,16 @@
 package mil.nga.giat.mage.sdk.gson.serializer;
 
 import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
+import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.location.Location;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
+import mil.nga.giat.mage.sdk.utils.DateUtility;
 import android.content.Context;
 
 import com.google.gson.Gson;
@@ -24,19 +30,22 @@ import com.google.gson.JsonSerializer;
  */
 public class LocationSerializer implements JsonSerializer<Location>{
 
+	private Set<String> doubleProperties = new HashSet<String>();
 		
+	public LocationSerializer(Context context) {
+		super();
+		String[] doubleFields = context.getResources().getStringArray(R.array.double_fields_array);
+		if(doubleFields != null && doubleFields.length > 0) {
+			doubleProperties = new HashSet<String>(Arrays.asList(doubleFields));
+		}	
+	}
+
 	@Override
 	public JsonElement serialize(Location location, Type locationType,
 			JsonSerializationContext context) {
 
 		//this is what we're returning
-		JsonObject user = new JsonObject();
-		
-		//set user id
-		String userId = location.getUser().getRemoteId();		
-		if(userId != null) {
-			user.add("user",new JsonPrimitive(userId));
-		}
+		JsonObject returnLocation = new JsonObject();
 		
 		//create required components
 		JsonArray jsonLocations = new JsonArray();
@@ -46,21 +55,34 @@ public class LocationSerializer implements JsonSerializer<Location>{
 		//set json location values...
 		conditionalAdd("type", location.getType(), jsonLocation);
 		conditionalAdd("_id", location.getRemoteId(), jsonLocation);
+				
 		jsonLocation.add("geometry", new JsonParser().parse(GeometrySerializer.getGsonBuilder().toJson(location.getLocationGeometry().getGeometry())));
 		jsonLocation.add("properties", jsonProperties);
 		
+		//for now, we need to put the timestamp at the root level...
+		Date timestamp = new Date(location.getLastModified());		
+		returnLocation.add("timestamp", new JsonPrimitive(DateUtility.getISO8601().format(timestamp)));
+		
 		//...including json properties
 		for(LocationProperty property : location.getProperties()) {
-			//TODO: are there explicit properties that are NOT strings?  If so,
-			//      treat them as such.
-			conditionalAdd(property.getKey(), property.getValue(), jsonProperties);
+			String key = property.getKey();
+			String value = property.getValue();
+
+			if (doubleProperties.contains(key)) {
+				// TODO: This will eventually be changed to a Date...
+				// TODO: Perhaps we should wrap in an Exception?
+				Double convertedValue = Double.valueOf(value);
+				jsonProperties.add(key, new JsonPrimitive(convertedValue));
+			} else {
+				conditionalAdd(key, value, jsonProperties);
+			}
 		}
 		
 		//assemble final user object
 		jsonLocations.add(jsonLocation);
-		user.add("locations", jsonLocations);		
+		returnLocation.add("location", jsonLocation);		
 		
-		return user;
+		return returnLocation;
 	}
 
 	/**
@@ -72,7 +94,7 @@ public class LocationSerializer implements JsonSerializer<Location>{
 	 */
 	public static Gson getGsonBuilder(Context context) {
 		GsonBuilder gsonBuilder = new GsonBuilder();
-		gsonBuilder.registerTypeAdapter(Location.class, new LocationSerializer());
+		gsonBuilder.registerTypeAdapter(Location.class, new LocationSerializer(context));
 		return gsonBuilder.create();
 	}
 	

@@ -1,0 +1,8 @@
+<resources>
+    <string-array name="double_fields_array">
+        <item>accuracy</item>
+        <item>bearing</item>
+        <item>speed</item>
+        <item>altitude</item>
+    </string-array>
+</resources>

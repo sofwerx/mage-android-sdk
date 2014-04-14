@@ -8,7 +8,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
-import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.ILocationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
@@ -117,7 +116,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "There was a problem creating the location: " + pLocation + ".", sqle);
-			throw new LocationException("There was a problem creating the observation: " + pLocation + ".", sqle);
+			throw new LocationException("There was a problem creating the location: " + pLocation + ".", sqle);
 		}
 
 		return createdLocation;
@@ -144,17 +143,25 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	 * synced with the server).
 	 * @return
 	 */
-	public List<Location> getDirty() {
+	public List<Location> getDirty(Long maxReturn) {
+		
 		QueryBuilder<Location, Long> queryBuilder = locationDao.queryBuilder();
 		List<Location> locations = new ArrayList<Location>();
 
 		try {
 			queryBuilder.where().eq("dirty", true);
+		
+			//this is used for psudo-batching...optional.
+			if(maxReturn > 0) {
+				queryBuilder.limit(maxReturn);
+				queryBuilder.orderBy("lastModified", Boolean.FALSE);
+			}
+			
 			locations = locationDao.query(queryBuilder.prepare());
 		} 
 		catch (SQLException e) {
 			// TODO Auto-generated catch block
-			Log.e(LOG_NAME, "Could not get dirty Observations.");
+			Log.e(LOG_NAME, "Could not get dirty Locations.");
 		}		
 		return locations;
 	}
@@ -177,6 +184,9 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 			db.where().eq("user_id", userLocalId).and().isNotNull("remote_id");
 			numberLocationsDeleted = locationDao.delete(db.prepare());
 
+			//TODO: MAKE SURE WE DELETE FROM THE LOCATIONPROPERTIES table!!!!!!
+			//TODO: MAKE SURE WE DELETE FROM THE LOCATIONGEOMETRIES table!!!!!!
+			
 			for (ILocationEventListener listener : listeners) {
 				listener.onLocationDeleted(userLocalId);
 			}
@@ -189,6 +199,42 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 		return numberLocationsDeleted;
 	}
 
+	/**
+	 * Deletes a Location. This will also delete a Location's child
+	 * Properties and Geometry data.
+	 * 
+	 * @param pPrimaryKey
+	 * @throws OrmException
+	 */
+	public void delete(Long pPrimaryKey) throws LocationException {
+		try {
+			// read the full Location in
+			Location location = locationDao.queryForId(pPrimaryKey);
+
+			// delete Location properties.
+			Collection<LocationProperty> properties = location.getProperties();
+			if (properties != null) {
+				for (LocationProperty property : properties) {
+					locationPropertyDao.deleteById(property.getPk_id());
+				}
+			}
+
+			// delete Geometry (but not corresponding GeometryType).
+			locationGeometryDao.deleteById(location.getLocationGeometry().getPk_id());
+
+			// finally, delete the Location.
+			locationDao.deleteById(pPrimaryKey);
+			
+			for (ILocationEventListener listener : listeners) {
+				listener.onLocationDeleted(location.getUser().getRemoteId());
+			}
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "Unable to delete Location: " + pPrimaryKey, sqle);
+			throw new LocationException("Unable to delete Location: " + pPrimaryKey, sqle);
+		}
+	}
+	
+	
 	@Override
 	public boolean addListener(final ILocationEventListener listener) throws LocationException {
 		boolean status = listeners.add(listener);

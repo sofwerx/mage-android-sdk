@@ -19,6 +19,7 @@ import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
+import mil.nga.giat.mage.sdk.utils.DateUtility;
 import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
@@ -402,14 +403,13 @@ public class LocationService extends Service implements LocationListener, OnShar
 				LocationHelper locationHelper = LocationHelper.getInstance(mContext);
 
 				// build properties
-				Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();
-				locationProperties.add(new LocationProperty("REPORTED_TIME", String.valueOf(System.currentTimeMillis())));
-				locationProperties.add(new LocationProperty("TIME", String.valueOf(location.getTime())));
-				locationProperties.add(new LocationProperty("ACCURACY", String.valueOf(location.getAccuracy())));
-				locationProperties.add(new LocationProperty("BEARING", String.valueOf(location.getBearing())));
-				locationProperties.add(new LocationProperty("SPEED", String.valueOf(location.getSpeed())));
-				locationProperties.add(new LocationProperty("PROVIDER", String.valueOf(location.getProvider())));
-				locationProperties.add(new LocationProperty("ALTITUDE", String.valueOf(location.getAltitude())));
+				Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();				
+				//locationProperties.add(new LocationProperty("timestamp", DateUtility.getISO8601().format(new Date(location.getTime()))));
+				locationProperties.add(new LocationProperty("accuracy", String.valueOf(location.getAccuracy())));
+				locationProperties.add(new LocationProperty("bearing", String.valueOf(location.getBearing())));
+				locationProperties.add(new LocationProperty("speed", String.valueOf(location.getSpeed())));
+				locationProperties.add(new LocationProperty("provider", String.valueOf(location.getProvider())));
+				locationProperties.add(new LocationProperty("altitude", String.valueOf(location.getAltitude())));
 
 				// build geometry
 				LocationGeometry locationGeometry = new LocationGeometry(geometryFactory.createPoint(new Coordinate(location.getLongitude(), location.getLatitude())));

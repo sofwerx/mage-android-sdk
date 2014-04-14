@@ -7,6 +7,7 @@ import java.net.URL;
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.DaoStore;
 import mil.nga.giat.mage.sdk.datastore.location.Location;
+import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
 import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
@@ -163,13 +164,13 @@ public class MageServerPostRequests {
 	        
 	        HttpResponse response = httpClient.execute(request);
 	        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-	        		        		
-				// TODO: Finish this. We need to update the location w/ a
-				// remote ID in the local datastore.
-	        	 
+	        	//we've sync'ed.  Don't need the location anymore.
+				LocationHelper.getInstance(context).delete(location.getId());	        	 
 	        }
 	        else {
+	        	String locationError = EntityUtils.toString(response.getEntity());
 	        	Log.e(LOG_NAME, "Bad request made to MAGE server.");
+	        	Log.e(LOG_NAME, locationError);
 	        }		        		        		        
 							
 		} 
