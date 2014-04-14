@@ -61,14 +61,14 @@ public class ObservationSerializer implements JsonSerializer<Observation> {
 			String key = property.getKey();
 			String value = property.getValue();
 
-			if (dateProperties.contains(key)) {
+			//if (dateProperties.contains(key)) {
 				// TODO: This will eventually be changed to a Date...
 				// TODO: Perhaps we should wrap in an Exception?
-				Long convertedValue = Long.valueOf(value);
-				properties.add(key, new JsonPrimitive(convertedValue));
-			} else {
+				//Long convertedValue = Long.valueOf(value);
+				//properties.add(key, new JsonPrimitive(convertedValue));
+			//} else {
 				conditionalAdd(key, value, properties);
-			}
+			//}
 
 		}
 		feature.add("properties", properties);
