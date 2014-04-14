@@ -108,12 +108,13 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 				}
 			}
 
+			//FIRE no event!  Only location services calls this method.
 			// fire the event
-			ConcurrentSkipListSet<Location> locations = new ConcurrentSkipListSet<Location>();
-			locations.add(createdLocation);
-			for (ILocationEventListener listener : listeners) {
-				listener.onLocationCreated(locations);
-			}
+			//ConcurrentSkipListSet<Location> locations = new ConcurrentSkipListSet<Location>();
+			//locations.add(createdLocation);
+			//for (ILocationEventListener listener : listeners) {
+			//	listener.onLocationCreated(locations);
+			//}
 
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "There was a problem creating the location: " + pLocation + ".", sqle);
