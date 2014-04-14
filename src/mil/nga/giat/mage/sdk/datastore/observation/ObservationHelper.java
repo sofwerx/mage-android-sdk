@@ -140,7 +140,7 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 		return observation;
 	}
 	
-	private void update(Observation pObservation) throws ObservationException {
+	public void update(Observation pObservation) throws ObservationException {
 		try {
 			observationGeometryDao.update(pObservation.getObservationGeometry());
 			observationDao.update(pObservation);
@@ -179,7 +179,7 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 	 * @param pOldObservation
 	 * @throws ObservationException
 	 */
-	public void update(Observation pNewObservation, Observation pOldObservation) throws ObservationException {
+	public Observation update(Observation pNewObservation, Observation pOldObservation) throws ObservationException {
 		pNewObservation.setId(pOldObservation.getId());
 
 		if (pNewObservation.getObservationGeometry() != null && pOldObservation.getObservationGeometry() != null) {
@@ -207,6 +207,7 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 		}
 
 		update(pNewObservation);
+		return pNewObservation;
 	}
 
 	/**
@@ -270,8 +271,9 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 	}
 
 	/**
-	 * Gets a List of Observations from the datastore that are dirty (i.e. should be
-	 * synced with the server).
+	 * Gets a List of Observations from the datastore that are dirty (i.e.
+	 * should be synced with the server).
+	 * 
 	 * @return
 	 */
 	public List<Observation> getDirty() {
@@ -281,12 +283,31 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 		try {
 			queryBuilder.where().eq("dirty", true);
 			observations = observationDao.query(queryBuilder.prepare());
-		} 
-		catch (SQLException e) {
+		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			Log.e(LOG_NAME, "Could not get dirty Observations.");
-		}		
+		}
 		return observations;
+	}
+	
+	/**
+	 * A List of {@link Attachment} from the datastore that are dirty (i.e.
+	 * should be synced with the server).
+	 * 
+	 * @return
+	 */
+	public List<Attachment> getDirtyAttachments() {
+		QueryBuilder<Attachment, Long> queryBuilder = attachmentDao.queryBuilder();
+		List<Attachment> attachments = new ArrayList<Attachment>();
+
+		try {
+			queryBuilder.where().eq("dirty", true);
+			attachments = attachmentDao.query(queryBuilder.prepare());
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			Log.e(LOG_NAME, "Could not get dirty Observations.");
+		}
+		return attachments;
 	}
 	
 	/**

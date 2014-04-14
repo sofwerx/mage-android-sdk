@@ -1,5 +1,7 @@
 package mil.nga.giat.mage.sdk.datastore.observation;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -61,7 +63,7 @@ public class ObservationProperty {
 
 	@Override
 	public String toString() {
-		return "ObservationProperty [pk_id=" + pk_id + ", key=" + key + ", value=" + value + ", observation=" + observation.getId() + "]";
+		return ToStringBuilder.reflectionToString(this);
 	}
 
 }

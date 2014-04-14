@@ -43,6 +43,14 @@ public class MediaUtility {
 	    return type;
 	}
 	
+	public static Boolean isImage(String filePath) {
+		String mime = getMimeType(filePath);
+		if(mime == null) {
+			return false;
+		}
+		return mime.toLowerCase().matches("image/.*");
+	}
+	
 	public static void addImageToGallery(Context c, File imageFile) {
 	    Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
 	    Uri contentUri = Uri.fromFile(imageFile);

@@ -59,9 +59,11 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 		observation.setRemoteId(feature.get("id").getAsString());
 
 		//if the remote id is defined, then assume not dirty for now.
-		if(observation.getRemoteId() != null && !"".equals(observation.getRemoteId())) {
+		if(observation.getRemoteId() == null || observation.getRemoteId().trim().isEmpty()) {
+			observation.setDirty(Boolean.TRUE);
+		} else {
 			observation.setDirty(Boolean.FALSE);
-		}		
+		}
 		
 		try {
 			Date d = DateUtility.getISO8601().parse(feature.get("lastModified").getAsString());
@@ -121,6 +123,7 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 					attachment.setName(jsonAttachment.get("name").getAsString());
 					attachment.setSize(jsonAttachment.get("size").getAsLong());
 					attachment.setRemoteId(jsonAttachment.get("id").getAsString());
+					attachment.setDirty(false);
 					if (jsonAttachment.has("url")) {
 						attachment.setUrl(jsonAttachment.get("url").getAsString());
 					}
@@ -130,7 +133,6 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 				observation.setAttachments(attachments);
 			}
 		}
-
 		return observation;
 	}
 }

@@ -1,5 +1,7 @@
 package mil.nga.giat.mage.sdk.datastore.observation;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -32,8 +34,11 @@ public class Attachment implements Parcelable {
 	
 	@DatabaseField(columnName="url")
 	private String url;
+	
+	@DatabaseField(canBeNull = false)
+	private boolean dirty = Boolean.TRUE;
 
-	@DatabaseField(foreign = true)
+	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
 	private Observation observation;
 
 	public Attachment() {
@@ -46,6 +51,7 @@ public class Attachment implements Parcelable {
 		this.name = name;
 		this.localPath = localPath;
 		this.remotePath = remotePath;
+		this.setDirty(true);
 	}
 
 	public Long getId() {
@@ -107,9 +113,17 @@ public class Attachment implements Parcelable {
 	public String getUrl() {
 		return url;
 	}
-	
+
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	public boolean isDirty() {
+		return dirty;
+	}
+
+	public void setDirty(boolean dirty) {
+		this.dirty = dirty;
 	}
 
 	public Observation getObservation() {
@@ -122,7 +136,7 @@ public class Attachment implements Parcelable {
 
 	@Override
 	public String toString() {
-		return "Attachment [pk_id=" + id + ", content_type=" + contentType + ", size=" + size + ", name=" + name + ", local_path=" + localPath + ", remote_path=" + remotePath + ", remote_id=" + remoteId + ", url=" + url + ", observation=" + observation.getId() + "]";
+		return ToStringBuilder.reflectionToString(this);
 	}
 	
 	// Parcelable stuff

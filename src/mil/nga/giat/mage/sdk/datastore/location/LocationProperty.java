@@ -1,5 +1,7 @@
 package mil.nga.giat.mage.sdk.datastore.location;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -61,7 +63,7 @@ public class LocationProperty {
 
 	@Override
 	public String toString() {
-		return "LocationProperty [pk_id=" + pk_id + ", key=" + key + ", value=" + value + ", location=" + location.getId() + "]";
+		return ToStringBuilder.reflectionToString(this);
 	}
 
 }

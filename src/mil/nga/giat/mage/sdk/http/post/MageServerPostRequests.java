@@ -18,6 +18,7 @@ import mil.nga.giat.mage.sdk.gson.serializer.ObservationSerializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
+import mil.nga.giat.mage.sdk.utils.DateUtility;
 import mil.nga.giat.mage.sdk.utils.MediaUtility;
 
 import org.apache.http.HttpEntity;
@@ -32,83 +33,85 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 
 import com.google.gson.Gson;
 
 /**
  * A class that contains common POST requests to the MAGE server.
+ * 
  * @author travis
- *
+ * 
  */
 public class MageServerPostRequests {
-	
+
 	private static final String LOG_NAME = MageServerPostRequests.class.getName();
-	
+
 	/**
-	 * POST an Observation to the server.
-	 * @param observation The Observation to post.
+	 * POST an {@link Observation} to the server.
+	 * 
+	 * @param observation
+	 *            The Observation to post.
 	 * @param context
 	 */
 	public static Observation postObservation(Observation observation, Context context) {
-		
-		ObservationHelper observationHelper = ObservationHelper.getInstance(context);		
-		Observation savedObservation = observation;
-		
+
+		ObservationHelper observationHelper = ObservationHelper.getInstance(context);
+		Observation savedObservation = null;
+
+		HttpEntity entity = null;
 		try {
 			String fieldObservationLayerId = MageServerGetRequests.getFieldObservationLayerId(context);
-			
-			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
-			URI endpointUri = new URL(serverURL +  "/FeatureServer/" + fieldObservationLayerId + "/features").toURI();
-			
 			DefaultHttpClient httpClient = HttpClientManager.getInstance(context).getHttpClient();
+
+			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
+			URI endpointUri = new URL(serverURL + "/FeatureServer/" + fieldObservationLayerId + "/features").toURI();
+
 			HttpPost request = new HttpPost(endpointUri);
-			
-			Gson gson = ObservationSerializer.getGsonBuilder(context);
-			String json = gson.toJson(observation);
-			StringEntity payload = new StringEntity(json);
-	        
 			request.addHeader("Content-Type", "application/json; charset=utf-8");
-	        request.setEntity(payload);
-	        
-	        HttpResponse response = httpClient.execute(request);
-	        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-	        	
-	        	String savedObservationJson = EntityUtils.toString(response.getEntity());
-				savedObservation = ObservationDeserializer.getGsonBuilder().fromJson(savedObservationJson, Observation.class);
-				savedObservation.setId(observation.getId());
-				savedObservation.setAttachments(observation.getAttachments());
-				savedObservation.setDirty(Boolean.FALSE);
-	        	
-	        	//TODO: clean this up.  Need an update in the Helper?
-	        	observationHelper.delete(observation.getId());
-	        	observation.setDirty(Boolean.FALSE);
-	        	observationHelper.create(savedObservation);	        	
-	        	
-	        }
-	        else {
-	        	Log.e(LOG_NAME, "Bad request made to MAGE server.");
-	        }		        		        		        
-							
-		} 
-		catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
-		return savedObservation;		
-	}	
-	
+			Gson gson = ObservationSerializer.getGsonBuilder(context);
+			request.setEntity(new StringEntity(gson.toJson(observation)));
+
+			HttpResponse response = httpClient.execute(request);
+			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+				entity = response.getEntity();
+				Observation returnedObservation = ObservationDeserializer.getGsonBuilder().fromJson(EntityUtils.toString(entity), Observation.class);
+				// not sure if this should be added back.
+				//returnedObservation.setAttachments(observation.getAttachments());
+				returnedObservation.setDirty(Boolean.FALSE);
+				savedObservation = observationHelper.update(returnedObservation, observation);
+			} else {
+				Log.e(LOG_NAME, "Bad request made to MAGE server.");
+			}
+
+		} catch (Exception e) {
+			Log.e(LOG_NAME, "Failure pushing observation.", e);
+		} finally {
+			try {
+				if (entity != null) {
+					entity.consumeContent();
+				}
+			} catch (Exception e) {
+			}
+		}
+		return savedObservation;
+	}
+
 	/**
-	 * POST an attachment to the server.
-	 * @param attachment The attachment to post.
+	 * POST an {@link Attachment} to the server.
+	 * 
+	 * @param attachment
+	 *            The attachment to post.
 	 * @param context
 	 */
-	public static void postAttachment(Attachment attachment, Context context) {
-		Observation o = attachment.getObservation();
-		DefaultHttpClient httpClient = HttpClientManager.getInstance(context).getHttpClient();	
-		try {
-			URI endpointUri = new URL(o.getUrl() + "/attachments").toURI();	
-			HttpPost request = new HttpPost(endpointUri);
+	public static Attachment postAttachment(Attachment attachment, Context context) {
+		DefaultHttpClient httpClient = HttpClientManager.getInstance(context).getHttpClient();
+		HttpEntity entity = null;
+		try {	
+			URL endpoint = new URL(attachment.getObservation().getUrl() + "/attachments");
+			
+			HttpPost request = new HttpPost(endpoint.toURI());
 			String mimeType = MediaUtility.getMimeType(attachment.getLocalPath());
 
 			FileBody fileBody = new FileBody(new File(attachment.getLocalPath()));
@@ -121,64 +124,61 @@ public class MageServerPostRequests {
 			request.setEntity(reqEntity);
 
 			HttpResponse response = httpClient.execute(request);
-
-			HttpEntity resEntity = response.getEntity();
-
-			if (resEntity != null) {
-				String json = EntityUtils.toString(resEntity);
-				Attachment a = AttachmentDeserializer.getGsonBuilder().fromJson(json, Attachment.class);
+			entity = response.getEntity();
+			if (entity != null) {
+				Attachment a = AttachmentDeserializer.getGsonBuilder().fromJson(EntityUtils.toString(entity), Attachment.class);
 				attachment.setContentType(a.getContentType());
 				attachment.setName(a.getName());
 				attachment.setRemoteId(a.getRemoteId());
 				attachment.setRemotePath(a.getRemotePath());
 				attachment.setSize(a.getSize());
 				attachment.setUrl(a.getUrl());
-				
+				attachment.setDirty(false);
+
 				// TODO go save this attachment again
 				DaoStore.getInstance(context).getAttachmentDao().update(attachment);
 			}
 
-		} 
-		catch (Exception e) {
-			Log.e("Attachment", "Error posting attachment " + attachment.getLocalPath(), e);
+		} catch (Exception e) {
+			Log.e(LOG_NAME, "Failure pushing attachment: " + attachment.getLocalPath(), e);
+		} finally {
+			try {
+				if (entity != null) {
+					entity.consumeContent();
+				}
+			} catch (Exception e) {
+			}
 		}
+		return attachment;
 	}
-	
+
 	public static Location postLocation(Location location, Context context) {
-		
+
 		Location savedLocation = location;
-		
-		try {			
+		try {
 			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
 			URI endpointUri = new URL(serverURL + "/api/locations").toURI();
-			
+
 			DefaultHttpClient httpClient = HttpClientManager.getInstance(context).getHttpClient();
 			HttpPost request = new HttpPost(endpointUri);
-			
-			Gson gson = LocationSerializer.getGsonBuilder(context);
-			String json = gson.toJson(location);
-			StringEntity payload = new StringEntity(json);
-	        
 			request.addHeader("Content-Type", "application/json; charset=utf-8");
-	        request.setEntity(payload);
-	        
-	        HttpResponse response = httpClient.execute(request);
-	        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-	        	//we've sync'ed.  Don't need the location anymore.
-				LocationHelper.getInstance(context).delete(location.getId());	        	 
-	        }
-	        else {
-	        	String locationError = EntityUtils.toString(response.getEntity());
-	        	Log.e(LOG_NAME, "Bad request made to MAGE server.");
-	        	Log.e(LOG_NAME, locationError);
-	        }		        		        		        
-							
-		} 
-		catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Gson gson = LocationSerializer.getGsonBuilder(context);
+			request.setEntity(new StringEntity(gson.toJson(location)));
+
+			HttpResponse response = httpClient.execute(request);
+			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+				// we've sync'ed. Don't need the location anymore.
+				LocationHelper.getInstance(context).delete(location.getId());
+			} else {
+				String locationError = EntityUtils.toString(response.getEntity());
+				Log.e(LOG_NAME, "Bad request made to MAGE server.");
+				Log.e(LOG_NAME, locationError);
+			}
+
+		} catch (Exception e) {
+			Log.e(LOG_NAME, "Failure posting location.", e);
 		}
 		return savedLocation;
 	}
-	
+
 }
