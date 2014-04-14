@@ -59,9 +59,8 @@ public class LocationSerializer implements JsonSerializer<Location>{
 		jsonLocation.add("geometry", new JsonParser().parse(GeometrySerializer.getGsonBuilder().toJson(location.getLocationGeometry().getGeometry())));
 		jsonLocation.add("properties", jsonProperties);
 		
-		//for now, we need to put the timestamp at the root level...
-		Date timestamp = new Date(location.getLastModified());		
-		returnLocation.add("timestamp", new JsonPrimitive(DateUtility.getISO8601().format(timestamp)));
+		//for now, we need to put the timestamp at the root level...	
+		returnLocation.add("timestamp", new JsonPrimitive(DateUtility.getISO8601().format(location.getLastModified())));
 		
 		//...including json properties
 		for(LocationProperty property : location.getProperties()) {

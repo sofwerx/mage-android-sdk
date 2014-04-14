@@ -2,6 +2,7 @@ package mil.nga.giat.mage.sdk.datastore.location;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -28,8 +30,8 @@ public class Location implements Comparable<Location> {
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
 	private User user;
 
-	@DatabaseField(canBeNull = false, version = true)
-	private long lastModified;
+	@DatabaseField(canBeNull = false, version = true, dataType = DataType.DATE_LONG)
+    private Date lastModified = new Date(0);
 
 	@DatabaseField(canBeNull = false, columnName = "current_user")
 	private boolean currentUser;
@@ -48,11 +50,11 @@ public class Location implements Comparable<Location> {
 	}
 
 	public Location(String type, User user, Collection<LocationProperty> properties, LocationGeometry locationGeometry) {
-		this(null, user, System.currentTimeMillis(), type, properties, locationGeometry);
+		this(null, user, new Date(System.currentTimeMillis()), type, properties, locationGeometry);
 		this.setIsCurrentUser(true);
 	}
 
-	public Location(String remoteId, User user, long lastModified, String type, Collection<LocationProperty> properties, LocationGeometry locationGeometry) {
+	public Location(String remoteId, User user, Date lastModified, String type, Collection<LocationProperty> properties, LocationGeometry locationGeometry) {
 		super();
 		this.remoteId = remoteId;
 		this.user = user;
@@ -95,11 +97,11 @@ public class Location implements Comparable<Location> {
 		this.type = type;
 	}
 
-	public void setLastModified(long lastModified) {
+	public void setLastModified(Date lastModified) {
 		this.lastModified = lastModified;
 	}
 
-	public long getLastModified() {
+	public Date getLastModified() {
 		return lastModified;
 	}
 

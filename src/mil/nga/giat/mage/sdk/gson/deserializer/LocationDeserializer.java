@@ -86,7 +86,7 @@ public class LocationDeserializer implements JsonDeserializer<Location> {
 		if(locationProperties.containsKey("timestamp")) {						
 			try{
 				Date d = DateUtility.getISO8601().parse(locationProperties.get("timestamp"));
-				location.setLastModified(d.getTime());
+				location.setLastModified(d);
 			}
 			catch(ParseException pe) {
 				Log.w("Unable to parse date: "
