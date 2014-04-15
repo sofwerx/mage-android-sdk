@@ -199,7 +199,7 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 		// FIXME : make this run faster?
 		for (Attachment a : pNewObservation.getAttachments()) {
 			for (Attachment oa : pOldObservation.getAttachments()) {
-				if (a.getRemoteId().equalsIgnoreCase(oa.getRemoteId())) {
+				if (a.getRemoteId() != null && a.getRemoteId().equalsIgnoreCase(oa.getRemoteId())) {
 					a.setId(oa.getId());
 					break;
 				}

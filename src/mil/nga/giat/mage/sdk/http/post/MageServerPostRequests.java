@@ -24,7 +24,9 @@ import mil.nga.giat.mage.sdk.utils.MediaUtility;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.FormBodyPart;
 import org.apache.http.entity.mime.MultipartEntity;
@@ -61,14 +63,21 @@ public class MageServerPostRequests {
 		Observation savedObservation = null;
 
 		HttpEntity entity = null;
+		HttpEntityEnclosingRequestBase request = null;
 		try {
 			String fieldObservationLayerId = MageServerGetRequests.getFieldObservationLayerId(context);
 			DefaultHttpClient httpClient = HttpClientManager.getInstance(context).getHttpClient();
 
 			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
-			URI endpointUri = new URL(serverURL + "/FeatureServer/" + fieldObservationLayerId + "/features").toURI();
+			URI endpointUri = null;
 
-			HttpPost request = new HttpPost(endpointUri);
+			if (observation.getRemoteId() == null || observation.getRemoteId().trim().isEmpty()) {
+				endpointUri = new URL(serverURL + "/FeatureServer/" + fieldObservationLayerId + "/features").toURI();
+				request = new HttpPost(endpointUri);
+			} else {
+				endpointUri = new URL(serverURL + "/FeatureServer/" + fieldObservationLayerId + "/features/" + observation.getRemoteId()).toURI();
+				request = new HttpPut(endpointUri);
+			}
 			request.addHeader("Content-Type", "application/json; charset=utf-8");
 			Gson gson = ObservationSerializer.getGsonBuilder(context);
 			request.setEntity(new StringEntity(gson.toJson(observation)));

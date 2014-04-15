@@ -160,8 +160,8 @@ public class MageServerGetRequests {
 	 * @param context
 	 * @return
 	 */
-	public static Collection<Observation> getObservations(Context context) {
-		Collection<Observation> observations = new ArrayList<Observation>();
+	public static List<Observation> getObservations(Context context) {
+		List<Observation> observations = new ArrayList<Observation>();
 		String fieldObservationLayerId = MageServerGetRequests.getFieldObservationLayerId(context);
 		HttpEntity entity = null;
 		try {

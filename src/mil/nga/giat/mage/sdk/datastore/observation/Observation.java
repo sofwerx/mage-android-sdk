@@ -130,6 +130,20 @@ public class Observation implements Comparable<Observation> {
 	public void setProperties(Collection<ObservationProperty> properties) {
 		this.properties = properties;
 	}
+	
+	public void addProperties(Collection<ObservationProperty> properties) {
+
+		Map<String, ObservationProperty> newPropertiesMap = new HashMap<String, ObservationProperty>();
+		for (ObservationProperty property : properties) {
+			property.setObservation(this);
+			newPropertiesMap.put(property.getKey(), property);
+		}
+		
+		Map<String, ObservationProperty> oldPropertiesMap = getPropertiesMap();
+		
+		oldPropertiesMap.putAll(newPropertiesMap);
+		this.properties = oldPropertiesMap.values();
+	}
 
 	public Collection<Attachment> getAttachments() {
 		return attachments;
@@ -145,36 +159,13 @@ public class Observation implements Comparable<Observation> {
 	 * 
 	 * @return
 	 */
-	public Map<String, String> getPropertiesMap() {
-
-		Map<String, String> propertiesMap = new HashMap<String, String>();
-
-		if (properties != null) {
-			for (ObservationProperty property : properties) {
-				propertiesMap.put(property.getKey(), property.getValue());
-			}
+	public final Map<String, ObservationProperty> getPropertiesMap() {
+		Map<String, ObservationProperty> propertiesMap = new HashMap<String, ObservationProperty>();
+		for (ObservationProperty property : properties) {
+			propertiesMap.put(property.getKey(), property);
 		}
 
 		return propertiesMap;
-	}
-
-	/**
-	 * A convenience method used for setting an Observation's properties with a
-	 * Map (instead of a Collection).
-	 * 
-	 * @param propertiesMap
-	 *            A Map of ALL the properties to be set.
-	 */
-	public void setPropertiesMap(Map<String, String> propertiesMap) {
-		Collection<ObservationProperty> properties = new ArrayList<ObservationProperty>();
-
-		if (propertiesMap != null) {
-			for (String key : propertiesMap.keySet()) {
-				properties.add(new ObservationProperty(key, propertiesMap.get(key)));
-			}
-		}
-
-		setProperties(properties);
 	}
 
 	@Override
