@@ -6,9 +6,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.location.LocationGeometry;
 import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
@@ -19,7 +16,6 @@ import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
-import mil.nga.giat.mage.sdk.utils.DateUtility;
 import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
@@ -38,6 +34,9 @@ import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Log;
+
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
 
 /**
  * Query the device for the device's location. If userReportingFrequency is set
@@ -216,9 +215,11 @@ public class LocationService extends Service implements LocationListener, OnShar
 				new saveLocation().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new Object[]{location, "ACTIVE"});
 			}
 		}
-		
-		long duration = new Date().getTime() - getLastLocationPullTime();
-		if (location.getProvider().equals(LocationManager.GPS_PROVIDER) || duration > getUserReportingFrequency()) {
+		 
+		long lastLocationTime = getLastLocationPullTime();
+		if (location.getProvider().equals(LocationManager.GPS_PROVIDER) || 
+		        lastLocationTime == 0 || 
+		        new Date().getTime() - lastLocationTime > getUserReportingFrequency()) {
 		    for (LocationListener listener : locationListeners) {
 		        listener.onLocationChanged(location);
 		    }		    
