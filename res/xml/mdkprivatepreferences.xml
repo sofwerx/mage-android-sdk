@@ -21,4 +21,9 @@
         android:defaultValue="@string/observationPushFrequencyDefaultValue"
         android:key="@string/observationPushFrequencyKey" />
 
+    <!-- Used for static layers? -->
+    <EditTextPreference
+        android:defaultValue="@string/haveLayersBeenFetchedOnceDefaultValue"
+        android:key="@string/haveLayersBeenFetchedOnceKey" />
+    
 </PreferenceScreen>

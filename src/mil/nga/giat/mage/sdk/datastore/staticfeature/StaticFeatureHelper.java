@@ -7,11 +7,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
 import mil.nga.giat.mage.sdk.datastore.layer.Layer;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.IStaticFeatureEventListener;
 import mil.nga.giat.mage.sdk.exceptions.StaticFeatureException;
+import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import android.content.Context;
 import android.util.Log;
 
@@ -110,6 +112,10 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEv
 		}
 
 		return layers;
+	}
+
+	public Boolean haveLayersBeenFetchedOnce(final Context context) {
+		return PreferenceHelper.getInstance(context).getValue(R.string.haveLayersBeenFetchedOnceKey, Boolean.class, R.string.haveLayersBeenFetchedOnceDefaultValue);
 	}
 
 	@Override
