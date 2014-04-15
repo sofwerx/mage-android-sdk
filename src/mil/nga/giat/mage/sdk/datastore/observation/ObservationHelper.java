@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
@@ -35,7 +36,7 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 	private final Dao<ObservationProperty, Long> observationPropertyDao;
 	private final Dao<Attachment, Long> attachmentDao;
 
-	private Collection<IObservationEventListener> listeners = new ArrayList<IObservationEventListener>();
+	private Collection<IObservationEventListener> listeners = new CopyOnWriteArrayList<IObservationEventListener>();
 	
 	/**
 	 * Singleton.

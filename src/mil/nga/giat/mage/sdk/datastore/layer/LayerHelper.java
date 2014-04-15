@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
@@ -28,7 +29,7 @@ public class LayerHelper extends DaoHelper<Layer> implements IEventDispatcher<IL
 
 	private final Dao<Layer, Long> layerDao;
 
-	private Collection<ILayerEventListener> listeners = new ArrayList<ILayerEventListener>();
+	private Collection<ILayerEventListener> listeners = new CopyOnWriteArrayList<ILayerEventListener>();
 
 	/**
 	 * Singleton.

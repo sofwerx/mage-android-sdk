@@ -1,7 +1,7 @@
 package mil.nga.giat.mage.sdk.connectivity;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -41,7 +41,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver implements IEventDi
 	
 	private static final String LOG_NAME = NetworkChangeReceiver.class.getName();
 
-	private static Collection<IConnectivityEventListener> listeners = new ArrayList<IConnectivityEventListener>();
+	private static Collection<IConnectivityEventListener> listeners = new CopyOnWriteArrayList<IConnectivityEventListener>();
 
 	private static ScheduledExecutorService connectionFutureWorker = Executors.newSingleThreadScheduledExecutor();
 	private static ScheduledFuture<?> connectionDataFuture = null;

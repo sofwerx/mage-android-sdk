@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -19,7 +20,6 @@ import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
-import mil.nga.giat.mage.sdk.utils.DateUtility;
 import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
@@ -63,7 +63,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 	
 	protected boolean pollingRunning = false;
 	
-	protected Collection<LocationListener> locationListeners = new ArrayList<LocationListener>();
+	protected Collection<LocationListener> locationListeners = new CopyOnWriteArrayList<LocationListener>();
 	
 	protected synchronized boolean isPolling() {
 		return pollingRunning;

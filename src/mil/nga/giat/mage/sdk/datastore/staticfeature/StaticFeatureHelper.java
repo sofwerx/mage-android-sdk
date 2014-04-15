@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
@@ -26,7 +27,7 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEv
 	private final Dao<StaticFeature, Long> staticFeatureDao;
 	private final Dao<StaticFeatureGeometry, Long> staticFeatureGeometryDao;
 
-	private Collection<IStaticFeatureEventListener> listeners = new ArrayList<IStaticFeatureEventListener>();
+	private Collection<IStaticFeatureEventListener> listeners = new CopyOnWriteArrayList<IStaticFeatureEventListener>();
 
 	/**
 	 * Singleton.
