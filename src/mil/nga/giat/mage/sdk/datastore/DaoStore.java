@@ -12,6 +12,7 @@ import mil.nga.giat.mage.sdk.datastore.observation.ObservationGeometry;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationProperty;
 import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeature;
 import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeatureGeometry;
+import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeatureProperty;
 import mil.nga.giat.mage.sdk.datastore.user.Role;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import android.content.Context;
@@ -56,7 +57,8 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 	private Dao<Layer, Long> layerDao;
 	private Dao<StaticFeature, Long> staticFeatureDao;
 	private Dao<StaticFeatureGeometry, Long> staticFeatureGeometryDao;
-
+	private Dao<StaticFeatureProperty, Long> staticFeaturePropertyDao;
+	
 	/**
 	 * Singleton implementation.
 	 * 
@@ -94,6 +96,7 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 			getLayerDao();
 			getStaticFeatureDao();
 			getStaticFeatureGeometryDao();
+			getStaticFeaturePropertyDao();
 		} catch (SQLException sqle) {
 			// TODO: handle this...
 			sqle.printStackTrace();
@@ -116,6 +119,7 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 			countOfAllRecords += getLayerDao().countOf();
 			countOfAllRecords += getStaticFeatureDao().countOf();
 			countOfAllRecords += getStaticFeatureGeometryDao().countOf();
+			countOfAllRecords += getStaticFeaturePropertyDao().countOf();
 		} catch (SQLException sqle) {
 			sqle.printStackTrace();
 			return false;
@@ -138,6 +142,7 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 		TableUtils.createTable(connectionSource, Layer.class);
 		TableUtils.createTable(connectionSource, StaticFeature.class);
 		TableUtils.createTable(connectionSource, StaticFeatureGeometry.class);
+		TableUtils.createTable(connectionSource, StaticFeatureProperty.class);
 	}
 
 	@Override
@@ -165,6 +170,7 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 		TableUtils.dropTable(connectionSource, Layer.class, Boolean.TRUE);
 		TableUtils.dropTable(connectionSource, StaticFeature.class, Boolean.TRUE);
 		TableUtils.dropTable(connectionSource, StaticFeatureGeometry.class, Boolean.TRUE);
+		TableUtils.dropTable(connectionSource, StaticFeatureProperty.class, Boolean.TRUE);
 	}
 
 	@Override
@@ -350,5 +356,18 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 			staticFeatureGeometryDao = getDao(StaticFeatureGeometry.class);
 		}
 		return staticFeatureGeometryDao;
+	}
+	
+	/**
+	 * Getter for the StaticFeaturePropertyDao
+	 * 
+	 * @return This instance's StaticFeaturePropertyDao
+	 * @throws SQLException
+	 */
+	public Dao<StaticFeatureProperty, Long> getStaticFeaturePropertyDao() throws SQLException {
+		if (staticFeaturePropertyDao == null) {
+			staticFeaturePropertyDao = getDao(StaticFeatureProperty.class);
+		}
+		return staticFeaturePropertyDao;
 	}
 }

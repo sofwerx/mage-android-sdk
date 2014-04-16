@@ -1,9 +1,13 @@
 package mil.nga.giat.mage.sdk.gson.deserializer;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
 
 import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeature;
 import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeatureGeometry;
+import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeatureProperty;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -50,6 +54,19 @@ public class StaticFeatureDeserializer implements JsonDeserializer<StaticFeature
 		if (geometryFeature != null) {
 			staticFeature.setStaticFeatureGeometry(new StaticFeatureGeometry(GeometryDeserializer.getGsonBuilder().fromJson(geometryFeature, Geometry.class)));
 		}
+
+		// deserialize properties
+		Collection<StaticFeatureProperty> properties = new ArrayList<StaticFeatureProperty>();
+		JsonObject propertiesFeature = feature.get("properties").getAsJsonObject();
+		for (Map.Entry<String, JsonElement> propertyFeature : propertiesFeature.entrySet()) {
+			String key = propertyFeature.getKey();
+			JsonElement valueElement = propertyFeature.getValue();
+			if (valueElement.isJsonObject()) {
+				JsonObject value = valueElement.getAsJsonObject();
+				properties.add(new StaticFeatureProperty(key, value));
+			}
+		}
+		staticFeature.setProperties(properties);
 
 		return staticFeature;
 	}

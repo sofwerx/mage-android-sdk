@@ -26,6 +26,7 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEv
 
 	private final Dao<StaticFeature, Long> staticFeatureDao;
 	private final Dao<StaticFeatureGeometry, Long> staticFeatureGeometryDao;
+	private final Dao<StaticFeatureProperty, Long> staticFeaturePropertyDao;
 
 	private Collection<IStaticFeatureEventListener> listeners = new CopyOnWriteArrayList<IStaticFeatureEventListener>();
 
@@ -60,6 +61,8 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEv
 			// Set up DAOs
 			staticFeatureDao = daoStore.getStaticFeatureDao();
 			staticFeatureGeometryDao = daoStore.getStaticFeatureGeometryDao();
+			staticFeaturePropertyDao = daoStore.getStaticFeaturePropertyDao();
+
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to communicate with StaticFeature database.", sqle);
 
@@ -74,7 +77,14 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEv
 		try {
 			staticFeatureGeometryDao.create(pStaticFeature.getStaticFeatureGeometry());
 			createdStaticFeature = staticFeatureDao.createIfNotExists(pStaticFeature);
-
+			// create Static Feature properties.
+			Collection<StaticFeatureProperty> properties = pStaticFeature.getProperties();
+			if (properties != null) {
+				for (StaticFeatureProperty property : properties) {
+					property.setStaticFeature(createdStaticFeature);
+					staticFeaturePropertyDao.create(property);
+				}
+			}
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "There was a problem creating the static feature: " + pStaticFeature + ".", sqle);
 			throw new StaticFeatureException("There was a problem creating the static feature: " + pStaticFeature + ".", sqle);
@@ -96,8 +106,18 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEv
 			try {
 				if (read(staticFeature.getRemoteId()) == null) {
 					staticFeatureGeometryDao.create(staticFeature.getStaticFeatureGeometry());
+					Collection<StaticFeatureProperty> properties = staticFeature.getProperties();
 					staticFeature = staticFeatureDao.createIfNotExists(staticFeature);
-					//Log.d(LOG_NAME, "created static feature: " + staticFeature);
+
+					// create Static Feature properties.
+					if (properties != null) {
+						for (StaticFeatureProperty property : properties) {
+							property.setStaticFeature(staticFeature);
+							staticFeaturePropertyDao.create(property);
+						}
+					}
+					// Log.d(LOG_NAME, "created static feature: " +
+					// staticFeature);
 				}
 				layers.add(staticFeature.getLayer());
 			} catch (SQLException sqle) {
