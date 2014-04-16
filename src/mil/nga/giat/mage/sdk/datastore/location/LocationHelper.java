@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
@@ -34,7 +35,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	private final Dao<LocationGeometry, Long> locationGeometryDao;
 	private final Dao<LocationProperty, Long> locationPropertyDao;
 
-	private Collection<ILocationEventListener> listeners = new ArrayList<ILocationEventListener>();
+	private Collection<ILocationEventListener> listeners = new CopyOnWriteArrayList<ILocationEventListener>();
 
 	/**
 	 * Singleton.

@@ -1,8 +1,8 @@
 package mil.nga.giat.mage.sdk.http.client;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
@@ -40,7 +40,7 @@ public class HttpClientManager implements IEventDispatcher<IUserEventListener> {
 
 	private static final String LOG_NAME = HttpClientManager.class.getName();
 
-	private static Collection<IUserEventListener> listeners = new ArrayList<IUserEventListener>();
+	private static Collection<IUserEventListener> listeners = new CopyOnWriteArrayList<IUserEventListener>();
 
 	private HttpClientManager() {
 	}

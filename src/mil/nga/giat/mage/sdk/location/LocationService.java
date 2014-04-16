@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import mil.nga.giat.mage.sdk.R;
@@ -62,7 +63,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 	
 	protected boolean pollingRunning = false;
 	
-	protected Collection<LocationListener> locationListeners = new ArrayList<LocationListener>();
+	protected Collection<LocationListener> locationListeners = new CopyOnWriteArrayList<LocationListener>();
 	
 	protected synchronized boolean isPolling() {
 		return pollingRunning;

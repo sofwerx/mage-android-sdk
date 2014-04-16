@@ -18,7 +18,6 @@ import mil.nga.giat.mage.sdk.gson.serializer.ObservationSerializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
-import mil.nga.giat.mage.sdk.utils.DateUtility;
 import mil.nga.giat.mage.sdk.utils.MediaUtility;
 
 import org.apache.http.HttpEntity;
@@ -35,7 +34,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import android.content.Context;
-import android.net.Uri;
 import android.util.Log;
 
 import com.google.gson.Gson;
