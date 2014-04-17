@@ -60,14 +60,9 @@ public class MageServerGetRequests {
 		DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
 		HttpEntity entity = null;
 		try {
-		    Uri uri = Uri.parse(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey))
-		        .buildUpon()
-		        .appendPath("api")
-		        .appendPath("layers")
-		        .appendQueryParameter("type", "External")
-		        .build();
-		    
-			HttpGet get = new HttpGet(new URI(uri.toString()));
+	        URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
+
+            HttpGet get = new HttpGet(new URL(serverURL, "api/layers").toURI());
 			HttpResponse response = httpclient.execute(get);
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				entity = response.getEntity();
@@ -105,7 +100,7 @@ public class MageServerGetRequests {
 		String fieldObservationLayerId = null;
 		List<Layer> layers = MageServerGetRequests.getLayers(context);
 		for (Layer layer : layers) {
-			if (layer.getName().equals("Field Observations")) {
+			if (layer.getType().equals("Feature")) {
 				fieldObservationLayerId = layer.getRemoteId();
 			}
 		}

@@ -47,20 +47,21 @@ public class StaticFeatureServerFetch extends AbstractServerFetch {
 				if (isCanceled) {
 					break;
 				}
-				
-				try {
-                    Log.i("static features", "Start loading static features for layer " + layer.getName());
-					staticFeatureHelper.createAll(MageServerGetRequests.getStaticFeatures(mContext, layer));
-					Log.i("static features", "DONE loading static features for layer " + layer.getName());
-					layer.setLoaded(true);
-                    DaoStore.getInstance(mContext).getLayerDao().update(layer);
-				} catch (StaticFeatureException e) {
-					Log.e(LOG_NAME, "Problem creating static features.", e);
-					continue;
-				} catch (SQLException e) {
-                    Log.e(LOG_NAME, "Problem creating static features.", e);
-                    continue;
-                }
+				if (layer.getType().equalsIgnoreCase("external")) {
+				    try {
+				        Log.i("static features", "Start loading static features for layer " + layer.getName());
+				        staticFeatureHelper.createAll(MageServerGetRequests.getStaticFeatures(mContext, layer));
+				        Log.i("static features", "DONE loading static features for layer " + layer.getName());
+				        layer.setLoaded(true);
+				        DaoStore.getInstance(mContext).getLayerDao().update(layer);
+				    } catch (StaticFeatureException e) {
+				        Log.e(LOG_NAME, "Problem creating static features.", e);
+				        continue;
+				    } catch (SQLException e) {
+				        Log.e(LOG_NAME, "Problem creating static features.", e);
+				        continue;
+				    }
+				}
 			}
 		} catch (LayerException e) {
 			Log.e(LOG_NAME, "Problem creating layers.", e);
