@@ -31,6 +31,7 @@ public class StaticFeatureServerFetch extends AbstractServerFetch {
 		StaticFeatureHelper staticFeatureHelper = StaticFeatureHelper.getInstance(mContext);
 		LayerHelper layerHelper = LayerHelper.getInstance(mContext);
 
+		Log.d(LOG_NAME, "Pulling static layers.");
 		Collection<Layer> layers = MageServerGetRequests.getLayers(mContext);
 		try {
 			layerHelper.createAll(layers);

@@ -1,5 +1,8 @@
 package mil.nga.giat.mage.sdk.datastore.staticfeature;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import mil.nga.giat.mage.sdk.datastore.layer.Layer;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
@@ -7,6 +10,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "staticfeatures")
@@ -24,6 +28,9 @@ public class StaticFeature implements Comparable<StaticFeature> {
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
 	private StaticFeatureGeometry staticFeatureGeometry;
 
+	@ForeignCollectionField(eager = true)
+	private Collection<StaticFeatureProperty> properties = new ArrayList<StaticFeatureProperty>();
+	
 	public StaticFeature() {
 		// ORMLite needs a no-arg constructor
 	}
@@ -65,6 +72,14 @@ public class StaticFeature implements Comparable<StaticFeature> {
 
 	public void setStaticFeatureGeometry(StaticFeatureGeometry staticFeatureGeometry) {
 		this.staticFeatureGeometry = staticFeatureGeometry;
+	}
+
+	public Collection<StaticFeatureProperty> getProperties() {
+		return properties;
+	}
+
+	public void setProperties(Collection<StaticFeatureProperty> properties) {
+		this.properties = properties;
 	}
 
 	@Override

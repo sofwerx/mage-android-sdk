@@ -55,11 +55,11 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 		ObservationHelper observationHelper = ObservationHelper.getInstance(mContext);
 		UserHelper userHelper = UserHelper.getInstance(mContext);
 
-		while (Status.RUNNING.equals(getStatus()) && !isCancelled()) {
-
-			if (isConnected) {
-
-				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch...");
+		while (Status.RUNNING.equals(getStatus()) && !isCancelled()) {			
+			
+			Boolean isDataFetchEnabled = sharedPreferences.getBoolean("dataFetchEnabled", Boolean.TRUE);						
+			if (isConnected && isDataFetchEnabled) {
+				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch Observations...");
 				try {
 					List<Observation> observations = MageServerGetRequests.getObservations(mContext);
 					Collections.reverse(observations);

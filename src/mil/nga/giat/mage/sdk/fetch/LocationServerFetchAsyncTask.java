@@ -43,7 +43,9 @@ public class LocationServerFetchAsyncTask extends ServerFetchAsyncTask {
 
 		while (Status.RUNNING.equals(getStatus()) && !isCancelled()) {
 		
-			if (isConnected) {
+			Boolean isDataFetchEnabled = sharedPreferences.getBoolean("dataFetchEnabled", Boolean.TRUE);						
+			if (isConnected && isDataFetchEnabled) {
+				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch Locations...");
 				try {
 					Collection<Location> locations = MageServerGetRequests
 							.getLocations(mContext);

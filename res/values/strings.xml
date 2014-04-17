@@ -12,6 +12,7 @@
     <string name="deviceRegisteredKey">deviceRegistered</string>
     <!-- mdkpublicpreferences.xml -->
     <string name="locationServiceEnabledKey">locationServiceEnabled</string>
+    <string name="dataFetchEnabledKey">dataFetchEnabled</string>
     <string name="gpsSensitivityKey">gpsSensitivity</string>
     <string name="gpsSensitivityDefaultValue">10</string>
     <string name="reportLocationKey">reportLocation</string>

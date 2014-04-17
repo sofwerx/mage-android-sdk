@@ -73,7 +73,7 @@ public class PreferenceHelper {
 	public synchronized void initialize(int... xmlFiles) {
 		if (!initialized) {
 			// load preferences from mdk xml files first
-			initializeLocal(new int[] { R.xml.mdkprivatepreferences, R.xml.mdkpublicpreferences, R.xml.locationpreferences });
+			initializeLocal(new int[] { R.xml.mdkprivatepreferences, R.xml.mdkpublicpreferences, R.xml.locationpreferences, R.xml.fetchpreferences });
 
 			// add programmatic preferences
 			SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
