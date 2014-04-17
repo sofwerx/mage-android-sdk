@@ -16,96 +16,107 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable(tableName = "layers")
 public class Layer implements Comparable<Layer> {
 
-	@DatabaseField(generatedId = true)
-	private Long id;
+    @DatabaseField(generatedId = true)
+    private Long id;
 
-	@DatabaseField(unique = true, columnName = "remote_id")
-	private String remoteId;
+    @DatabaseField(unique = true, columnName = "remote_id")
+    private String remoteId;
 
-	@DatabaseField
-	private String type;
+    @DatabaseField
+    private String type;
 
-	@DatabaseField
-	private String name;
-	
-	/**
-	 * Do NOT eager load the features!
-	 * 
-	 */
-	@ForeignCollectionField(eager = false)
-	private Collection<StaticFeature> staticFeatures = new ArrayList<StaticFeature>();
+    @DatabaseField
+    private String name;
 
-	public Layer() {
-		// ORMLite needs a no-arg constructor
-	}
+    @DatabaseField
+    private boolean loaded = false;
 
-	public Layer(String remoteId, String type, String name) {
-		super();
-		this.remoteId = remoteId;
-		this.type = type;
-		this.name = name;
-	}
+    /**
+     * Do NOT eager load the features!
+     * 
+     */
+    @ForeignCollectionField(eager = false)
+    private Collection<StaticFeature> staticFeatures = new ArrayList<StaticFeature>();
 
-	public Long getId() {
-		return id;
-	}
+    public Layer() {
+        // ORMLite needs a no-arg constructor
+    }
 
-	public String getRemoteId() {
-		return remoteId;
-	}
+    public Layer(String remoteId, String type, String name) {
+        super();
+        this.remoteId = remoteId;
+        this.type = type;
+        this.name = name;
+    }
 
-	public void setRemoteId(String remoteId) {
-		this.remoteId = remoteId;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public String getType() {
-		return type;
-	}
+    public String getRemoteId() {
+        return remoteId;
+    }
 
-	public void setType(String type) {
-		this.type = type;
-	}
+    public void setRemoteId(String remoteId) {
+        this.remoteId = remoteId;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setType(String type) {
+        this.type = type;
+    }
 
-	public Collection<StaticFeature> getStaticFeatures() {
-		return staticFeatures;
-	}
+    public String getName() {
+        return name;
+    }
 
-	@Override
-	public String toString() {
-		return ToStringBuilder.reflectionToString(this);
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    public boolean isLoaded() {
+        return loaded;
+    }
+    
+    public void setLoaded(boolean loaded) {
+        this.loaded = loaded;
+    }
 
-	@Override
-	public int compareTo(Layer another) {
-		return new CompareToBuilder().append(this.id, another.id).append(this.remoteId, another.remoteId).toComparison();
-	}
+    public Collection<StaticFeature> getStaticFeatures() {
+        return staticFeatures;
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((remoteId == null) ? 0 : remoteId.hashCode());
-		return result;
-	}
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Layer other = (Layer) obj;
-		return new EqualsBuilder().appendSuper(super.equals(obj)).append(id, other.id).append(remoteId, other.remoteId).isEquals();
-	}
+    @Override
+    public int compareTo(Layer another) {
+        return new CompareToBuilder().append(this.id, another.id).append(this.remoteId, another.remoteId).toComparison();
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((remoteId == null) ? 0 : remoteId.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Layer other = (Layer) obj;
+        return new EqualsBuilder().appendSuper(super.equals(obj)).append(id, other.id).append(remoteId, other.remoteId).isEquals();
+    }
 }

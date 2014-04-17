@@ -23,6 +23,8 @@ import com.j256.ormlite.dao.Dao;
 public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEventDispatcher<IStaticFeatureEventListener> {
 
 	private static final String LOG_NAME = StaticFeatureHelper.class.getName();
+	
+	private Context context;
 
 	private final Dao<StaticFeature, Long> staticFeatureDao;
 	private final Dao<StaticFeatureGeometry, Long> staticFeatureGeometryDao;
@@ -54,8 +56,10 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEv
 	 * 
 	 * @param pContext
 	 */
-	private StaticFeatureHelper(Context pContext) {
-		super(pContext);
+	private StaticFeatureHelper(Context context) {
+		super(context);
+		this.context = context;
+		
 		try {
 			// Set up DAOs
 			staticFeatureDao = daoStore.getStaticFeatureDao();
@@ -115,7 +119,7 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEv
 		return layers;
 	}
 
-	public Boolean haveLayersBeenFetchedOnce(final Context context) {
+	public Boolean haveLayersBeenFetchedOnce() {
 		return PreferenceHelper.getInstance(context).getValue(R.string.haveLayersBeenFetchedOnceKey, Boolean.class, R.string.haveLayersBeenFetchedOnceDefaultValue);
 	}
 

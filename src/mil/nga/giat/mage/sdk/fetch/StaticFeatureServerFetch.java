@@ -1,8 +1,10 @@
 package mil.nga.giat.mage.sdk.fetch;
 
-import java.util.List;
+import java.sql.SQLException;
+import java.util.Collection;
 
 import mil.nga.giat.mage.sdk.R;
+import mil.nga.giat.mage.sdk.datastore.DaoStore;
 import mil.nga.giat.mage.sdk.datastore.layer.Layer;
 import mil.nga.giat.mage.sdk.datastore.layer.LayerHelper;
 import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeatureHelper;
@@ -29,7 +31,7 @@ public class StaticFeatureServerFetch extends AbstractServerFetch {
 		StaticFeatureHelper staticFeatureHelper = StaticFeatureHelper.getInstance(mContext);
 		LayerHelper layerHelper = LayerHelper.getInstance(mContext);
 
-		List<Layer> layers = MageServerGetRequests.getLayers(mContext);
+		Collection<Layer> layers = MageServerGetRequests.getLayers(mContext);
 		try {
 			layerHelper.createAll(layers);
 
@@ -44,14 +46,20 @@ public class StaticFeatureServerFetch extends AbstractServerFetch {
 				if (isCanceled) {
 					break;
 				}
-				if (layer.getType().equalsIgnoreCase("external")) {
-					try {
-						staticFeatureHelper.createAll(MageServerGetRequests.getStaticFeatures(mContext, layer));
-					} catch (StaticFeatureException e) {
-						Log.e(LOG_NAME, "Problem creating static features.", e);
-						continue;
-					}
-				}
+				
+				try {
+                    Log.i("static features", "Start loading static features for layer " + layer.getName());
+					staticFeatureHelper.createAll(MageServerGetRequests.getStaticFeatures(mContext, layer));
+					Log.i("static features", "DONE loading static features for layer " + layer.getName());
+					layer.setLoaded(true);
+                    DaoStore.getInstance(mContext).getLayerDao().update(layer);
+				} catch (StaticFeatureException e) {
+					Log.e(LOG_NAME, "Problem creating static features.", e);
+					continue;
+				} catch (SQLException e) {
+                    Log.e(LOG_NAME, "Problem creating static features.", e);
+                    continue;
+                }
 			}
 		} catch (LayerException e) {
 			Log.e(LOG_NAME, "Problem creating layers.", e);

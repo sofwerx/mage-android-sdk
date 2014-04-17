@@ -19,8 +19,6 @@ import com.google.gson.JsonParseException;
  * 
  */
 public class LayerDeserializer implements JsonDeserializer<Layer> {
-
-	private static final String LOG_NAME = LayerDeserializer.class.getName();
 	
 	/**
 	 * Convenience method for returning a Gson object with a registered GSon

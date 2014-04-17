@@ -69,7 +69,7 @@ public class LayerHelper extends DaoHelper<Layer> implements IEventDispatcher<IL
 
 	}
 
-	public List<Layer> readAll() throws LayerException {
+	public Collection<Layer> readAll() throws LayerException {
 		List<Layer> layers = new ArrayList<Layer>();
 		try {
 			layers = layerDao.queryForAll();
