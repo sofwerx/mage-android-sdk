@@ -3,17 +3,17 @@ package mil.nga.giat.mage.sdk.datastore.staticfeature;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
+import mil.nga.giat.mage.sdk.datastore.DaoStore;
 import mil.nga.giat.mage.sdk.datastore.layer.Layer;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.IStaticFeatureEventListener;
 import mil.nga.giat.mage.sdk.exceptions.StaticFeatureException;
+import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import android.content.Context;
 import android.util.Log;
@@ -104,9 +104,8 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEv
 	 * @return
 	 * @throws StaticFeatureException
 	 */
-	public Collection<Layer> createAll(Collection<StaticFeature> pStaticFeatures) throws StaticFeatureException {
-		Set<Layer> layers = new HashSet<Layer>();
-		for (StaticFeature staticFeature : pStaticFeatures) {
+	public void createAll(Layer layer) throws StaticFeatureException {
+		for (StaticFeature staticFeature : MageServerGetRequests.getStaticFeatures(context, layer)) {
 			try {
 				if (read(staticFeature.getRemoteId()) == null) {
 					staticFeatureGeometryDao.create(staticFeature.getStaticFeatureGeometry());
@@ -123,20 +122,24 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEv
 					// Log.d(LOG_NAME, "created static feature: " +
 					// staticFeature);
 				}
-				layers.add(staticFeature.getLayer());
 			} catch (SQLException sqle) {
 				Log.e(LOG_NAME, "There was a problem creating the static feature: " + staticFeature + ".", sqle);
 				continue;
 				// TODO Throw exception?
 			}
 		}
+		
+        layer.setLoaded(true);
+        try {
+            DaoStore.getInstance(context).getLayerDao().update(layer);
+        } catch (SQLException e) {
+            throw new StaticFeatureException("Unable to update the layer to loaded: " + layer.getName());
+        }
 
 		// fire the event
 		for (IStaticFeatureEventListener listener : listeners) {
-			listener.onStaticFeaturesCreated(layers);
+			listener.onStaticFeaturesCreated(layer);
 		}
-
-		return layers;
 	}
 
 	public Boolean haveLayersBeenFetchedOnce() {

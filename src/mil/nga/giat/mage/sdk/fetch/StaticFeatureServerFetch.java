@@ -1,10 +1,8 @@
 package mil.nga.giat.mage.sdk.fetch;
 
-import java.sql.SQLException;
 import java.util.Collection;
 
 import mil.nga.giat.mage.sdk.R;
-import mil.nga.giat.mage.sdk.datastore.DaoStore;
 import mil.nga.giat.mage.sdk.datastore.layer.Layer;
 import mil.nga.giat.mage.sdk.datastore.layer.LayerHelper;
 import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeatureHelper;
@@ -27,17 +25,26 @@ public class StaticFeatureServerFetch extends AbstractServerFetch {
 	private Boolean isCanceled = Boolean.FALSE;
 
 	public void fetch() {
-
+	    fetch(false);
+	}
+	
+	public void fetch(boolean force) {
+        Editor sp = PreferenceManager.getDefaultSharedPreferences(mContext).edit();
+	    
 		StaticFeatureHelper staticFeatureHelper = StaticFeatureHelper.getInstance(mContext);
 		LayerHelper layerHelper = LayerHelper.getInstance(mContext);
 
+        sp.putString(mContext.getString(R.string.haveLayersBeenFetchedOnceKey), "false").commit();
 		Log.d(LOG_NAME, "Pulling static layers.");
-		Collection<Layer> layers = MageServerGetRequests.getLayers(mContext);
+		Collection<Layer> layers = MageServerGetRequests.getStaticLayers(mContext);
 		try {
+		    if (force) {
+		        layerHelper.deleteAllStaticLayers();
+		    }
+		    
 			layerHelper.createAll(layers);
 
 			// set this flag for the layer manager
-			Editor sp = PreferenceManager.getDefaultSharedPreferences(mContext).edit();
 			sp.putString(mContext.getString(R.string.haveLayersBeenFetchedOnceKey), "true").commit();
 
 			// get ALL the layers
@@ -47,17 +54,13 @@ public class StaticFeatureServerFetch extends AbstractServerFetch {
 				if (isCanceled) {
 					break;
 				}
-				if (layer.getType().equalsIgnoreCase("external")) {
+				if (layer.getType().equalsIgnoreCase("external") && (force || !layer.isLoaded())) {
 				    try {
 				        Log.i("static features", "Start loading static features for layer " + layer.getName());
-				        staticFeatureHelper.createAll(MageServerGetRequests.getStaticFeatures(mContext, layer));
+				        staticFeatureHelper.createAll(layer);
 				        Log.i("static features", "DONE loading static features for layer " + layer.getName());
-				        layer.setLoaded(true);
-				        DaoStore.getInstance(mContext).getLayerDao().update(layer);
+
 				    } catch (StaticFeatureException e) {
-				        Log.e(LOG_NAME, "Problem creating static features.", e);
-				        continue;
-				    } catch (SQLException e) {
 				        Log.e(LOG_NAME, "Problem creating static features.", e);
 				        continue;
 				    }

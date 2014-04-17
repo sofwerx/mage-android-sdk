@@ -44,219 +44,256 @@ import com.google.gson.Gson;
  */
 public class MageServerGetRequests {
 
-	private static final String LOG_NAME = MageServerGetRequests.class.getName();
+    private static final String LOG_NAME = MageServerGetRequests.class.getName();
 
-	/**
-	 * Gets layers from the server.
-	 * 
-	 * @param context
-	 * @param key
-	 * @param value
-	 * @return
-	 */
-	public static List<Layer> getLayers(Context context) {
-		final Gson layerDeserializer = LayerDeserializer.getGsonBuilder();
-		List<Layer> layers = new ArrayList<Layer>();
-		DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
-		HttpEntity entity = null;
-		try {
-	        URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
+    /**
+     * Gets layers from the server.
+     * 
+     * @param context
+     * @param key
+     * @param value
+     * @return
+     */
+    public static List<Layer> getFeatureLayers(Context context) {
+        final Gson layerDeserializer = LayerDeserializer.getGsonBuilder();
+        List<Layer> layers = new ArrayList<Layer>();
+        DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
+        HttpEntity entity = null;
+        try {
+            Uri uri = Uri.parse(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey)).buildUpon()
+                .appendPath("api")
+                .appendPath("layers")
+                .appendQueryParameter("type", "Feature")
+                .build();
 
-            HttpGet get = new HttpGet(new URL(serverURL, "api/layers").toURI());
-			HttpResponse response = httpclient.execute(get);
-			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				entity = response.getEntity();
-				JSONArray featureArray = new JSONArray(EntityUtils.toString(entity));
-				for (int i = 0; i < featureArray.length(); i++) {
-					JSONObject feature = featureArray.getJSONObject(i);
-					if (feature != null) {
-						layers.add(layerDeserializer.fromJson(feature.toString(), Layer.class));
-					}
-				}
-			}
-		} catch (Exception e) {
-			// this block should never flow exceptions up! Log for now.
-			Log.e(LOG_NAME, "Failure parsing layer information.", e);
-		} finally {
-			try {
-				if (entity != null) {
-					entity.consumeContent();
-				}
-			} catch (Exception e) {
-				Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
-			}
-		}
-		return layers;
-	}
+            HttpGet get = new HttpGet(uri.toString());
+            HttpResponse response = httpclient.execute(get);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                entity = response.getEntity();
+                JSONArray featureArray = new JSONArray(EntityUtils.toString(entity));
+                for (int i = 0; i < featureArray.length(); i++) {
+                    JSONObject feature = featureArray.getJSONObject(i);
+                    if (feature != null) {
+                        layers.add(layerDeserializer.fromJson(feature.toString(), Layer.class));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // this block should never flow exceptions up! Log for now.
+            Log.e(LOG_NAME, "Failure parsing layer information.", e);
+        } finally {
+            try {
+                if (entity != null) {
+                    entity.consumeContent();
+                }
+            } catch (Exception e) {
+                Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
+            }
+        }
+        return layers;
+    }
 
-	/**
-	 * Makes a GET request to the MAGE server for the Field Observation Layer
-	 * Id.
-	 * 
-	 * @param context
-	 * @return
-	 */
-	public static String getFieldObservationLayerId(Context context) {
-		String fieldObservationLayerId = null;
-		List<Layer> layers = MageServerGetRequests.getLayers(context);
-		for (Layer layer : layers) {
-			if (layer.getType().equals("Feature")) {
-				fieldObservationLayerId = layer.getRemoteId();
-			}
-		}
-		return fieldObservationLayerId;
-	}
-	
-	public static Collection<StaticFeature> getStaticFeatures(Context context, Layer pLayer) {
-		Collection<StaticFeature> staticFeatures = new ArrayList<StaticFeature>();
-		HttpEntity entity = null;
-		try {
-			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
-			final Gson staticFeatureDeserializer = StaticFeatureDeserializer.getGsonBuilder();
+    public static List<Layer> getStaticLayers(Context context) {
+        final Gson layerDeserializer = LayerDeserializer.getGsonBuilder();
+        List<Layer> layers = new ArrayList<Layer>();
+        DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
+        HttpEntity entity = null;
+        try {
+            
+            Uri uri = Uri.parse(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey)).buildUpon()
+                .appendPath("api")
+                .appendPath("layers")
+                .appendQueryParameter("type", "External")
+                .build();
 
-			URL staticFeatureURL = new URL(serverURL, "/FeatureServer/" + pLayer.getRemoteId() + "/features");
-			DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
-			Log.d(LOG_NAME, staticFeatureURL.toString());
-			HttpGet get = new HttpGet(staticFeatureURL.toURI());
-			HttpResponse response = httpclient.execute(get);
+            HttpGet get = new HttpGet(uri.toString());
+            HttpResponse response = httpclient.execute(get);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                entity = response.getEntity();
+                JSONArray featureArray = new JSONArray(EntityUtils.toString(entity));
+                for (int i = 0; i < featureArray.length(); i++) {
+                    JSONObject feature = featureArray.getJSONObject(i);
+                    if (feature != null) {
+                        layers.add(layerDeserializer.fromJson(feature.toString(), Layer.class));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // this block should never flow exceptions up! Log for now.
+            Log.e(LOG_NAME, "Failure parsing layer information.", e);
+        } finally {
+            try {
+                if (entity != null) {
+                    entity.consumeContent();
+                }
+            } catch (Exception e) {
+                Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
+            }
+        }
+        return layers;
+    }
 
-			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				entity = response.getEntity();
-				JSONObject json = new JSONObject(EntityUtils.toString(entity));
+    /**
+     * Makes a GET request to the MAGE server for the Field Observation Layer
+     * Id.
+     * 
+     * @param context
+     * @return
+     */
+    public static String getFieldObservationLayerId(Context context) {
+        String fieldObservationLayerId = null;
+        List<Layer> layers = MageServerGetRequests.getFeatureLayers(context);
+        for (Layer layer : layers) {
+            fieldObservationLayerId = layer.getRemoteId();
+        }
+        
+        return fieldObservationLayerId;
+    }
 
-				if (json != null && json.has("features")) {
-					JSONArray features = json.getJSONArray("features");
-					for (int i = 0; i < features.length(); i++) {
-						JSONObject feature = (JSONObject) features.get(i);
-						if (feature != null) {
-							StaticFeature staticFeature = staticFeatureDeserializer.fromJson(feature.toString(), StaticFeature.class);
-							staticFeature.setLayer(pLayer);
-							staticFeatures.add(staticFeature);
-						}
-					}
-				}
-			} else {
-				Log.e(LOG_NAME, "Bad request.");
-			}
-		} catch (Exception e) {
-			// this block should never flow exceptions up! Log for now.
-			Log.e(LOG_NAME, "There was a failure while retriving static features.", e);
-		} finally {
-			try {
-				if (entity != null) {
-					entity.consumeContent();
-				}
-			} catch (Exception e) {
-				Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
-			}
-		}
-		return staticFeatures;
-	}
+    public static Collection<StaticFeature> getStaticFeatures(Context context, Layer pLayer) {
+        Collection<StaticFeature> staticFeatures = new ArrayList<StaticFeature>();
+        HttpEntity entity = null;
+        try {
+            URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
+            final Gson staticFeatureDeserializer = StaticFeatureDeserializer.getGsonBuilder();
 
-	/**
-	 * Returns the observations from the server. Uses a date as in filter in the
-	 * request.
-	 * 
-	 * @param context
-	 * @return
-	 */
-	public static List<Observation> getObservations(Context context) {
-		List<Observation> observations = new ArrayList<Observation>();
-		String fieldObservationLayerId = MageServerGetRequests.getFieldObservationLayerId(context);
-		HttpEntity entity = null;
-		try {
-			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
+            URL staticFeatureURL = new URL(serverURL, "/FeatureServer/" + pLayer.getRemoteId() + "/features");
+            DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
+            Log.d(LOG_NAME, staticFeatureURL.toString());
+            HttpGet get = new HttpGet(staticFeatureURL.toURI());
+            HttpResponse response = httpclient.execute(get);
 
-			ObservationHelper observationHelper = ObservationHelper.getInstance(context);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                entity = response.getEntity();
+                JSONObject json = new JSONObject(EntityUtils.toString(entity));
 
-			// TODO : should we add one millisecond to this?
-			Date lastModifiedDate = observationHelper.getLatestRemoteLastModified();
+                if (json != null && json.has("features")) {
+                    JSONArray features = json.getJSONArray("features");
+                    for (int i = 0; i < features.length(); i++) {
+                        JSONObject feature = (JSONObject) features.get(i);
+                        if (feature != null) {
+                            StaticFeature staticFeature = staticFeatureDeserializer.fromJson(feature.toString(), StaticFeature.class);
+                            staticFeature.setLayer(pLayer);
+                            staticFeatures.add(staticFeature);
+                        }
+                    }
+                }
+            } else {
+                Log.e(LOG_NAME, "Bad request.");
+            }
+        } catch (Exception e) {
+            // this block should never flow exceptions up! Log for now.
+            Log.e(LOG_NAME, "There was a failure while retriving static features.", e);
+        } finally {
+            try {
+                if (entity != null) {
+                    entity.consumeContent();
+                }
+            } catch (Exception e) {
+                Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
+            }
+        }
+        return staticFeatures;
+    }
 
-			final Gson observationDeserializer = ObservationDeserializer.getGsonBuilder();
+    /**
+     * Returns the observations from the server. Uses a date as in filter in the
+     * request.
+     * 
+     * @param context
+     * @return
+     */
+    public static List<Observation> getObservations(Context context) {
+        List<Observation> observations = new ArrayList<Observation>();
+        String fieldObservationLayerId = MageServerGetRequests.getFieldObservationLayerId(context);
+        HttpEntity entity = null;
+        try {
+            URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
 
-			URL observationURL = new URL(serverURL, "/FeatureServer/" + fieldObservationLayerId + "/features");
-			Uri.Builder uriBuilder = Uri.parse(observationURL.toURI().toString()).buildUpon();
-			uriBuilder.appendQueryParameter("startDate", DateUtility.getISO8601().format(lastModifiedDate));
+            ObservationHelper observationHelper = ObservationHelper.getInstance(context);
 
-			DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
-			Log.d(LOG_NAME, uriBuilder.build().toString());
-			HttpGet get = new HttpGet(new URI(uriBuilder.build().toString()));
-			HttpResponse response = httpclient.execute(get);
+            // TODO : should we add one millisecond to this?
+            Date lastModifiedDate = observationHelper.getLatestRemoteLastModified();
 
-			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				entity = response.getEntity();
-				JSONObject json = new JSONObject(EntityUtils.toString(entity));
+            final Gson observationDeserializer = ObservationDeserializer.getGsonBuilder();
 
-				if (json != null && json.has("features")) {
-					JSONArray features = json.getJSONArray("features");
-					for (int i = 0; i < features.length(); i++) {
-						JSONObject feature = (JSONObject) features.get(i);
-						if (feature != null) {
-							observations.add(observationDeserializer.fromJson(feature.toString(), Observation.class));
-						}
-					}
-				}
-			}
-		} catch (Exception e) {
-			// this block should never flow exceptions up! Log for now.
-			Log.e(LOG_NAME, "There was a failure while performing an Observation Fetch opperation.", e);
-		} finally {
-			try {
-				if (entity != null) {
-					entity.consumeContent();
-				}
-			} catch (Exception e) {
-				Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
-			}
-		}
-		return observations;
-	}
+            URL observationURL = new URL(serverURL, "/FeatureServer/" + fieldObservationLayerId + "/features");
+            Uri.Builder uriBuilder = Uri.parse(observationURL.toURI().toString()).buildUpon();
+            uriBuilder.appendQueryParameter("startDate", DateUtility.getISO8601().format(lastModifiedDate));
 
-	
-public static Collection<Location> getLocations(Context context) {
-		
-		Collection<Location> locations = new ArrayList<Location>();
-		final Gson locationDeserializer = LocationDeserializer.getGsonBuilder();
+            DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
+            Log.d(LOG_NAME, uriBuilder.build().toString());
+            HttpGet get = new HttpGet(new URI(uriBuilder.build().toString()));
+            HttpResponse response = httpclient.execute(get);
 
-		
-		HttpEntity entity = null;
-		
-		try {
-			URL serverURL = 
-					new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
-			URL locationURL = new URL(serverURL, "/api/locations");
-			
-			
-			DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
-			//Log.d(LOG_NAME, uriBuilder.build().toString());
-			HttpGet get = new HttpGet(locationURL.toURI());
-			HttpResponse response = httpclient.execute(get);
-			
-			if (HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
-				entity = response.getEntity();
-				
-				JSONArray jsonArray = new JSONArray(EntityUtils.toString(entity));						
-				for(int i = 0; i < jsonArray.length(); i++) {
-					JSONObject user = (JSONObject)jsonArray.get(i);
-					JSONArray jsonLocations = user.getJSONArray("locations");
-					//concerned w/ the first (most recent) location for now					
-					if(jsonLocations.length() > 0) {
-						JSONObject jsonLocation = (JSONObject)jsonLocations.get(0);					
-						Location location = locationDeserializer.fromJson(jsonLocation.toString(), Location.class);
-						locations.add(location);						
-					}
-				}
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                entity = response.getEntity();
+                JSONObject json = new JSONObject(EntityUtils.toString(entity));
 
-			}
-			
-		} 
-		catch (Exception e) {
-			Log.e(LOG_NAME,
-				  "There was a failure while performing an Location Fetch opperation.", e);
-		}
-				
-		return locations;
-		
-	}
-	
+                if (json != null && json.has("features")) {
+                    JSONArray features = json.getJSONArray("features");
+                    for (int i = 0; i < features.length(); i++) {
+                        JSONObject feature = (JSONObject) features.get(i);
+                        if (feature != null) {
+                            observations.add(observationDeserializer.fromJson(feature.toString(), Observation.class));
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // this block should never flow exceptions up! Log for now.
+            Log.e(LOG_NAME, "There was a failure while performing an Observation Fetch opperation.", e);
+        } finally {
+            try {
+                if (entity != null) {
+                    entity.consumeContent();
+                }
+            } catch (Exception e) {
+                Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
+            }
+        }
+        return observations;
+    }
+
+    public static Collection<Location> getLocations(Context context) {
+
+        Collection<Location> locations = new ArrayList<Location>();
+        final Gson locationDeserializer = LocationDeserializer.getGsonBuilder();
+
+        HttpEntity entity = null;
+
+        try {
+            URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
+            URL locationURL = new URL(serverURL, "/api/locations");
+
+            DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
+            // Log.d(LOG_NAME, uriBuilder.build().toString());
+            HttpGet get = new HttpGet(locationURL.toURI());
+            HttpResponse response = httpclient.execute(get);
+
+            if (HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
+                entity = response.getEntity();
+
+                JSONArray jsonArray = new JSONArray(EntityUtils.toString(entity));
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject user = (JSONObject) jsonArray.get(i);
+                    JSONArray jsonLocations = user.getJSONArray("locations");
+                    // concerned w/ the first (most recent) location for now
+                    if (jsonLocations.length() > 0) {
+                        JSONObject jsonLocation = (JSONObject) jsonLocations.get(0);
+                        Location location = locationDeserializer.fromJson(jsonLocation.toString(), Location.class);
+                        locations.add(location);
+                    }
+                }
+
+            }
+
+        } catch (Exception e) {
+            Log.e(LOG_NAME, "There was a failure while performing an Location Fetch opperation.", e);
+        }
+
+        return locations;
+
+    }
+
 }

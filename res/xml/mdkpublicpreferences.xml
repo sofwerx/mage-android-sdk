@@ -6,7 +6,7 @@
         android:title="Location Services"
         android:summary="GPS sensitivy and tracking options"
         android:key="@string/locationServiceEnabledKey" 
-        android:defaultValue="true">
+        android:defaultValue="false">
         <intent
             android:action="android.intent.action.VIEW"
             android:targetClass="mil.nga.giat.mage.preferences.LocationPreferencesActivity"
@@ -18,7 +18,7 @@
         android:title="Data Fetching"
         android:summary="User and Observation fetching"
         android:key="@string/dataFetchEnabledKey" 
-        android:defaultValue="true">
+        android:defaultValue="false">
         <intent
             android:action="android.intent.action.VIEW"
             android:targetClass="mil.nga.giat.mage.preferences.FetchPreferencesActivity"

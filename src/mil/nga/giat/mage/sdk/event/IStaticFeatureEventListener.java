@@ -1,7 +1,5 @@
 package mil.nga.giat.mage.sdk.event;
 
-import java.util.Collection;
-
 import mil.nga.giat.mage.sdk.datastore.layer.Layer;
 
 public interface IStaticFeatureEventListener extends IEventListener {
@@ -11,6 +9,6 @@ public interface IStaticFeatureEventListener extends IEventListener {
 	 * 
 	 * @param layers
 	 */
-	public void onStaticFeaturesCreated(final Collection<Layer> layers);
+	public void onStaticFeaturesCreated(final Layer layer);
 
 }

@@ -9,6 +9,8 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import android.util.Log;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -117,6 +119,23 @@ public class Layer implements Comparable<Layer> {
         if (getClass() != obj.getClass())
             return false;
         Layer other = (Layer) obj;
-        return new EqualsBuilder().appendSuper(super.equals(obj)).append(id, other.id).append(remoteId, other.remoteId).isEquals();
+        
+        Long otherId = other.id;
+        String otherRemote = other.remoteId;
+        
+        if (!super.equals(obj)) {
+            Log.i("layer", "super is not equal");
+        }
+        
+        if (!id.equals(otherId)) {
+            Log.i("layer", "ids are not equal");
+        }
+        
+        if (!remoteId.equals(otherRemote)) {
+            Log.i("layer", "ids are not equal");
+        }
+         
+        boolean eq = new EqualsBuilder().append(id, other.id).append(remoteId, other.remoteId).isEquals();
+        return eq;
     }
 }

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
+import mil.nga.giat.mage.sdk.datastore.DaoStore;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.ILayerEventListener;
 import mil.nga.giat.mage.sdk.exceptions.LayerException;
@@ -14,6 +15,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.DeleteBuilder;
 
 /**
  * A utility class for accessing {@link Layer} data from the physical data
@@ -30,6 +32,8 @@ public class LayerHelper extends DaoHelper<Layer> implements IEventDispatcher<IL
     private final Dao<Layer, Long> layerDao;
 
     private Collection<ILayerEventListener> listeners = new CopyOnWriteArrayList<ILayerEventListener>();
+    
+    private Context context;
 
     /**
      * Singleton.
@@ -58,6 +62,7 @@ public class LayerHelper extends DaoHelper<Layer> implements IEventDispatcher<IL
      */
     private LayerHelper(Context context) {
         super(context);
+        this.context = context;
 
         try {
             layerDao = daoStore.getLayerDao();
@@ -114,7 +119,7 @@ public class LayerHelper extends DaoHelper<Layer> implements IEventDispatcher<IL
      * @throws LayerException
      */
     public List<Layer> createAll(Collection<Layer> pLayers) throws LayerException {
-
+        
         List<Layer> createdLayers = new ArrayList<Layer>();
         for (Layer layer : pLayers) {
             try {
@@ -135,6 +140,20 @@ public class LayerHelper extends DaoHelper<Layer> implements IEventDispatcher<IL
         }
 
         return createdLayers;
+    }
+    
+    public int deleteAllStaticLayers() throws LayerException {
+        try {
+            DaoStore.getInstance(context).getStaticFeaturePropertyDao().deleteBuilder().delete();
+            DaoStore.getInstance(context).getStaticFeatureGeometryDao().deleteBuilder().delete();
+            DaoStore.getInstance(context).getStaticFeatureDao().deleteBuilder().delete();
+            
+            DeleteBuilder<Layer, Long> builder = layerDao.deleteBuilder();
+            builder.where().eq("type", "External");
+            return builder.delete();
+        } catch (SQLException e) {
+            throw new LayerException("Unable to delete all layers", e);
+        }
     }
 
     @Override
