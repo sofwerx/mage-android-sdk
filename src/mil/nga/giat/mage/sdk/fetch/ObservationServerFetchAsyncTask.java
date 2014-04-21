@@ -10,7 +10,6 @@ import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.datastore.common.State;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
-import mil.nga.giat.mage.sdk.datastore.observation.ObservationProperty;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
@@ -68,17 +67,15 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 						if(isCancelled()) {
 							break;
 						}
-						// TODO: the server is going to move the user id to
-						// a different section of the json
-						ObservationProperty userId = observation.getPropertiesMap().get("userId");
+
+						String userId = observation.getUserId();
 						if (userId != null) {
-							User user = userHelper.read(userId.getValue());
-							// TODO : test the timer to make sure users are
-							// updated as needed!
+							User user = userHelper.read(userId);
+							// TODO : test the timer to make sure users are updated as needed!
 							final long sixHoursInMillseconds = 6 * 60 * 60 * 1000;
 							if (user == null || (new Date()).after(new Date(user.getFetchedDate().getTime() + sixHoursInMillseconds))) {
 								// get any users that were not recognized or expired
-								new UserServerFetch(mContext).fetch(new String[] { userId.getValue() });
+								new UserServerFetch(mContext).fetch(new String[] { userId });
 							}
 						}
 

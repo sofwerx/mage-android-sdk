@@ -72,8 +72,6 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 			Log.e(LOG_NAME, "Problem paring date.");
 		}
 		
-		// TODO: deal with EVENTCLEAR!?!? will this become a state?
-
 		// deserialize state
 		JsonObject stateFeature = feature.getAsJsonObject("state");
 		if (stateFeature != null) {
@@ -85,6 +83,18 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 				iae.printStackTrace();
 			}
 		}
+		
+		// deserialize the user
+		JsonElement jsonUserId = feature.get("userId");
+		if (jsonUserId != null) {
+            observation.setUserId(jsonUserId.getAsString());
+        }
+		
+	    // deserialize the device
+		JsonElement jsonDeviceId = feature.get("deviceId");
+        if (jsonDeviceId != null) {
+            observation.setDeviceId(jsonDeviceId.getAsString());
+        }
 		
 		observation.setUrl(feature.get("url").getAsString());
 

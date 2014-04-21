@@ -2,7 +2,6 @@ package mil.nga.giat.mage.sdk.gson.serializer;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,26 +40,18 @@ public class LocationSerializer implements JsonSerializer<Location>{
 	}
 
 	@Override
-	public JsonElement serialize(Location location, Type locationType,
-			JsonSerializationContext context) {
-
-		//this is what we're returning
-		JsonObject returnLocation = new JsonObject();
-		
+	public JsonElement serialize(Location location, Type locationType, JsonSerializationContext context) {
 		//create required components
 		JsonArray jsonLocations = new JsonArray();
 		JsonObject jsonLocation = new JsonObject();
 		JsonObject jsonProperties = new JsonObject();
 				
-		//set json location values...
-		conditionalAdd("type", location.getType(), jsonLocation);
-		conditionalAdd("_id", location.getRemoteId(), jsonLocation);
-				
 		jsonLocation.add("geometry", new JsonParser().parse(GeometrySerializer.getGsonBuilder().toJson(location.getLocationGeometry().getGeometry())));
 		jsonLocation.add("properties", jsonProperties);
 		
-		//for now, we need to put the timestamp at the root level...	
-		returnLocation.add("timestamp", new JsonPrimitive(DateUtility.getISO8601().format(location.getLastModified())));
+		// timestamp is not a property in a Location object, not sure why.  Gotta submit that to the server
+		// lets go ahead and add it manually
+		jsonProperties.add("timestamp", new JsonPrimitive(DateUtility.getISO8601().format(location.getLastModified())));
 		
 		//...including json properties
 		for(LocationProperty property : location.getProperties()) {
@@ -77,11 +68,10 @@ public class LocationSerializer implements JsonSerializer<Location>{
 			}
 		}
 		
-		//assemble final user object
+		//assemble final location array
 		jsonLocations.add(jsonLocation);
-		returnLocation.add("location", jsonLocation);		
 		
-		return returnLocation;
+		return jsonLocations;
 	}
 
 	/**
