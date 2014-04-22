@@ -5,8 +5,8 @@ import java.net.URL;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
-
 import android.content.Context;
+import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -73,6 +73,7 @@ public class MageUrlLoader extends VolleyUrlLoader {
 		String s = url.toString();
 		String token = PreferenceHelper.getInstance(context).getValue(R.string.tokenKey);
 		s += "?access_token=" + token + "&size=" + (width < height ? height : width);
+		Log.d("MageUrlLoader", "Loading image: " + s);
 		try {
 			url = new URL(s);
 		} catch (MalformedURLException mue) {
