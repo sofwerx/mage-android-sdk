@@ -1,6 +1,13 @@
 package mil.nga.giat.mage.sdk.http.post;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 
@@ -89,7 +96,9 @@ public class MageServerPostRequests {
 				returnedObservation.setDirty(Boolean.FALSE);
 				savedObservation = observationHelper.update(returnedObservation, observation);
 			} else {
-				Log.e(LOG_NAME, "Bad request made to MAGE server.");
+				String error = EntityUtils.toString(response.getEntity());
+				Log.e(LOG_NAME, "Bad request.");
+				Log.e(LOG_NAME, error);
 			}
 
 		} catch (Exception e) {
@@ -112,28 +121,137 @@ public class MageServerPostRequests {
 	 *            The attachment to post.
 	 * @param context
 	 */
+	// The following code will sometimes fail to post attachments
+//	public static Attachment postAttachment2(Attachment attachment, Context context) {
+//		DefaultHttpClient httpClient = HttpClientManager.getInstance(context).getHttpClient();
+//		HttpEntity entity = null;
+//		try {
+//			Log.d(LOG_NAME, "Pushing attachment " + attachment.getId() + " to " + attachment.getObservation().getUrl() + "/attachments");
+//			URL endpoint = new URL(attachment.getObservation().getUrl() + "/attachments");
+//			
+//			HttpPost request = new HttpPost(endpoint.toURI());
+//			String mimeType = MediaUtility.getMimeType(attachment.getLocalPath());
+//			
+//			Log.d(LOG_NAME, "Mime type is: " + mimeType);
+//
+//			FileBody fileBody = new FileBody(new File(attachment.getLocalPath()));
+//			FormBodyPart fbp = new FormBodyPart("attachment", fileBody);
+//			fbp.addField("Content-Type", mimeType);
+//
+//			MultipartEntity reqEntity = new MultipartEntity();
+//			reqEntity.addPart(fbp);
+//
+//			request.setEntity(reqEntity);
+//			
+//			Log.d(LOG_NAME, "Sending request " + request);
+//			HttpResponse response = httpClient.execute(request);
+//			entity = response.getEntity();
+//			Log.d(LOG_NAME, "Got the entity back " + entity);
+//			if (entity != null) {
+//				Attachment a = AttachmentDeserializer.getGsonBuilder().fromJson(EntityUtils.toString(entity), Attachment.class);
+//				attachment.setContentType(a.getContentType());
+//				attachment.setName(a.getName());
+//				attachment.setRemoteId(a.getRemoteId());
+//				attachment.setRemotePath(a.getRemotePath());
+//				attachment.setSize(a.getSize());
+//				attachment.setUrl(a.getUrl());
+//				attachment.setDirty(false);
+//
+//				// TODO go save this attachment again
+//				DaoStore.getInstance(context).getAttachmentDao().update(attachment);
+//			}
+//
+//		} catch (Exception e) {
+//			Log.e(LOG_NAME, "Failure pushing attachment: " + attachment.getLocalPath(), e);
+//		} finally {
+//			try {
+//				if (entity != null) {
+//					entity.consumeContent();
+//				}
+//			} catch (Exception e) {
+//			}
+//		}
+//		return attachment;
+//	}
+	
 	public static Attachment postAttachment(Attachment attachment, Context context) {
-		DefaultHttpClient httpClient = HttpClientManager.getInstance(context).getHttpClient();
-		HttpEntity entity = null;
-		try {	
-			URL endpoint = new URL(attachment.getObservation().getUrl() + "/attachments");
-			
-			HttpPost request = new HttpPost(endpoint.toURI());
-			String mimeType = MediaUtility.getMimeType(attachment.getLocalPath());
-
-			FileBody fileBody = new FileBody(new File(attachment.getLocalPath()));
-			FormBodyPart fbp = new FormBodyPart("attachment", fileBody);
-			fbp.addField("Content-Type", mimeType);
-
-			MultipartEntity reqEntity = new MultipartEntity();
-			reqEntity.addPart(fbp);
-
-			request.setEntity(reqEntity);
-
-			HttpResponse response = httpClient.execute(request);
-			entity = response.getEntity();
-			if (entity != null) {
-				Attachment a = AttachmentDeserializer.getGsonBuilder().fromJson(EntityUtils.toString(entity), Attachment.class);
+		try { 
+			Log.d(LOG_NAME, "Pushing attachment " + attachment.getId() + " to " + attachment.getObservation().getUrl() + "/attachments");
+			URL url = new URL(attachment.getObservation().getUrl() + "/attachments");
+            // open a URL connection to the Servlet
+          FileInputStream fileInputStream = new FileInputStream(new File(attachment.getLocalPath()));
+          String fileName = new File(attachment.getLocalPath()).getName();
+          HttpURLConnection conn = null;
+          DataOutputStream dos = null;
+          int bytesRead, bytesAvailable, bufferSize;
+          byte[] buffer;
+          int maxBufferSize = 1 * 1024 * 1024; 
+          
+          String lineEnd = "\r\n";
+          String twoHyphens = "--";
+          String boundary = "*****";
+          
+          String mimeType = MediaUtility.getMimeType(attachment.getLocalPath());
+           
+          // Open a HTTP  connection to  the URL
+          conn = (HttpURLConnection) url.openConnection(); 
+          conn.setDoInput(true); // Allow Inputs
+          conn.setDoOutput(true); // Allow Outputs
+          conn.setUseCaches(false); // Don't use a Cached Copy
+          conn.setRequestMethod("POST");
+          conn.setRequestProperty("Connection", "Keep-Alive");
+          conn.setRequestProperty("ENCTYPE", "multipart/form-data");
+          conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+          conn.setRequestProperty("uploaded_file", fileName); 
+          String token = PreferenceHelper.getInstance(context).getValue(R.string.tokenKey);
+			if (token != null && !token.trim().isEmpty()) {
+				conn.setRequestProperty("Authorization", "Bearer " + token);
+			}
+           
+          dos = new DataOutputStream(conn.getOutputStream());
+ 
+          dos.writeBytes(twoHyphens + boundary + lineEnd); 
+          dos.writeBytes("Content-Disposition: form-data;name=\"attachment\";filename=\""
+                                    + fileName + "\"" + lineEnd + "Content-Type: "+mimeType+ lineEnd);
+           
+          dos.writeBytes(lineEnd);
+ 
+          // create a buffer of  maximum size
+          bytesAvailable = fileInputStream.available(); 
+ 
+          bufferSize = Math.min(bytesAvailable, maxBufferSize);
+          buffer = new byte[bufferSize];
+ 
+          // read file and write it into form...
+          bytesRead = fileInputStream.read(buffer, 0, bufferSize);  
+             
+          while (bytesRead > 0) {
+               
+            dos.write(buffer, 0, bufferSize);
+            bytesAvailable = fileInputStream.available();
+            bufferSize = Math.min(bytesAvailable, maxBufferSize);
+            bytesRead = fileInputStream.read(buffer, 0, bufferSize);   
+             
+           }
+ 
+          // send multipart form data necesssary after file data...
+          dos.writeBytes(lineEnd);
+          dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+ 
+          // Responses from the server (code and message)
+          int serverResponseCode = conn.getResponseCode();
+          String serverResponseMessage = conn.getResponseMessage();
+            
+          Log.i("uploadFile", "HTTP Response is : "
+                  + serverResponseMessage + ": " + serverResponseCode);
+           
+          if(serverResponseCode == 200){
+               
+              Log.d(LOG_NAME, "Uploaded correctly");
+              
+              BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));  
+              
+              Attachment a = AttachmentDeserializer.getGsonBuilder().fromJson(reader, Attachment.class);
 				attachment.setContentType(a.getContentType());
 				attachment.setName(a.getName());
 				attachment.setRemoteId(a.getRemoteId());
@@ -144,18 +262,23 @@ public class MageServerPostRequests {
 
 				// TODO go save this attachment again
 				DaoStore.getInstance(context).getAttachmentDao().update(attachment);
-			}
-
-		} catch (Exception e) {
-			Log.e(LOG_NAME, "Failure pushing attachment: " + attachment.getLocalPath(), e);
-		} finally {
-			try {
-				if (entity != null) {
-					entity.consumeContent();
-				}
-			} catch (Exception e) {
-			}
-		}
+          }    
+           
+          //close the streams //
+          fileInputStream.close();
+          dos.flush();
+          dos.close();
+            
+     } catch (MalformedURLException ex) {
+          
+          
+         Log.e("Upload file to server", "error: " + ex.getMessage(), ex);  
+     } catch (Exception e) {
+          
+       
+         Log.e("Upload file to server Exception", "Exception : "
+                                          + e.getMessage(), e);  
+     }
 		return attachment;
 	}
 
@@ -177,11 +300,10 @@ public class MageServerPostRequests {
 				// we've sync'ed. Don't need the location anymore.
 				LocationHelper.getInstance(context).delete(location.getId());
 			} else {
-				String locationError = EntityUtils.toString(response.getEntity());
-				Log.e(LOG_NAME, "Bad request made to MAGE server.");
-				Log.e(LOG_NAME, locationError);
+				String error = EntityUtils.toString(response.getEntity());
+				Log.e(LOG_NAME, "Bad request.");
+				Log.e(LOG_NAME, error);
 			}
-
 		} catch (Exception e) {
 			Log.e(LOG_NAME, "Failure posting location.", e);
 		}

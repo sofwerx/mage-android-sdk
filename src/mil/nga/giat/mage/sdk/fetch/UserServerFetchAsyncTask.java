@@ -25,7 +25,7 @@ public class UserServerFetchAsyncTask extends ServerFetchAsyncTask {
 		Boolean status = Boolean.TRUE;
 		if(params != null) {
 			try {
-				new UserServerFetch(mContext).fetch(Arrays.copyOf(params, params.length, String[].class));		
+				new UserServerFetch(context).fetch(Arrays.copyOf(params, params.length, String[].class));		
 			} catch (Exception e) {
 				Log.e(LOG_NAME, "There was a failure when fetching users.", e);
 				// TODO: should cancel the AsyncTask?

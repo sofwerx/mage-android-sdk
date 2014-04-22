@@ -42,13 +42,13 @@ public class RoleServerFetchAsyncTask extends ServerFetchAsyncTask {
 
 		Boolean status = Boolean.TRUE;
 
-		RoleHelper roleHelper = RoleHelper.getInstance(mContext);
+		RoleHelper roleHelper = RoleHelper.getInstance(context);
 
 		final Gson roleDeserializer = RoleDeserializer.getGsonBuilder();
-		DefaultHttpClient httpclient = HttpClientManager.getInstance(mContext).getHttpClient();
+		DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
 		HttpEntity entity = null;
 		try {
-			URL serverURL = new URL(PreferenceHelper.getInstance(mContext).getValue(R.string.serverURLKey));
+			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
 
 			URL roleURL = new URL(serverURL, "api/roles");
 
@@ -75,6 +75,10 @@ public class RoleServerFetchAsyncTask extends ServerFetchAsyncTask {
 						}
 					}
 				}
+			} else {
+				String error = EntityUtils.toString(response.getEntity());
+				Log.e(LOG_NAME, "Bad request.");
+				Log.e(LOG_NAME, error);
 			}
 		} catch (Exception e) {
 			Log.e(LOG_NAME, "There was a failure when fetching roles.", e);

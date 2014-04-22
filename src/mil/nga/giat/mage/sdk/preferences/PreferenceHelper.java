@@ -148,6 +148,10 @@ public class PreferenceHelper {
 					JSONObject json = new JSONObject(EntityUtils.toString(entity));
 					// preface all global
 					populateValues("g", json);
+				} else {
+					String error = EntityUtils.toString(response.getEntity());
+					Log.e(LOG_NAME, "Bad request.");
+					Log.e(LOG_NAME, error);
 				}
 			} catch (MalformedURLException mue) {
 				mue.printStackTrace();

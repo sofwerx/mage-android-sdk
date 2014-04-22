@@ -1,6 +1,5 @@
 package mil.nga.giat.mage.sdk.fetch;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,13 +31,13 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 
 	public ObservationServerFetchAsyncTask(Context context) {
 		super(context);
-		PreferenceManager.getDefaultSharedPreferences(mContext).registerOnSharedPreferenceChangeListener(this);
+		PreferenceManager.getDefaultSharedPreferences(context).registerOnSharedPreferenceChangeListener(this);
 	}
 
 	protected AtomicBoolean fetchSemaphore = new AtomicBoolean(false);
 
 	protected final synchronized long getobservationFetchFrequency() {
-		return PreferenceHelper.getInstance(mContext).getValue(R.string.observationFetchFrequencyKey, Long.class, R.string.observationFetchFrequencyDefaultValue);
+		return PreferenceHelper.getInstance(context).getValue(R.string.observationFetchFrequencyKey, Long.class, R.string.observationFetchFrequencyDefaultValue);
 	}
 
 	@Override
@@ -51,8 +50,8 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 
 		Boolean status = Boolean.TRUE;
 
-		ObservationHelper observationHelper = ObservationHelper.getInstance(mContext);
-		UserHelper userHelper = UserHelper.getInstance(mContext);
+		ObservationHelper observationHelper = ObservationHelper.getInstance(context);
+		UserHelper userHelper = UserHelper.getInstance(context);
 
 		while (Status.RUNNING.equals(getStatus()) && !isCancelled()) {			
 			
@@ -60,8 +59,7 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 			if (isConnected && isDataFetchEnabled) {
 				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch Observations...");
 				try {
-					List<Observation> observations = MageServerGetRequests.getObservations(mContext);
-					Collections.reverse(observations);
+					List<Observation> observations = MageServerGetRequests.getObservations(context);
 					for (Observation observation : observations) {
 						// stop doing stuff if the task is told to shutdown
 						if(isCancelled()) {
@@ -75,14 +73,14 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 							final long sixHoursInMillseconds = 6 * 60 * 60 * 1000;
 							if (user == null || (new Date()).after(new Date(user.getFetchedDate().getTime() + sixHoursInMillseconds))) {
 								// get any users that were not recognized or expired
-								new UserServerFetch(mContext).fetch(new String[] { userId });
+								new UserServerFetch(context).fetch(new String[] { userId });
 							}
 						}
 
 						Observation oldObservation = observationHelper.read(observation.getRemoteId());
 						if (observation.getState().equals(State.ARCHIVE) && oldObservation != null) {
 							observationHelper.delete(oldObservation.getId());
-							Log.d(LOG_NAME, "delete observation with remote_id " + observation.getRemoteId());
+							Log.d(LOG_NAME, "deleted observation with remote_id " + observation.getRemoteId());
 						} else if (!observation.getState().equals(State.ARCHIVE) && oldObservation == null) {
 							observation = observationHelper.create(observation);
 							Log.d(LOG_NAME, "created observation with remote_id " + observation.getRemoteId());
@@ -121,7 +119,7 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 				cancel(Boolean.TRUE);
 				status = Boolean.FALSE;
 			} finally {
-				isConnected = ConnectivityUtility.isOnline(mContext);
+				isConnected = ConnectivityUtility.isOnline(context);
 			}
 		}
 		return status;
@@ -132,7 +130,7 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 	 */
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-		if (key.equalsIgnoreCase(mContext.getString(R.string.observationFetchFrequencyKey))) {
+		if (key.equalsIgnoreCase(context.getString(R.string.observationFetchFrequencyKey))) {
 			synchronized (fetchSemaphore) {
 				fetchSemaphore.notifyAll();
 			}

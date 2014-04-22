@@ -11,7 +11,7 @@ public abstract class ServerFetchAsyncTask extends ServerAsyncTask {
 
 	public ServerFetchAsyncTask(Context context) {
 		super(context);
-		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 	}
 	
 }

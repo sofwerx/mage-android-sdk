@@ -25,7 +25,7 @@ private static final String LOG_NAME = LocationServerPushAsyncTask.class.getName
 	}
 
 	protected final long getLocationPushFrequency() {
-		return PreferenceHelper.getInstance(mContext).getValue(R.string.locationPushFrequencyKey, Long.class, R.string.locationPushFrequencyDefaultValue);
+		return PreferenceHelper.getInstance(context).getValue(R.string.locationPushFrequencyKey, Long.class, R.string.locationPushFrequencyDefaultValue);
 	}
 	
 	@Override
@@ -35,7 +35,7 @@ private static final String LOG_NAME = LocationServerPushAsyncTask.class.getName
 
 			if (isConnected) {
 				pushFrequency = getLocationPushFrequency();
-				LocationHelper locationHelper = LocationHelper.getInstance(mContext);
+				LocationHelper locationHelper = LocationHelper.getInstance(context);
 				List<Location> locations = locationHelper.getCurrentUserLocations(10L);
 				for (Location location : locations) {
 					
@@ -44,7 +44,7 @@ private static final String LOG_NAME = LocationServerPushAsyncTask.class.getName
 						break;
 					}
 					//TODO: wire this back up after the POST issue is ironed out...
-					Location savedLocation = MageServerPostRequests.postLocation(location, mContext);
+					Location savedLocation = MageServerPostRequests.postLocation(location, context);
 				}
 			} 
 			else {
@@ -65,7 +65,7 @@ private static final String LOG_NAME = LocationServerPushAsyncTask.class.getName
 				cancel(Boolean.TRUE);
 				status = Boolean.FALSE;
 			} finally {
-				isConnected = ConnectivityUtility.isOnline(mContext);
+				isConnected = ConnectivityUtility.isOnline(context);
 			}
 		}
 		return status;

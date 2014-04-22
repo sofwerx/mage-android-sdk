@@ -9,7 +9,7 @@ import android.os.AsyncTask;
 
 public abstract class ServerAsyncTask extends AsyncTask<Object, Object, Boolean> implements IConnectivityEventListener, IUserEventListener {
 
-	protected final Context mContext;
+	protected final Context context;
 	protected Boolean isConnected = Boolean.TRUE;
 	
 	/**
@@ -21,7 +21,7 @@ public abstract class ServerAsyncTask extends AsyncTask<Object, Object, Boolean>
 		super();
 
 		//initialize this task's Context
-		mContext = context;
+		this.context = context;
 		
 		//set up initial connection state
 		isConnected = ConnectivityUtility.isOnline(context);

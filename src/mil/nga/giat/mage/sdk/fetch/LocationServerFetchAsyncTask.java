@@ -27,7 +27,7 @@ public class LocationServerFetchAsyncTask extends ServerFetchAsyncTask {
 	protected AtomicBoolean fetchSemaphore = new AtomicBoolean(false);
 
 	protected final synchronized long getLocationFetchFrequency() {
-		return PreferenceHelper.getInstance(mContext).getValue(
+		return PreferenceHelper.getInstance(context).getValue(
 				R.string.locationFetchFrequencyKey, Long.class,
 				R.string.locationFetchFrequencyDefaultValue);
 	}
@@ -37,9 +37,9 @@ public class LocationServerFetchAsyncTask extends ServerFetchAsyncTask {
 
 		Boolean status = Boolean.TRUE;
 
-		LocationHelper locationHelper = LocationHelper.getInstance(mContext);
-		UserHelper userHelper = UserHelper.getInstance(mContext);
-		UserServerFetch userFetch = new UserServerFetch(mContext);
+		LocationHelper locationHelper = LocationHelper.getInstance(context);
+		UserHelper userHelper = UserHelper.getInstance(context);
+		UserServerFetch userFetch = new UserServerFetch(context);
 
 		while (Status.RUNNING.equals(getStatus()) && !isCancelled()) {
 		
@@ -48,7 +48,7 @@ public class LocationServerFetchAsyncTask extends ServerFetchAsyncTask {
 				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch Locations...");
 				try {
 					Collection<Location> locations = MageServerGetRequests
-							.getLocations(mContext);
+							.getLocations(context);
 					for (Location location : locations) {
 	
 						// make sure that the user exists and is persisted in the
@@ -121,7 +121,7 @@ public class LocationServerFetchAsyncTask extends ServerFetchAsyncTask {
 				status = Boolean.FALSE;
 			} 
 			finally {
-				isConnected = ConnectivityUtility.isOnline(mContext);
+				isConnected = ConnectivityUtility.isOnline(context);
 			}
 		}
 		return status;
