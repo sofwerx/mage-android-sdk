@@ -70,7 +70,7 @@ public class Observation implements Comparable<Observation> {
         this.observationGeometry = observationGeometry;
         this.properties = pProperties;
         this.attachments = pAttachments;
-        this.setDirty(false);
+        this.dirty = false;
     }
 
     public Long getId() {

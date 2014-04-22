@@ -57,13 +57,6 @@ public class ObservationDeserializer implements JsonDeserializer<Observation> {
 
 		Observation observation = new Observation();
 		observation.setRemoteId(feature.get("id").getAsString());
-
-		//if the remote id is defined, then assume not dirty for now.
-		if(observation.getRemoteId() == null || observation.getRemoteId().trim().isEmpty()) {
-			observation.setDirty(Boolean.TRUE);
-		} else {
-			observation.setDirty(Boolean.FALSE);
-		}
 		
 		try {
 			Date d = DateUtility.getISO8601().parse(feature.get("lastModified").getAsString());

@@ -26,6 +26,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.util.Log;
 
 /**
  * Creates a user
@@ -35,6 +36,8 @@ import android.content.Context;
  */
 public class SignupTask extends AbstractAccountTask {
 
+	private static final String LOG_NAME = SignupTask.class.getName();
+	
 	public SignupTask(AccountDelegate delegate, Context applicationContext) {
 		super(delegate, applicationContext);
 	}
@@ -107,6 +110,10 @@ public class SignupTask extends AbstractAccountTask {
 				entity = response.getEntity();
 				JSONObject json = new JSONObject(EntityUtils.toString(entity));
 				return new AccountStatus(AccountStatus.Status.SUCCESSFUL_SIGNUP, new ArrayList<Integer>(), new ArrayList<String>(), json);
+			} else {
+				String error = EntityUtils.toString(response.getEntity());
+				Log.e(LOG_NAME, "Bad request.");
+				Log.e(LOG_NAME, error);
 			}
 		} catch (MalformedURLException e) {
 			// already checked for this!

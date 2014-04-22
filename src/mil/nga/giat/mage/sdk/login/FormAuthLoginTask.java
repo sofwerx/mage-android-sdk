@@ -252,13 +252,15 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 	}
 	
 	private AccountStatus.Status registerDevice(String serverURL, UrlEncodedFormEntity authParams) {
+		HttpEntity entity = null;
 		try {
 			DefaultHttpClient httpClient = HttpClientManager.getInstance(mApplicationContext).getHttpClient();
 			HttpPost register = new HttpPost(new URL(new URL(serverURL), "api/devices").toURI());
 			register.setEntity(authParams);
-			HttpResponse registrationResponse = httpClient.execute(register);
-			if (registrationResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				JSONObject jsonObject = new JSONObject(EntityUtils.toString(registrationResponse.getEntity()));
+			HttpResponse response = httpClient.execute(register);
+			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+				entity = response.getEntity();
+				JSONObject jsonObject = new JSONObject(EntityUtils.toString(entity));
 				String token = jsonObject.getString("registered");
 				if (token.equalsIgnoreCase("true")) {
 					// This device has already been registered and approved, login
@@ -270,6 +272,10 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 					// device registration has been submitted
 					return AccountStatus.Status.SUCCESSFUL_REGISTRATION; //new AccountStatus(AccountStatus.Status.SUCCESSFUL_REGISTRATION, new ArrayList<Integer>(), new ArrayList<String>(), jsonObject);
 				}
+			} else {
+				String error = EntityUtils.toString(response.getEntity());
+				Log.e(LOG_NAME, "Bad request.");
+				Log.e(LOG_NAME, error);
 			}
 		} catch (MalformedURLException mue) {
 			// already checked for this!
@@ -292,6 +298,13 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 		} catch (JSONException je) {
 			// TODO Auto-generated catch block
 			je.printStackTrace();
+		} finally {
+			try {
+				if (entity != null) {
+					entity.consumeContent();
+				}
+			} catch (Exception e) {
+			}
 		}
 		
 		return AccountStatus.Status.FAILED_LOGIN; //new AccountStatus(AccountStatus.Status.FAILED_LOGIN);

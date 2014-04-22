@@ -1,6 +1,5 @@
 package mil.nga.giat.mage.sdk.fetch;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -61,7 +60,6 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch Observations...");
 				try {
 					List<Observation> observations = MageServerGetRequests.getObservations(context);
-					Collections.reverse(observations);
 					for (Observation observation : observations) {
 						// stop doing stuff if the task is told to shutdown
 						if(isCancelled()) {
@@ -82,7 +80,7 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 						Observation oldObservation = observationHelper.read(observation.getRemoteId());
 						if (observation.getState().equals(State.ARCHIVE) && oldObservation != null) {
 							observationHelper.delete(oldObservation.getId());
-							Log.d(LOG_NAME, "delete observation with remote_id " + observation.getRemoteId());
+							Log.d(LOG_NAME, "deleted observation with remote_id " + observation.getRemoteId());
 						} else if (!observation.getState().equals(State.ARCHIVE) && oldObservation == null) {
 							observation = observationHelper.create(observation);
 							Log.d(LOG_NAME, "created observation with remote_id " + observation.getRemoteId());

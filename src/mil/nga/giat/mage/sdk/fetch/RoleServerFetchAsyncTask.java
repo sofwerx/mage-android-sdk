@@ -75,6 +75,10 @@ public class RoleServerFetchAsyncTask extends ServerFetchAsyncTask {
 						}
 					}
 				}
+			} else {
+				String error = EntityUtils.toString(response.getEntity());
+				Log.e(LOG_NAME, "Bad request.");
+				Log.e(LOG_NAME, error);
 			}
 		} catch (Exception e) {
 			Log.e(LOG_NAME, "There was a failure when fetching roles.", e);
