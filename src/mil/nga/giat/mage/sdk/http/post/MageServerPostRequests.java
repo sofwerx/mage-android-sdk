@@ -89,7 +89,9 @@ public class MageServerPostRequests {
 				returnedObservation.setDirty(Boolean.FALSE);
 				savedObservation = observationHelper.update(returnedObservation, observation);
 			} else {
-				Log.e(LOG_NAME, "Bad request made to MAGE server.");
+				String error = EntityUtils.toString(response.getEntity());
+				Log.e(LOG_NAME, "Bad request.");
+				Log.e(LOG_NAME, error);
 			}
 
 		} catch (Exception e) {
@@ -177,11 +179,10 @@ public class MageServerPostRequests {
 				// we've sync'ed. Don't need the location anymore.
 				LocationHelper.getInstance(context).delete(location.getId());
 			} else {
-				String locationError = EntityUtils.toString(response.getEntity());
-				Log.e(LOG_NAME, "Bad request made to MAGE server.");
-				Log.e(LOG_NAME, locationError);
+				String error = EntityUtils.toString(response.getEntity());
+				Log.e(LOG_NAME, "Bad request.");
+				Log.e(LOG_NAME, error);
 			}
-
 		} catch (Exception e) {
 			Log.e(LOG_NAME, "Failure posting location.", e);
 		}

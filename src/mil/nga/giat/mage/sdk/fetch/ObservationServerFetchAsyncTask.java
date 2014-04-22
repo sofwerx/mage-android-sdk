@@ -1,6 +1,5 @@
 package mil.nga.giat.mage.sdk.fetch;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -61,7 +60,6 @@ public class ObservationServerFetchAsyncTask extends ServerFetchAsyncTask implem
 				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch Observations...");
 				try {
 					List<Observation> observations = MageServerGetRequests.getObservations(mContext);
-					Collections.reverse(observations);
 					for (Observation observation : observations) {
 						// stop doing stuff if the task is told to shutdown
 						if(isCancelled()) {

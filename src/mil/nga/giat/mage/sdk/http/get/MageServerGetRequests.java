@@ -78,7 +78,11 @@ public class MageServerGetRequests {
                         layers.add(layerDeserializer.fromJson(feature.toString(), Layer.class));
                     }
                 }
-            }
+			} else {
+				String error = EntityUtils.toString(response.getEntity());
+				Log.e(LOG_NAME, "Bad request.");
+				Log.e(LOG_NAME, error);
+			}
         } catch (Exception e) {
             // this block should never flow exceptions up! Log for now.
             Log.e(LOG_NAME, "Failure parsing layer information.", e);
@@ -118,7 +122,11 @@ public class MageServerGetRequests {
                         layers.add(layerDeserializer.fromJson(feature.toString(), Layer.class));
                     }
                 }
-            }
+			} else {
+				String error = EntityUtils.toString(response.getEntity());
+				Log.e(LOG_NAME, "Bad request.");
+				Log.e(LOG_NAME, error);
+			}
         } catch (Exception e) {
             // this block should never flow exceptions up! Log for now.
             Log.e(LOG_NAME, "Failure parsing layer information.", e);
@@ -180,8 +188,10 @@ public class MageServerGetRequests {
                     }
                 }
             } else {
-                Log.e(LOG_NAME, "Bad request.");
-            }
+				String error = EntityUtils.toString(response.getEntity());
+				Log.e(LOG_NAME, "Bad request.");
+				Log.e(LOG_NAME, error);
+			}
         } catch (Exception e) {
             // this block should never flow exceptions up! Log for now.
             Log.e(LOG_NAME, "There was a failure while retriving static features.", e);
@@ -227,11 +237,15 @@ public class MageServerGetRequests {
             HttpGet get = new HttpGet(new URI(uriBuilder.build().toString()));
             HttpResponse response = httpclient.execute(get);
 
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                entity = response.getEntity();
-                start = System.currentTimeMillis();
-                observations = observationDeserializer.parseObservations(entity.getContent());
-            }
+			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+				entity = response.getEntity();
+				start = System.currentTimeMillis();
+				observations = observationDeserializer.parseObservations(entity.getContent());
+			} else {
+				String error = EntityUtils.toString(response.getEntity());
+				Log.e(LOG_NAME, "Bad request.");
+				Log.e(LOG_NAME, error);
+			}
         } catch (Exception e) {
             // this block should never flow exceptions up! Log for now.
             Log.e(LOG_NAME, "There was a failure while performing an Observation Fetch opperation.", e);
@@ -326,23 +340,25 @@ public class MageServerGetRequests {
             HttpGet get = new HttpGet(locationURL.toURI());
             HttpResponse response = httpclient.execute(get);
 
-            if (HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
-                entity = response.getEntity();
+			if (HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
+				entity = response.getEntity();
 
-                JSONArray jsonArray = new JSONArray(EntityUtils.toString(entity));
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject user = (JSONObject) jsonArray.get(i);
-                    JSONArray jsonLocations = user.getJSONArray("locations");
-                    // concerned w/ the first (most recent) location for now
-                    if (jsonLocations.length() > 0) {
-                        JSONObject jsonLocation = (JSONObject) jsonLocations.get(0);
-                        Location location = locationDeserializer.fromJson(jsonLocation.toString(), Location.class);
-                        locations.add(location);
-                    }
-                }
-
-            }
-
+				JSONArray jsonArray = new JSONArray(EntityUtils.toString(entity));
+				for (int i = 0; i < jsonArray.length(); i++) {
+					JSONObject user = (JSONObject) jsonArray.get(i);
+					JSONArray jsonLocations = user.getJSONArray("locations");
+					// concerned w/ the first (most recent) location for now
+					if (jsonLocations.length() > 0) {
+						JSONObject jsonLocation = (JSONObject) jsonLocations.get(0);
+						Location location = locationDeserializer.fromJson(jsonLocation.toString(), Location.class);
+						locations.add(location);
+					}
+				}
+			} else {
+				String error = EntityUtils.toString(response.getEntity());
+				Log.e(LOG_NAME, "Bad request.");
+				Log.e(LOG_NAME, error);
+			}
         } catch (Exception e) {
             Log.e(LOG_NAME, "There was a failure while performing an Location Fetch opperation.", e);
         }
