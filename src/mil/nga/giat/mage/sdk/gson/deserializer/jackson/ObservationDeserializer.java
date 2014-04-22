@@ -1,7 +1,10 @@
 package mil.nga.giat.mage.sdk.gson.deserializer.jackson;
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import mil.nga.giat.mage.sdk.datastore.common.State;
@@ -9,6 +12,8 @@ import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationGeometry;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationProperty;
+import mil.nga.giat.mage.sdk.utils.DateUtility;
+import android.util.Log;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
@@ -25,9 +30,12 @@ import com.vividsolutions.jts.geom.Polygon;
 
 public class ObservationDeserializer {
 
+    private static final String LOG_NAME = ObservationDeserializer.class.getName();
+    
     private static JsonFactory factory = new JsonFactory();
     private static ObjectMapper mapper = new ObjectMapper();
     private final GeometryFactory geometryFactory = new GeometryFactory();
+    private DateFormat iso8601Format = DateUtility.getISO8601();
     
     static {
         factory.setCodec(mapper);
@@ -58,7 +66,23 @@ public class ObservationDeserializer {
             String name = jsonParser.getCurrentName();
             if ("id".equals(name)) {
                 jsonParser.nextToken();
+                o.setDirty(false);
                 o.setRemoteId(jsonParser.getText());
+            } else if ("userId".equals(name)) {
+                jsonParser.nextToken();
+                o.setUserId(jsonParser.getText());
+            } else if ("deviceId".equals(name)) {
+                jsonParser.nextToken();
+                o.setDeviceId(jsonParser.getText());
+            } else if ("lastModified".equals(name)) {
+                jsonParser.nextToken();
+                try {
+                    Log.i(LOG_NAME, "observations date is: " + jsonParser.getText());
+                    Date d = iso8601Format.parse(jsonParser.getText());
+                    o.setLastModified(d);
+                } catch (ParseException e) {
+                    Log.e(LOG_NAME, "Problem paring date.");
+                }
             } else if ("url".equals(name)) {
                 jsonParser.nextToken();
                 o.setUrl(jsonParser.getText());
