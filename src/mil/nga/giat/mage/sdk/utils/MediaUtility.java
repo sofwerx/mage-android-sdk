@@ -51,9 +51,8 @@ public class MediaUtility {
 		return mime.toLowerCase().matches("image/.*");
 	}
 	
-	public static void addImageToGallery(Context c, File imageFile) {
+	public static void addImageToGallery(Context c, Uri contentUri) {
 	    Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-	    Uri contentUri = Uri.fromFile(imageFile);
 	    mediaScanIntent.setData(contentUri);
 	    c.sendBroadcast(mediaScanIntent);
 	}
