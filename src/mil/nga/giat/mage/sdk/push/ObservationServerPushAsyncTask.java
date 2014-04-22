@@ -7,8 +7,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
-import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
-import mil.nga.giat.mage.sdk.datastore.observation.AttachmentHelper;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.event.IObservationEventListener;
@@ -31,14 +29,14 @@ public class ObservationServerPushAsyncTask extends ServerPushAsyncTask implemen
 		super(context);
 		pushFrequency = getObservationPushFrequency();
         try {
-            ObservationHelper.getInstance(mContext).addListener(this);
+            ObservationHelper.getInstance(context).addListener(this);
         } catch (ObservationException e) {
 			Log.d(LOG_NAME, "Could not listen for observation CRUD.", e);
         }
 	}
 
 	protected final long getObservationPushFrequency() {
-		return PreferenceHelper.getInstance(mContext).getValue(R.string.observationPushFrequencyKey, Long.class, R.string.observationPushFrequencyDefaultValue);
+		return PreferenceHelper.getInstance(context).getValue(R.string.observationPushFrequencyKey, Long.class, R.string.observationPushFrequencyDefaultValue);
 	}
 
 	@Override
@@ -51,7 +49,7 @@ public class ObservationServerPushAsyncTask extends ServerPushAsyncTask implemen
 				pushFrequency = getObservationPushFrequency();
 
 				// push dirty observations
-				ObservationHelper observationHelper = ObservationHelper.getInstance(mContext);
+				ObservationHelper observationHelper = ObservationHelper.getInstance(context);
 				List<Observation> observations = observationHelper.getDirty();
 				for (Observation observation : observations) {
 
@@ -60,25 +58,25 @@ public class ObservationServerPushAsyncTask extends ServerPushAsyncTask implemen
 						break;
 					}
 					Log.d(LOG_NAME, "Pushing observation with id: " + observation.getId());
-					observation = MageServerPostRequests.postObservation(observation, mContext);
+					observation = MageServerPostRequests.postObservation(observation, context);
 					Log.d(LOG_NAME, "Pushed observation with remote_id: " + observation.getRemoteId());
 				}
 
-				// push dirty attachments
-				List<Attachment> attachments = observationHelper.getDirtyAttachments();
-				for (Attachment attachment : attachments) {
-
-					// TODO : Is this the right thing to do?
-					if (isCancelled()) {
-						break;
-					}
-
-					Log.d(LOG_NAME, "Pushing attachment with id: " + attachment.getId());
-					// stage the attachment
-					AttachmentHelper.stageForUpload(attachment, mContext);
-					attachment = MageServerPostRequests.postAttachment(attachment, mContext);
-					Log.d(LOG_NAME, "Pushed attachment with remote_id: " + attachment.getRemoteId());
-				}
+//				// push dirty attachments
+//				List<Attachment> attachments = observationHelper.getDirtyAttachments();
+//				for (Attachment attachment : attachments) {
+//
+//					// TODO : Is this the right thing to do?
+//					if (isCancelled()) {
+//						break;
+//					}
+//					if (attachment.getObservation().getRemoteId() != null) {
+//						Log.i(LOG_NAME, "Scheduling attachment: " + attachment.getId());
+//						Intent attachmentIntent = new Intent(context, AttachmentIntentService.class);
+//						attachmentIntent.putExtra(AttachmentIntentService.ATTACHMENT_ID, attachment.getId());
+//						context.startService(attachmentIntent);
+//					}
+//				}
 			} else {
 				Log.d(LOG_NAME, "The device is currently disconnected. Can't push observations.");
 				pushFrequency = Math.min(pushFrequency * 2, 10 * 60 * 1000);
@@ -105,7 +103,7 @@ public class ObservationServerPushAsyncTask extends ServerPushAsyncTask implemen
 				cancel(Boolean.TRUE);
 				status = Boolean.FALSE;
 			} finally {
-				isConnected = ConnectivityUtility.isOnline(mContext);
+				isConnected = ConnectivityUtility.isOnline(context);
 			}
 		}
 		return status;

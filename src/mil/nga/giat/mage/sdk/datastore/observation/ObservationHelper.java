@@ -312,6 +312,27 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 	}
 	
 	/**
+	 * Read an Attachment from the data-store
+	 * 
+	 * @param primaryKey
+	 *            The primary key of the Attachment to read.
+	 * @return A fully constructed Observation.
+	 * @throws OrmException
+	 *             If there was an error reading the Observation from the
+	 *             database.
+	 */
+	public Attachment readAttachmentByPrimaryKey(Long primaryKey) throws ObservationException {
+		Attachment a;
+		try {
+			a = attachmentDao.queryForId(primaryKey);
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "Unable to read Attachment: " + primaryKey, sqle);
+			throw new ObservationException("Unable to read Attachment: " + primaryKey, sqle);
+		}
+		return a;
+	}
+	
+	/**
 	 * Deletes an Observation. This will also delete an Observation's child
 	 * Attachments, child Properties and Geometry data.
 	 * 
