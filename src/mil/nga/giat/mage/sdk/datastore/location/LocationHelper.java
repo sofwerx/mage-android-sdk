@@ -184,17 +184,18 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 		int numberLocationsDeleted = 0;
 
 		try {
-			DeleteBuilder<Location, Long> db = locationDao.deleteBuilder();
-			db.where().eq("user_id", userLocalId).and().isNotNull("remote_id");
-			numberLocationsDeleted = locationDao.delete(db.prepare());
-
-			//TODO: MAKE SURE WE DELETE FROM THE LOCATIONPROPERTIES table!!!!!!
-			//TODO: MAKE SURE WE DELETE FROM THE LOCATIONGEOMETRIES table!!!!!!
+			QueryBuilder<Location, Long> qb = locationDao.queryBuilder();
+			qb.where().eq("user_id", userLocalId).and().isNotNull("remote_id");
 			
-			for (ILocationEventListener listener : listeners) {
-				//listener.onLocationDeleted(userLocalId);
+			//deleting one at a time ensures that all child records are cleaned up and
+			//events are fired at the correct granularity.
+			//TODO: is this performant enough?
+			List<Location> locations = qb.query();
+			for(Location location : locations) {
+				delete(location.getId());
+				numberLocationsDeleted++;
 			}
-
+			
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to delete user's locations", sqle);
 			throw new LocationException("Unable to delete user's locations", sqle);
