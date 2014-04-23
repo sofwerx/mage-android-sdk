@@ -47,6 +47,8 @@ public class MageServerGetRequests {
     private static final String LOG_NAME = MageServerGetRequests.class.getName();
     private static ObservationDeserializer observationDeserializer = new ObservationDeserializer();
     
+    private static List<Layer> layers = new ArrayList<Layer>();
+    
     /**
      * Gets layers from the server.
      * 
@@ -56,8 +58,12 @@ public class MageServerGetRequests {
      * @return
      */
     public static List<Layer> getFeatureLayers(Context context) {
+    	Log.i(LOG_NAME, "Get feature layers request");
+    	if (!layers.isEmpty()) {
+    		Log.d(LOG_NAME, "Returning cached layers");
+    		return layers;
+    	}
         final Gson layerDeserializer = LayerDeserializer.getGsonBuilder();
-        List<Layer> layers = new ArrayList<Layer>();
         DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
         HttpEntity entity = null;
         try {

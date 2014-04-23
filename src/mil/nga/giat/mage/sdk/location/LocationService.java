@@ -8,16 +8,25 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import mil.nga.giat.mage.sdk.R;
+import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.datastore.location.LocationGeometry;
 import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
+import mil.nga.giat.mage.sdk.datastore.observation.Observation;
+import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
+import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
+import mil.nga.giat.mage.sdk.http.post.MageServerPostRequests;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
+import mil.nga.giat.mage.sdk.service.ObservationAlarmReceiver;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.IntentService;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -213,7 +222,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 			setLastLocationPullTime(System.currentTimeMillis());
 			
 			if (shouldReportUserLocation()) {
-				new saveLocation().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new Object[]{location, "ACTIVE"});
+				saveLocation(location, "ACTIVE");
 			}
 		}
 		 
@@ -350,7 +359,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 							if (location != null && shouldReportUserLocation()) {
 								mHandler.post(new Runnable() {
 									public void run() {
-										new saveLocation().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new Object[]{location, "STALE"});
+										saveLocation(location, "STALE");
 									}
 								});
 							}
@@ -392,59 +401,104 @@ public class LocationService extends Service implements LocationListener, OnShar
 		});
 
 	}
+	
+	private void saveLocation(Location location, String state) {
+		if (location != null && location.getTime() > 0) {
+			// INTEGRATION WITH LOCATION DATASTORE
+			LocationHelper locationHelper = LocationHelper.getInstance(mContext);
 
-	public class saveLocation extends AsyncTask<Object, Void, Void> {		
-		@Override
-		protected Void doInBackground(Object... params) {
+			// build properties
+			Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();				
+			//locationProperties.add(new LocationProperty("timestamp", DateUtility.getISO8601().format(new Date(location.getTime()))));
+			locationProperties.add(new LocationProperty("accuracy", String.valueOf(location.getAccuracy())));
+			locationProperties.add(new LocationProperty("bearing", String.valueOf(location.getBearing())));
+			locationProperties.add(new LocationProperty("speed", String.valueOf(location.getSpeed())));
+			locationProperties.add(new LocationProperty("provider", String.valueOf(location.getProvider())));
+			locationProperties.add(new LocationProperty("altitude", String.valueOf(location.getAltitude())));
 
-			Location location = (Location) params[0];
-			String state = (String) params[1];
+			// build geometry
+			LocationGeometry locationGeometry = new LocationGeometry(geometryFactory.createPoint(new Coordinate(location.getLongitude(), location.getLatitude())));
 
-			if (location != null && location.getTime() > 0) {
-				// INTEGRATION WITH LOCATION DATASTORE
-				LocationHelper locationHelper = LocationHelper.getInstance(mContext);
-
-				// build properties
-				Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();				
-				//locationProperties.add(new LocationProperty("timestamp", DateUtility.getISO8601().format(new Date(location.getTime()))));
-				locationProperties.add(new LocationProperty("accuracy", String.valueOf(location.getAccuracy())));
-				locationProperties.add(new LocationProperty("bearing", String.valueOf(location.getBearing())));
-				locationProperties.add(new LocationProperty("speed", String.valueOf(location.getSpeed())));
-				locationProperties.add(new LocationProperty("provider", String.valueOf(location.getProvider())));
-				locationProperties.add(new LocationProperty("altitude", String.valueOf(location.getAltitude())));
-
-				// build geometry
-				LocationGeometry locationGeometry = new LocationGeometry(geometryFactory.createPoint(new Coordinate(location.getLongitude(), location.getLatitude())));
-
-				User currentUser = null;
-				List<User> currentUsers;
-				try {
-					currentUsers = userHelper.readCurrentUsers();
-					if(currentUsers.size() > 0) {
-						currentUser = currentUsers.get(0);
-					}
-				} catch (UserException e) {
-					Log.e(LOG_NAME, "Could not get current User!");
+			User currentUser = null;
+			List<User> currentUsers;
+			try {
+				currentUsers = userHelper.readCurrentUsers();
+				if(currentUsers.size() > 0) {
+					currentUser = currentUsers.get(0);
 				}
-				
-				// build location
-				mil.nga.giat.mage.sdk.datastore.location.Location loc = new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", currentUser, locationProperties, locationGeometry);
-
-				loc.setLocationGeometry(locationGeometry);
-				loc.setProperties(locationProperties);
-
-				// save the location
-				try {
-					loc = locationHelper.create(loc);
-					Log.d(LOG_NAME, "Save location: " + loc.getLocationGeometry().getGeometry());
-				} catch (LocationException le) {
-					// TODO: is this good enough?
-					Log.w(LOG_NAME, "Unable to record current location locally!", le);
-				}
+			} catch (UserException e) {
+				Log.e(LOG_NAME, "Could not get current User!");
 			}
-			return null;
+			
+			// build location
+			mil.nga.giat.mage.sdk.datastore.location.Location loc = new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", currentUser, locationProperties, locationGeometry);
+
+			loc.setLocationGeometry(locationGeometry);
+			loc.setProperties(locationProperties);
+
+			// save the location
+			try {
+				loc = locationHelper.create(loc);
+				Log.d(LOG_NAME, "Save location: " + loc.getLocationGeometry().getGeometry());
+			} catch (LocationException le) {
+				// TODO: is this good enough?
+				Log.w(LOG_NAME, "Unable to record current location locally!", le);
+			}
 		}
 	}
+
+//	public class saveLocation extends AsyncTask<Object, Void, Void> {		
+//		@Override
+//		protected Void doInBackground(Object... params) {
+//
+//			Location location = (Location) params[0];
+//			String state = (String) params[1];
+//
+//			if (location != null && location.getTime() > 0) {
+//				// INTEGRATION WITH LOCATION DATASTORE
+//				LocationHelper locationHelper = LocationHelper.getInstance(mContext);
+//
+//				// build properties
+//				Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();				
+//				//locationProperties.add(new LocationProperty("timestamp", DateUtility.getISO8601().format(new Date(location.getTime()))));
+//				locationProperties.add(new LocationProperty("accuracy", String.valueOf(location.getAccuracy())));
+//				locationProperties.add(new LocationProperty("bearing", String.valueOf(location.getBearing())));
+//				locationProperties.add(new LocationProperty("speed", String.valueOf(location.getSpeed())));
+//				locationProperties.add(new LocationProperty("provider", String.valueOf(location.getProvider())));
+//				locationProperties.add(new LocationProperty("altitude", String.valueOf(location.getAltitude())));
+//
+//				// build geometry
+//				LocationGeometry locationGeometry = new LocationGeometry(geometryFactory.createPoint(new Coordinate(location.getLongitude(), location.getLatitude())));
+//
+//				User currentUser = null;
+//				List<User> currentUsers;
+//				try {
+//					currentUsers = userHelper.readCurrentUsers();
+//					if(currentUsers.size() > 0) {
+//						currentUser = currentUsers.get(0);
+//					}
+//				} catch (UserException e) {
+//					Log.e(LOG_NAME, "Could not get current User!");
+//				}
+//				
+//				// build location
+//				mil.nga.giat.mage.sdk.datastore.location.Location loc = new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", currentUser, locationProperties, locationGeometry);
+//
+//				loc.setLocationGeometry(locationGeometry);
+//				loc.setProperties(locationProperties);
+//
+//				// save the location
+//				try {
+//					loc = locationHelper.create(loc);
+//					Log.d(LOG_NAME, "Save location: " + loc.getLocationGeometry().getGeometry());
+//				} catch (LocationException le) {
+//					// TODO: is this good enough?
+//					Log.w(LOG_NAME, "Unable to record current location locally!", le);
+//				}
+//			}
+//			return null;
+//		}
+//	}
 	
 	/**
 	 * Will alert the polling thread that changes have been made
