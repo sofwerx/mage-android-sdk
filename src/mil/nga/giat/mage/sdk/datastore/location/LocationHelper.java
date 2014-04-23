@@ -192,7 +192,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 			//TODO: MAKE SURE WE DELETE FROM THE LOCATIONGEOMETRIES table!!!!!!
 			
 			for (ILocationEventListener listener : listeners) {
-				listener.onLocationDeleted(userLocalId);
+				//listener.onLocationDeleted(userLocalId);
 			}
 
 		} catch (SQLException sqle) {
@@ -230,7 +230,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 			locationDao.deleteById(pPrimaryKey);
 			
 			for (ILocationEventListener listener : listeners) {
-				listener.onLocationDeleted(location.getUser().getRemoteId());
+				listener.onLocationDeleted(location);
 			}
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to delete Location: " + pPrimaryKey, sqle);
