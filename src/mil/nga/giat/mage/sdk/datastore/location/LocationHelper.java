@@ -157,7 +157,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 			//this is used for psudo-batching...optional.
 			if(maxReturn > 0) {
 				queryBuilder.limit(maxReturn);
-				queryBuilder.orderBy("lastModified", Boolean.FALSE);
+				queryBuilder.orderBy("last_modified", Boolean.FALSE);
 			}
 			
 			locations = locationDao.query(queryBuilder.prepare());
