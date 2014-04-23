@@ -2,15 +2,12 @@ package mil.nga.giat.mage.sdk.datastore.staticfeature;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "staticfeature_properties")
 public class StaticFeatureProperty {
-
-	private static final JsonParser jsonParser = new JsonParser();
 	
 	@DatabaseField(generatedId = true)
 	private Long pk_id;
@@ -28,9 +25,9 @@ public class StaticFeatureProperty {
 		// ORMLite needs a no-arg constructor
 	}
 
-	public StaticFeatureProperty(String pKey, JsonObject pValue) {
+	public StaticFeatureProperty(String pKey, String pValue) {
 		this.key = pKey;
-		this.value = pValue.toString();
+		this.value = pValue;
 	}
 
 	public Long getPk_id() {
@@ -56,15 +53,6 @@ public class StaticFeatureProperty {
 	public void setValue(String value) {
 		this.value = value;
 	}
-	
-	public JsonObject getValueJsonObject() {
-		return jsonParser.parse(value).getAsJsonObject();
-	}
-
-	public void setValueJsonObject(JsonObject value) {
-		this.value = value.toString();
-	}
-
 
 	public StaticFeature getStaticFeature() {
 		return staticFeature;

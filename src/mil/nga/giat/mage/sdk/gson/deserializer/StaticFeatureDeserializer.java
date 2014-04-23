@@ -56,18 +56,30 @@ public class StaticFeatureDeserializer implements JsonDeserializer<StaticFeature
 		}
 
 		// deserialize properties
-		Collection<StaticFeatureProperty> properties = new ArrayList<StaticFeatureProperty>();
 		JsonObject propertiesFeature = feature.get("properties").getAsJsonObject();
-		for (Map.Entry<String, JsonElement> propertyFeature : propertiesFeature.entrySet()) {
-			String key = propertyFeature.getKey();
-			JsonElement valueElement = propertyFeature.getValue();
-			if (valueElement.isJsonObject()) {
-				JsonObject value = valueElement.getAsJsonObject();
-				properties.add(new StaticFeatureProperty(key, value));
-			}
-		}
-		staticFeature.setProperties(properties);
+		staticFeature.setProperties(deserializeProperties(propertiesFeature));
 
 		return staticFeature;
+	}
+	
+	private Collection<StaticFeatureProperty> deserializeProperties(JsonObject propertiesFeature) {
+		Collection<StaticFeatureProperty> properties = new ArrayList<StaticFeatureProperty>();
+		return deserializePropertiesRecurse(propertiesFeature, properties, "");
+	}
+	
+	private Collection<StaticFeatureProperty> deserializePropertiesRecurse(JsonObject propertiesFeature, Collection<StaticFeatureProperty> properties, String keyPrefix) {
+		// deserialize properties
+		for (Map.Entry<String, JsonElement> propertyFeature : propertiesFeature.entrySet()) {
+			String key = keyPrefix + propertyFeature.getKey().toLowerCase();
+			JsonElement valueElement = propertyFeature.getValue();
+			if (valueElement.isJsonPrimitive()) {
+				String value = valueElement.getAsString();
+				properties.add(new StaticFeatureProperty(key, value));
+			} else if (valueElement.isJsonObject()) {
+				JsonObject value = valueElement.getAsJsonObject();
+				deserializePropertiesRecurse(value, properties, key);
+			}
+		}
+		return properties;
 	}
 }

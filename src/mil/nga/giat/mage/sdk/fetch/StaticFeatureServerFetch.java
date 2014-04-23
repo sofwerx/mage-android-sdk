@@ -56,9 +56,9 @@ public class StaticFeatureServerFetch extends AbstractServerFetch {
 				}
 				if (layer.getType().equalsIgnoreCase("external") && (force || !layer.isLoaded())) {
 				    try {
-				        Log.i("static features", "Start loading static features for layer " + layer.getName());
+				        Log.i(LOG_NAME, "Loading static features for layer " + layer.getName());
 				        staticFeatureHelper.createAll(layer);
-				        Log.i("static features", "DONE loading static features for layer " + layer.getName());
+				        Log.i(LOG_NAME, "Loaded static features for layer " + layer.getName());
 
 				    } catch (StaticFeatureException e) {
 				        Log.e(LOG_NAME, "Problem creating static features.", e);
