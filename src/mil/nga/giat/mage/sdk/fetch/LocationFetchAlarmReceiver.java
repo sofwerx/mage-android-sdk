@@ -6,10 +6,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-public class LocationFetchAlarmReciever extends BroadcastReceiver {
+public class LocationFetchAlarmReceiver extends BroadcastReceiver {
 
 	public static final int REQUEST_CODE = 91735;
-	private static final String LOG_NAME = LocationFetchAlarmReciever.class.getName();
+	private static final String LOG_NAME = LocationFetchAlarmReceiver.class.getName();
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
