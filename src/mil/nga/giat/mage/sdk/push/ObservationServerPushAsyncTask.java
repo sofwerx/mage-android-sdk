@@ -10,7 +10,6 @@ import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.event.IObservationEventListener;
-import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import mil.nga.giat.mage.sdk.http.post.MageServerPostRequests;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import android.content.Context;
@@ -28,11 +27,7 @@ public class ObservationServerPushAsyncTask extends ServerPushAsyncTask implemen
 	public ObservationServerPushAsyncTask(Context context) {
 		super(context);
 		pushFrequency = getObservationPushFrequency();
-        try {
-            ObservationHelper.getInstance(context).addListener(this);
-        } catch (ObservationException e) {
-			Log.d(LOG_NAME, "Could not listen for observation CRUD.", e);
-        }
+        ObservationHelper.getInstance(context).addListener(this);
 	}
 
 	protected final long getObservationPushFrequency() {

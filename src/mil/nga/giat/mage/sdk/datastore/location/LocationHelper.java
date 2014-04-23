@@ -4,7 +4,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -240,17 +239,8 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	
 	
 	@Override
-	public boolean addListener(final ILocationEventListener listener) throws LocationException {
-		boolean status = listeners.add(listener);
-
-		new Callable<Object>() {
-			@Override
-			public Object call() throws LocationException {
-				listener.onLocationCreated(readAllNonCurrent());
-				return null;
-			}
-		}.call();
-		return status;
+	public boolean addListener(final ILocationEventListener listener) {
+		return listeners.add(listener);
 	}
 
 	@Override
