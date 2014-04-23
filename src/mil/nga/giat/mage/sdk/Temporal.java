@@ -1,4 +1,4 @@
-package mil.nga.giat.mage.sdk.utils;
+package mil.nga.giat.mage.sdk;
 
 import java.util.Date;
 
