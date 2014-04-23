@@ -2,6 +2,8 @@ package mil.nga.giat.mage.sdk.datastore.staticfeature;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import mil.nga.giat.mage.sdk.datastore.layer.Layer;
 
@@ -81,6 +83,21 @@ public class StaticFeature implements Comparable<StaticFeature> {
 	public void setProperties(Collection<StaticFeatureProperty> properties) {
 		this.properties = properties;
 	}
+	
+	   /**
+     * A convenience method used for returning an Observation's properties in a
+     * more useful data-structure.
+     * 
+     * @return
+     */
+    public final Map<String, StaticFeatureProperty> getPropertiesMap() {
+        Map<String, StaticFeatureProperty> propertiesMap = new HashMap<String, StaticFeatureProperty>();
+        for (StaticFeatureProperty property : properties) {
+            propertiesMap.put(property.getKey(), property);
+        }
+
+        return propertiesMap;
+    }
 
 	@Override
 	public String toString() {
