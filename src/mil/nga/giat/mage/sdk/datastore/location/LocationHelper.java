@@ -4,7 +4,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -158,7 +157,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 			//this is used for psudo-batching...optional.
 			if(maxReturn > 0) {
 				queryBuilder.limit(maxReturn);
-				queryBuilder.orderBy("lastModified", Boolean.FALSE);
+				queryBuilder.orderBy("last_modified", Boolean.FALSE);
 			}
 			
 			locations = locationDao.query(queryBuilder.prepare());
@@ -184,17 +183,18 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 		int numberLocationsDeleted = 0;
 
 		try {
-			DeleteBuilder<Location, Long> db = locationDao.deleteBuilder();
-			db.where().eq("user_id", userLocalId).and().isNotNull("remote_id");
-			numberLocationsDeleted = locationDao.delete(db.prepare());
-
-			//TODO: MAKE SURE WE DELETE FROM THE LOCATIONPROPERTIES table!!!!!!
-			//TODO: MAKE SURE WE DELETE FROM THE LOCATIONGEOMETRIES table!!!!!!
+			QueryBuilder<Location, Long> qb = locationDao.queryBuilder();
+			qb.where().eq("user_id", userLocalId).and().isNotNull("remote_id");
 			
-			for (ILocationEventListener listener : listeners) {
-				listener.onLocationDeleted(userLocalId);
+			//deleting one at a time ensures that all child records are cleaned up and
+			//events are fired at the correct granularity.
+			//TODO: is this performant enough?
+			List<Location> locations = qb.query();
+			for(Location location : locations) {
+				delete(location.getId());
+				numberLocationsDeleted++;
 			}
-
+			
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to delete user's locations", sqle);
 			throw new LocationException("Unable to delete user's locations", sqle);
@@ -230,7 +230,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 			locationDao.deleteById(pPrimaryKey);
 			
 			for (ILocationEventListener listener : listeners) {
-				listener.onLocationDeleted(location.getUser().getRemoteId());
+				listener.onLocationDeleted(location);
 			}
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to delete Location: " + pPrimaryKey, sqle);
@@ -240,17 +240,8 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	
 	
 	@Override
-	public boolean addListener(final ILocationEventListener listener) throws LocationException {
-		boolean status = listeners.add(listener);
-
-		new Callable<Object>() {
-			@Override
-			public Object call() throws LocationException {
-				listener.onLocationCreated(readAllNonCurrent());
-				return null;
-			}
-		}.call();
-		return status;
+	public boolean addListener(final ILocationEventListener listener) {
+		return listeners.add(listener);
 	}
 
 	@Override

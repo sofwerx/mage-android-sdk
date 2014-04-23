@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -376,23 +375,12 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 	}
 
 	@Override
-	public boolean addListener(final IObservationEventListener listener) throws ObservationException {
-		boolean status = listeners.add(listener);
-		
-		new Callable<Object>() {
-			@Override
-			public Object call() throws ObservationException {
-				listener.onObservationCreated(readAll());
-				return null;
-			}
-		}.call();
-		return status;
+	public boolean addListener(final IObservationEventListener listener) {
+		return listeners.add(listener);
 	}
 
 	@Override
 	public boolean removeListener(IObservationEventListener listener) {
 		return listeners.remove(listener);
 	}
-
 }
-

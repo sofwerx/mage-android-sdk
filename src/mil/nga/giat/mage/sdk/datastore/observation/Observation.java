@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import mil.nga.giat.mage.sdk.datastore.common.State;
+import mil.nga.giat.mage.sdk.utils.Temporal;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -18,7 +19,7 @@ import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "observations")
-public class Observation implements Comparable<Observation> {
+public class Observation implements Comparable<Observation>, Temporal {
 
     // name _id needed for cursor adapters
     @DatabaseField(generatedId = true)
@@ -221,4 +222,8 @@ public class Observation implements Comparable<Observation> {
         return new EqualsBuilder().appendSuper(super.equals(obj)).append(_id, other._id).append(remoteId, other.remoteId).isEquals();
     }
 
+    @Override
+    public Date getTimestamp() {
+        return lastModified;
+    }
 }

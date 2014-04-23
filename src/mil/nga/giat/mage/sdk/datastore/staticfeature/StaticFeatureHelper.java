@@ -119,8 +119,7 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEv
 							staticFeaturePropertyDao.create(property);
 						}
 					}
-					// Log.d(LOG_NAME, "created static feature: " +
-					// staticFeature);
+					// Log.d(LOG_NAME, "created static feature: " + staticFeature);
 				}
 			} catch (SQLException sqle) {
 				Log.e(LOG_NAME, "There was a problem creating the static feature: " + staticFeature + ".", sqle);
