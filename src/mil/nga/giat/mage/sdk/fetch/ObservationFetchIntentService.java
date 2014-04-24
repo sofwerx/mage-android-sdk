@@ -7,12 +7,15 @@ import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.datastore.common.State;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
+import mil.nga.giat.mage.sdk.datastore.observation.ObservationProperty;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -67,6 +70,12 @@ public class ObservationFetchIntentService extends IntentService {
 					Log.d(LOG_NAME, "deleted observation with remote_id " + observation.getRemoteId());
 				} else if (!observation.getState().equals(State.ARCHIVE) && oldObservation == null) {
 					observation = observationHelper.create(observation);
+					// FIXME : a simple proto-type for vibrations
+					ObservationProperty observationProperty = observation.getPropertiesMap().get("EVENTLEVEL");
+					if(observationProperty != null && observationProperty.getValue().equalsIgnoreCase("high")) {
+						Vibrator vibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
+						vibrator.vibrate(50);
+					}
 					Log.d(LOG_NAME, "created observation with remote_id " + observation.getRemoteId());
 				} else if (!observation.getState().equals(State.ARCHIVE) && oldObservation != null) {
 					observation = observationHelper.update(observation, oldObservation);
