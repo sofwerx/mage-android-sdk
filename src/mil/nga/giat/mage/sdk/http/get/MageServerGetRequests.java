@@ -87,7 +87,8 @@ public class MageServerGetRequests {
                     }
                 }
 			} else {
-				String error = EntityUtils.toString(response.getEntity());
+				entity = response.getEntity();
+				String error = EntityUtils.toString(entity);
 				Log.e(LOG_NAME, "Bad request.");
 				Log.e(LOG_NAME, error);
 			}
@@ -131,7 +132,8 @@ public class MageServerGetRequests {
                     }
                 }
 			} else {
-				String error = EntityUtils.toString(response.getEntity());
+				entity = response.getEntity();
+				String error = EntityUtils.toString(entity);
 				Log.e(LOG_NAME, "Bad request.");
 				Log.e(LOG_NAME, error);
 			}
@@ -200,7 +202,8 @@ public class MageServerGetRequests {
                     }
                 }
             } else {
-                String error = EntityUtils.toString(response.getEntity());
+            	entity = response.getEntity();
+                String error = EntityUtils.toString(entity);
                 Log.e(LOG_NAME, "Bad request.");
                 Log.e(LOG_NAME, error);
             }
@@ -300,7 +303,8 @@ public class MageServerGetRequests {
 				start = System.currentTimeMillis();
 				observations = observationDeserializer.parseObservations(entity.getContent());
 			} else {
-				String error = EntityUtils.toString(response.getEntity());
+				entity = response.getEntity();
+				String error = EntityUtils.toString(entity);
 				Log.e(LOG_NAME, "Bad request.");
 				Log.e(LOG_NAME, error);
 			}
@@ -413,12 +417,21 @@ public class MageServerGetRequests {
 					}
 				}
 			} else {
-				String error = EntityUtils.toString(response.getEntity());
+				entity = response.getEntity();
+				String error = EntityUtils.toString(entity);
 				Log.e(LOG_NAME, "Bad request.");
 				Log.e(LOG_NAME, error);
 			}
         } catch (Exception e) {
             Log.e(LOG_NAME, "There was a failure while performing an Location Fetch opperation.", e);
+        } finally {
+        	try {
+                if (entity != null) {
+                    entity.consumeContent();
+                }
+            } catch (Exception e) {
+                Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
+            }
         }
 
         return locations;

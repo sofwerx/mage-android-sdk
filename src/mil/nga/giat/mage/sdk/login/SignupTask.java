@@ -111,7 +111,8 @@ public class SignupTask extends AbstractAccountTask {
 				JSONObject json = new JSONObject(EntityUtils.toString(entity));
 				return new AccountStatus(AccountStatus.Status.SUCCESSFUL_SIGNUP, new ArrayList<Integer>(), new ArrayList<String>(), json);
 			} else {
-				String error = EntityUtils.toString(response.getEntity());
+				entity = response.getEntity();
+				String error = EntityUtils.toString(entity);
 				Log.e(LOG_NAME, "Bad request.");
 				Log.e(LOG_NAME, error);
 			}

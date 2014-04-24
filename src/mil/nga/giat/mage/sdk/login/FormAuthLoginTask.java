@@ -273,7 +273,8 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 					return AccountStatus.Status.SUCCESSFUL_REGISTRATION; //new AccountStatus(AccountStatus.Status.SUCCESSFUL_REGISTRATION, new ArrayList<Integer>(), new ArrayList<String>(), jsonObject);
 				}
 			} else {
-				String error = EntityUtils.toString(response.getEntity());
+				entity = response.getEntity();
+				String error = EntityUtils.toString(entity);
 				Log.e(LOG_NAME, "Bad request.");
 				Log.e(LOG_NAME, error);
 			}

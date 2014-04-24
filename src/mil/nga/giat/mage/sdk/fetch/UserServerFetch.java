@@ -94,7 +94,8 @@ public class UserServerFetch extends AbstractServerFetch {
 						}
 					}
 				} else {
-					String error = EntityUtils.toString(response.getEntity());
+					entity = response.getEntity();
+					String error = EntityUtils.toString(entity);
 					Log.e(LOG_NAME, "Bad request.");
 					Log.e(LOG_NAME, error);
 				}
