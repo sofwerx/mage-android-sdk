@@ -8,14 +8,16 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
+import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.ILocationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.QueryBuilder;
 
 /**
@@ -34,6 +36,8 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	private final Dao<LocationGeometry, Long> locationGeometryDao;
 	private final Dao<LocationProperty, Long> locationPropertyDao;
 
+	private static String userId;
+	
 	private Collection<ILocationEventListener> listeners = new CopyOnWriteArrayList<ILocationEventListener>();
 
 	/**
@@ -64,6 +68,12 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	private LocationHelper(Context context) {
 		super(context);
 
+		//get the current logged in userId
+		SharedPreferences sp = 
+				PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+		
+		userId = sp.getString("userId", "");
+				
 		try {
 			locationDao = daoStore.getLocationDao();
 			locationGeometryDao = daoStore.getLocationGeometryDao();
@@ -108,8 +118,9 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 				}
 			}
 
-			// fire the event
-			if(!pLocation.isCurrentUser()) {
+			// fire the event...unless of course its 'myself'
+			if(!pLocation.isCurrentUser() && !userId.equals(pLocation.getUser().getRemoteId())) {
+								
 				ConcurrentSkipListSet<Location> locations = new ConcurrentSkipListSet<Location>();
 				locations.add(createdLocation);
 				for (ILocationEventListener listener : listeners) {
@@ -142,7 +153,29 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	}
 
 	/**
-	 * Gets a List of Locations from the datastore that are dirty (i.e. should be
+	 * Light-weight query for testing the existence of a location in the local data-store.
+	 * @param location The primary key of the passed in Location object is used for the query.
+	 * @return
+	 */
+	public Boolean exists(Location location) {
+		
+		Boolean exists = Boolean.FALSE;		
+		try {
+			List<Location> locations = 
+					locationDao.queryBuilder().selectColumns("_id").limit(1L).where().eq("_id", location.getId()).query();
+			if(locations != null && locations.size() > 0) {
+				exists = Boolean.TRUE;
+			}
+		} 
+		catch (SQLException sqle) {
+			Log.e(LOG_NAME, "Unable to query for existance for location = '" + location.getId() + "'", sqle);			
+		}
+		
+		return exists;
+	}
+	
+	/**
+	 * Gets a List of Locations from the data-store that are dirty (i.e. should be
 	 * synced with the server).
 	 * @return
 	 */
@@ -168,7 +201,6 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 		}		
 		return locations;
 	}
-	
 	
 	/**
 	 * This will delete the user's location(s) that have remote_ids. Locations
