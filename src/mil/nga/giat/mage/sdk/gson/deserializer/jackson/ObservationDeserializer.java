@@ -52,6 +52,15 @@ public class ObservationDeserializer {
         jsonParser.close();
         return observations;
     }
+    
+    public Observation parseObservation(InputStream is) throws Exception {
+        JsonParser jsonParser = factory.createParser(is);
+        
+        Observation observation = parseObservation(jsonParser);
+
+        jsonParser.close();
+        return observation;
+    }
 
     private Observation parseObservation(JsonParser jsonParser) throws Exception {
         Observation o = new Observation();

@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -19,7 +18,7 @@ import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.gson.deserializer.AttachmentDeserializer;
-import mil.nga.giat.mage.sdk.gson.deserializer.ObservationDeserializer;
+import mil.nga.giat.mage.sdk.gson.deserializer.jackson.ObservationDeserializer;
 import mil.nga.giat.mage.sdk.gson.serializer.LocationSerializer;
 import mil.nga.giat.mage.sdk.gson.serializer.ObservationSerializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
@@ -34,9 +33,6 @@ import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.FormBodyPart;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
@@ -54,6 +50,8 @@ import com.google.gson.Gson;
 public class MageServerPostRequests {
 
 	private static final String LOG_NAME = MageServerPostRequests.class.getName();
+	
+    private static ObservationDeserializer observationDeserializer = new ObservationDeserializer();
 
 	/**
 	 * POST an {@link Observation} to the server.
@@ -90,13 +88,12 @@ public class MageServerPostRequests {
 			HttpResponse response = httpClient.execute(request);
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				entity = response.getEntity();
-				Observation returnedObservation = ObservationDeserializer.getGsonBuilder().fromJson(EntityUtils.toString(entity), Observation.class);
-				// not sure if this should be added back.
-				//returnedObservation.setAttachments(observation.getAttachments());
+				Observation returnedObservation = observationDeserializer.parseObservation(entity.getContent());
 				returnedObservation.setDirty(Boolean.FALSE);
 				savedObservation = observationHelper.update(returnedObservation, observation);
 			} else {
-				String error = EntityUtils.toString(response.getEntity());
+				entity = response.getEntity();
+				String error = EntityUtils.toString(entity);
 				Log.e(LOG_NAME, "Bad request.");
 				Log.e(LOG_NAME, error);
 			}
@@ -285,6 +282,7 @@ public class MageServerPostRequests {
 	public static Location postLocation(Location location, Context context) {
 
 		Location savedLocation = location;
+		HttpEntity entity = null;
 		try {
 			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
 			URI endpointUri = new URL(serverURL + "/api/locations").toURI();
@@ -294,18 +292,30 @@ public class MageServerPostRequests {
 			request.addHeader("Content-Type", "application/json; charset=utf-8");
 			Gson gson = LocationSerializer.getGsonBuilder(context);
 			request.setEntity(new StringEntity(gson.toJson(location)));
+			
+			
 
 			HttpResponse response = httpClient.execute(request);
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+				entity = response.getEntity();
 				// we've sync'ed. Don't need the location anymore.
 				LocationHelper.getInstance(context).delete(location.getId());
 			} else {
-				String error = EntityUtils.toString(response.getEntity());
+				entity = response.getEntity();
+				String error = EntityUtils.toString(entity);
 				Log.e(LOG_NAME, "Bad request.");
 				Log.e(LOG_NAME, error);
 			}
 		} catch (Exception e) {
 			Log.e(LOG_NAME, "Failure posting location.", e);
+		} finally {
+			try {
+	            if (entity != null) {
+	                entity.consumeContent();
+	            }
+	        } catch (Exception e) {
+	            Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
+	        }
 		}
 		return savedLocation;
 	}
