@@ -39,8 +39,11 @@ public class ObservationIntentService extends IntentService {
 			Log.d(LOG_NAME, "Pushing observation with id: " + observation.getId());
 			
 			observation = MageServerPostRequests.postObservation(observation, getApplicationContext());
-			
-			Log.d(LOG_NAME, "Pushed observation with remote_id: " + observation.getRemoteId());
+			if (observation == null) {
+				Log.w(LOG_NAME, "Failed to push observation");
+			} else {
+				Log.d(LOG_NAME, "Pushed observation with remote_id: " + observation.getRemoteId());
+			}
 		} catch (ObservationException oe) {
 			Log.e(LOG_NAME, "Error obtaining observation: " + observationId, oe);
 		}
