@@ -15,8 +15,7 @@ import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeature;
 import mil.nga.giat.mage.sdk.gson.deserializer.LayerDeserializer;
 import mil.nga.giat.mage.sdk.gson.deserializer.LocationDeserializer;
-import mil.nga.giat.mage.sdk.gson.deserializer.StaticFeatureDeserializer;
-import mil.nga.giat.mage.sdk.gson.deserializer.jackson.FeatureDeserializer;
+import mil.nga.giat.mage.sdk.gson.deserializer.jackson.StaticFeatureDeserializer;
 import mil.nga.giat.mage.sdk.gson.deserializer.jackson.ObservationDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
@@ -47,7 +46,7 @@ public class MageServerGetRequests {
 
     private static final String LOG_NAME = MageServerGetRequests.class.getName();
     private static ObservationDeserializer observationDeserializer = new ObservationDeserializer();
-    private static FeatureDeserializer featureDeserializer = new FeatureDeserializer();
+    private static StaticFeatureDeserializer featureDeserializer = new StaticFeatureDeserializer();
 
     private static List<Layer> layers = new ArrayList<Layer>();
     
@@ -167,62 +166,6 @@ public class MageServerGetRequests {
         return fieldObservationLayerId;
     }
 
-    public static Collection<StaticFeature> getStaticFeatures(Context context, Layer pLayer) {
-        long start = 0;
-
-        Collection<StaticFeature> staticFeatures = new ArrayList<StaticFeature>();
-        HttpEntity entity = null;
-        try {
-            URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
-            final Gson staticFeatureDeserializer = StaticFeatureDeserializer.getGsonBuilder();
-
-            URL staticFeatureURL = new URL(serverURL, "/FeatureServer/" + pLayer.getRemoteId() + "/features");
-            DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
-            Log.d(LOG_NAME, staticFeatureURL.toString());
-            HttpGet get = new HttpGet(staticFeatureURL.toURI());
-            HttpResponse response = httpclient.execute(get);
-
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                entity = response.getEntity();
-                start = System.currentTimeMillis();
-
-                JSONObject json = new JSONObject(EntityUtils.toString(entity));
-
-                if (json != null && json.has("features")) {
-                    JSONArray features = json.getJSONArray("features");
-                    for (int i = 0; i < features.length(); i++) {
-                        JSONObject feature = (JSONObject) features.get(i);
-                        if (feature != null) {
-                            StaticFeature staticFeature = staticFeatureDeserializer.fromJson(feature.toString(), StaticFeature.class);
-                            staticFeature.setLayer(pLayer);
-                            staticFeatures.add(staticFeature);
-                        }
-                    }
-                }
-            } else {
-                String error = EntityUtils.toString(response.getEntity());
-                Log.e(LOG_NAME, "Bad request.");
-                Log.e(LOG_NAME, error);
-            }
-        } catch (Exception e) {
-            // this block should never flow exceptions up! Log for now.
-            Log.e(LOG_NAME, "There was a failure while retriving static features.", e);
-        } finally {
-            try {
-                if (entity != null) {
-                    entity.consumeContent();
-                }
-            } catch (Exception e) {
-                Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
-            }
-        }
-        
-        long stop = System.currentTimeMillis();
-        
-        Log.i("observations", "JACKSON staticFeatures " + staticFeatures.size() + " took " + (stop - start) + " millis");
-        return staticFeatures;
-    }
-    
 //    public static Collection<StaticFeature> getStaticFeatures(Context context, Layer pLayer) {
 //        long start = 0;
 //
@@ -230,6 +173,7 @@ public class MageServerGetRequests {
 //        HttpEntity entity = null;
 //        try {
 //            URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
+//            final Gson staticFeatureDeserializer = StaticFeatureDeserializer.getGsonBuilder();
 //
 //            URL staticFeatureURL = new URL(serverURL, "/FeatureServer/" + pLayer.getRemoteId() + "/features");
 //            DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
@@ -240,12 +184,25 @@ public class MageServerGetRequests {
 //            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 //                entity = response.getEntity();
 //                start = System.currentTimeMillis();
-//                staticFeatures = featureDeserializer.parseObservations(entity.getContent());
+//
+//                JSONObject json = new JSONObject(EntityUtils.toString(entity));
+//
+//                if (json != null && json.has("features")) {
+//                    JSONArray features = json.getJSONArray("features");
+//                    for (int i = 0; i < features.length(); i++) {
+//                        JSONObject feature = (JSONObject) features.get(i);
+//                        if (feature != null) {
+//                            StaticFeature staticFeature = staticFeatureDeserializer.fromJson(feature.toString(), StaticFeature.class);
+//                            staticFeature.setLayer(pLayer);
+//                            staticFeatures.add(staticFeature);
+//                        }
+//                    }
+//                }
 //            } else {
-//				String error = EntityUtils.toString(response.getEntity());
-//				Log.e(LOG_NAME, "Bad request.");
-//				Log.e(LOG_NAME, error);
-//			}
+//                String error = EntityUtils.toString(response.getEntity());
+//                Log.e(LOG_NAME, "Bad request.");
+//                Log.e(LOG_NAME, error);
+//            }
 //        } catch (Exception e) {
 //            // this block should never flow exceptions up! Log for now.
 //            Log.e(LOG_NAME, "There was a failure while retriving static features.", e);
@@ -264,6 +221,48 @@ public class MageServerGetRequests {
 //        Log.i("observations", "JACKSON staticFeatures " + staticFeatures.size() + " took " + (stop - start) + " millis");
 //        return staticFeatures;
 //    }
+    
+    public static Collection<StaticFeature> getStaticFeatures(Context context, Layer layer) {
+        long start = 0;
+
+        Collection<StaticFeature> staticFeatures = new ArrayList<StaticFeature>();
+        HttpEntity entity = null;
+        try {
+            URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
+
+            URL staticFeatureURL = new URL(serverURL, "/FeatureServer/" + layer.getRemoteId() + "/features");
+            DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
+            Log.d(LOG_NAME, staticFeatureURL.toString());
+            HttpGet get = new HttpGet(staticFeatureURL.toURI());
+            HttpResponse response = httpclient.execute(get);
+
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                entity = response.getEntity();
+                start = System.currentTimeMillis();
+                staticFeatures = featureDeserializer.parseStaticFeatures(entity.getContent(), layer);
+            } else {
+				String error = EntityUtils.toString(response.getEntity());
+				Log.e(LOG_NAME, "Bad request.");
+				Log.e(LOG_NAME, error);
+			}
+        } catch (Exception e) {
+            // this block should never flow exceptions up! Log for now.
+            Log.e(LOG_NAME, "There was a failure while retriving static features.", e);
+        } finally {
+            try {
+                if (entity != null) {
+                    entity.consumeContent();
+                }
+            } catch (Exception e) {
+                Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
+            }
+        }
+        
+        long stop = System.currentTimeMillis();
+        
+        Log.i("observations", "JACKSON staticFeatures " + staticFeatures.size() + " took " + (stop - start) + " millis");
+        return staticFeatures;
+    }
 
     /**
      * Returns the observations from the server. Uses a date as in filter in the

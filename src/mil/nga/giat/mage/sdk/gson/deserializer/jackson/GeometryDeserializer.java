@@ -25,6 +25,8 @@ public class GeometryDeserializer {
             } else if ("coordinates".equals(name)) {
                 jsonParser.nextToken();
                 coordinates = jsonParser.readValueAsTree();
+            } else {
+                jsonParser.skipChildren();
             }
         }
 

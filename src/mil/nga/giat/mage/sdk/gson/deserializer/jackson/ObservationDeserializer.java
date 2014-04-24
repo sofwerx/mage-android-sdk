@@ -70,7 +70,6 @@ public class ObservationDeserializer {
             } else if ("lastModified".equals(name)) {
                 jsonParser.nextToken();
                 try {
-                    Log.i(LOG_NAME, "observations date is: " + jsonParser.getText());
                     Date d = iso8601Format.parse(jsonParser.getText());
                     o.setLastModified(d);
                 } catch (ParseException e) {
@@ -92,6 +91,8 @@ public class ObservationDeserializer {
             } else if ("attachments".equals(name)) {
                 jsonParser.nextToken();
                 o.setAttachments(parseAttachments(jsonParser));
+            } else {
+                jsonParser.skipChildren();
             }
         }
 
@@ -152,6 +153,8 @@ public class ObservationDeserializer {
                 } else if ("url".equals(name)) {
                     jsonParser.nextToken();
                     a.setUrl(jsonParser.getText());
+                } else {
+                    jsonParser.skipChildren();
                 }
             }
             a.setDirty(false);
