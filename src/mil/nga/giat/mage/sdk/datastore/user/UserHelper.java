@@ -7,6 +7,8 @@ import java.util.List;
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
@@ -29,6 +31,8 @@ public class UserHelper extends DaoHelper<User> {
 
 	private final Dao<User, Long> userDao;
 
+	public String USER_ID = "";
+	
 	/**
 	 * Singleton.
 	 */
@@ -59,6 +63,13 @@ public class UserHelper extends DaoHelper<User> {
 
 		try {
 			userDao = daoStore.getUserDao();
+
+			//get the current logged in userId
+			SharedPreferences sp = 
+					PreferenceManager.getDefaultSharedPreferences(pContext.getApplicationContext());			
+			
+			USER_ID = sp.getString("userId", "");			
+			
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to communicate with User database.", sqle);
 
