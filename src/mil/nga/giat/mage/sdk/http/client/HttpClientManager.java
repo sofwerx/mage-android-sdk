@@ -8,6 +8,7 @@ import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.IUserEventListener;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
+import mil.nga.giat.mage.sdk.utils.UserUtility;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
@@ -91,6 +92,7 @@ public class HttpClientManager implements IEventDispatcher<IUserEventListener> {
 				public void process(HttpResponse response, HttpContext context) throws HttpException, IOException {
 					int statusCode = response.getStatusLine().getStatusCode();
 					if (statusCode == HttpStatus.SC_FORBIDDEN || statusCode == HttpStatus.SC_UNAUTHORIZED) {
+						UserUtility.getInstance(mContext).clearTokenInformation();
 						for (IUserEventListener listener : listeners) {
 							listener.onTokenExpired();
 						}
