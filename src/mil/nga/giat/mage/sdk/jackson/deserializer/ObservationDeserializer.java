@@ -1,4 +1,4 @@
-package mil.nga.giat.mage.sdk.gson.deserializer.jackson;
+package mil.nga.giat.mage.sdk.jackson.deserializer;
 import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -21,7 +21,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
 
-public class ObservationDeserializer {
+public class ObservationDeserializer extends Deserializer {
 
     private static final String LOG_NAME = ObservationDeserializer.class.getName();
     
@@ -35,9 +35,12 @@ public class ObservationDeserializer {
     }
     
     public List<Observation> parseObservations(InputStream is) throws Exception {
-        JsonParser jsonParser = factory.createParser(is);
-        
         List<Observation> observations = new ArrayList<Observation>();
+        
+        JsonParser jsonParser = factory.createParser(is);
+        jsonParser.nextToken();
+        
+        if (jsonParser.getCurrentToken() != JsonToken.START_OBJECT) return observations;
 
         while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
             String name = jsonParser.getCurrentName();
@@ -46,6 +49,8 @@ public class ObservationDeserializer {
                 while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
                     observations.add(parseObservation(jsonParser));
                 }
+            } else {
+                skipField(jsonParser);
             }
         }
 
@@ -65,6 +70,8 @@ public class ObservationDeserializer {
 
     private Observation parseObservation(JsonParser jsonParser) throws Exception {
         Observation o = new Observation();
+        if (jsonParser.getCurrentToken() != JsonToken.START_OBJECT) return o;
+        
         while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
             String name = jsonParser.getCurrentName();
             if ("id".equals(name)) {
@@ -102,7 +109,7 @@ public class ObservationDeserializer {
                 jsonParser.nextToken();
                 o.setAttachments(parseAttachments(jsonParser));
             } else {
-                jsonParser.skipChildren();
+                skipField(jsonParser);
             }
         }
 

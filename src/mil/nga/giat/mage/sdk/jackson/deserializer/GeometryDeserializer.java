@@ -1,4 +1,4 @@
-package mil.nga.giat.mage.sdk.gson.deserializer.jackson;
+package mil.nga.giat.mage.sdk.jackson.deserializer;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonNode;

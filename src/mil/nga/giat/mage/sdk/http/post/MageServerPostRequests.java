@@ -12,11 +12,11 @@ import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.gson.deserializer.AttachmentDeserializer;
-import mil.nga.giat.mage.sdk.gson.deserializer.jackson.ObservationDeserializer;
 import mil.nga.giat.mage.sdk.gson.serializer.LocationSerializer;
 import mil.nga.giat.mage.sdk.gson.serializer.ObservationSerializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
+import mil.nga.giat.mage.sdk.jackson.deserializer.ObservationDeserializer;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import mil.nga.giat.mage.sdk.utils.MediaUtility;
 

@@ -15,9 +15,9 @@ import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeature;
 import mil.nga.giat.mage.sdk.gson.deserializer.LayerDeserializer;
 import mil.nga.giat.mage.sdk.gson.deserializer.LocationDeserializer;
-import mil.nga.giat.mage.sdk.gson.deserializer.jackson.StaticFeatureDeserializer;
-import mil.nga.giat.mage.sdk.gson.deserializer.jackson.ObservationDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
+import mil.nga.giat.mage.sdk.jackson.deserializer.ObservationDeserializer;
+import mil.nga.giat.mage.sdk.jackson.deserializer.StaticFeatureDeserializer;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import mil.nga.giat.mage.sdk.utils.DateUtility;
 
