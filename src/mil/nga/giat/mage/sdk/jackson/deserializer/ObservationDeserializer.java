@@ -1,4 +1,5 @@
 package mil.nga.giat.mage.sdk.jackson.deserializer;
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -15,130 +16,132 @@ import mil.nga.giat.mage.sdk.datastore.observation.ObservationProperty;
 import mil.nga.giat.mage.sdk.utils.DateUtility;
 import android.util.Log;
 
-import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
 
 public class ObservationDeserializer extends Deserializer {
 
     private static final String LOG_NAME = ObservationDeserializer.class.getName();
     
-    private static JsonFactory factory = new JsonFactory();
-    private static ObjectMapper mapper = new ObjectMapper();
     private GeometryDeserializer geometryDeserializer = new GeometryDeserializer();
+    private AttachmentDeserializer attachmentDeserializer = new AttachmentDeserializer();
     private DateFormat iso8601Format = DateUtility.getISO8601();
     
-    static {
-        factory.setCodec(mapper);
-    }
     
-    public List<Observation> parseObservations(InputStream is) throws Exception {
+    public List<Observation> parseObservations(InputStream is) throws JsonParseException, IOException {
         List<Observation> observations = new ArrayList<Observation>();
         
-        JsonParser jsonParser = factory.createParser(is);
-        jsonParser.nextToken();
+        JsonParser parser = factory.createParser(is);
         
-        if (jsonParser.getCurrentToken() != JsonToken.START_OBJECT) return observations;
+        if (parser.nextToken() != JsonToken.START_OBJECT) return observations;
 
-        while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
-            String name = jsonParser.getCurrentName();
+        while (parser.nextToken() != JsonToken.END_OBJECT) {
+            String name = parser.getCurrentName();
             if ("features".equals(name)) {
-                jsonParser.nextToken();
-                while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
-                    observations.add(parseObservation(jsonParser));
+                parser.nextToken();
+                while (parser.nextToken() != JsonToken.END_ARRAY) {
+                    observations.add(parseObservation(parser));
                 }
             } else {
-                skipField(jsonParser);
+                parser.nextToken();
+                parser.skipChildren();
             }
         }
 
-        jsonParser.close();
+        parser.close();
         return observations;
     }
     
-    public Observation parseObservation(InputStream is) throws Exception {
-        JsonParser jsonParser = factory.createParser(is);
-        jsonParser.nextToken();
+    public Observation parseObservation(InputStream is) throws JsonParseException, IOException {
+        JsonParser parser = factory.createParser(is);
+        parser.nextToken();
 
-        Observation observation = parseObservation(jsonParser);
+        Observation observation = parseObservation(parser);
 
-        jsonParser.close();
+        parser.close();
         return observation;
     }
 
-    private Observation parseObservation(JsonParser jsonParser) throws Exception {
-        Observation o = new Observation();
-        if (jsonParser.getCurrentToken() != JsonToken.START_OBJECT) return o;
+    private Observation parseObservation(JsonParser parser) throws JsonParseException, IOException {
+        Observation observation = new Observation();
         
-        while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
-            String name = jsonParser.getCurrentName();
+        if (parser.getCurrentToken() != JsonToken.START_OBJECT) return observation;
+        
+        while (parser.nextToken() != JsonToken.END_OBJECT) {
+            String name = parser.getCurrentName();
             if ("id".equals(name)) {
-                jsonParser.nextToken();
-                o.setDirty(false);
-                o.setRemoteId(jsonParser.getText());
+                parser.nextToken();
+                observation.setDirty(false);
+                observation.setRemoteId(parser.getText());
             } else if ("userId".equals(name)) {
-                jsonParser.nextToken();
-                o.setUserId(jsonParser.getText());
+                parser.nextToken();
+                observation.setUserId(parser.getText());
             } else if ("deviceId".equals(name)) {
-                jsonParser.nextToken();
-                o.setDeviceId(jsonParser.getText());
+                parser.nextToken();
+                observation.setDeviceId(parser.getText());
             } else if ("lastModified".equals(name)) {
-                jsonParser.nextToken();
+                parser.nextToken();
                 try {
-                    Date d = iso8601Format.parse(jsonParser.getText());
-                    o.setLastModified(d);
+                    Date d = iso8601Format.parse(parser.getText());
+                    observation.setLastModified(d);
                 } catch (ParseException e) {
                     Log.e(LOG_NAME, "Problem paring date.");
                 }
             } else if ("url".equals(name)) {
-                jsonParser.nextToken();
-                o.setUrl(jsonParser.getText());
+                parser.nextToken();
+                observation.setUrl(parser.getText());
             } else if ("state".equals(name)) {
-                jsonParser.nextToken();
-                o.setState(parseState(jsonParser));
+                parser.nextToken();
+                observation.setState(parseState(parser));
             } else if ("geometry".equals(name)) {
-                jsonParser.nextToken();
-                Geometry g = geometryDeserializer.parseGeometry(jsonParser);
-                o.setObservationGeometry(new ObservationGeometry(g));
+                parser.nextToken();
+                Geometry g = geometryDeserializer.parseGeometry(parser);
+                observation.setObservationGeometry(new ObservationGeometry(g));
             } else if ("properties".equals(name)) {
-                jsonParser.nextToken();
-                o.setProperties(parseProperties(jsonParser));
+                parser.nextToken();
+                observation.setProperties(parseProperties(parser));
             } else if ("attachments".equals(name)) {
-                jsonParser.nextToken();
-                o.setAttachments(parseAttachments(jsonParser));
+                parser.nextToken();
+                observation.setAttachments(parseAttachments(parser));
             } else {
-                skipField(jsonParser);
+                parser.nextToken();
+                parser.skipChildren();
             }
         }
 
-        return o;
+        return observation;
     }
 
-    private State parseState(JsonParser jsonParser) throws Exception {
+    private State parseState(JsonParser parser) throws JsonParseException, IOException {
         State state = null;
+        
+        if (parser.getCurrentToken() != JsonToken.START_OBJECT) return state;
 
-        while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
-            String name = jsonParser.getCurrentName();
+        while (parser.nextToken() != JsonToken.END_OBJECT) {
+            String name = parser.getCurrentName();
             if ("name".equals(name)) {
-                jsonParser.nextToken();
+                parser.nextToken();
                 state = State.ACTIVE;
+            } else {
+                parser.nextToken();
+                parser.skipChildren();
             }
         }
 
         return state;
     }
 
-    private Collection<ObservationProperty> parseProperties(JsonParser jsonParser) throws Exception {
+    private Collection<ObservationProperty> parseProperties(JsonParser parser) throws JsonParseException, IOException {
         Collection<ObservationProperty> properties = new ArrayList<ObservationProperty>();
-        while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
-            String key = jsonParser.getCurrentName();
-            JsonToken token = jsonParser.nextToken();
-            if (token == JsonToken.START_OBJECT) {
-                jsonParser.skipChildren();
+        while (parser.nextToken() != JsonToken.END_OBJECT) {
+            String key = parser.getCurrentName();
+            JsonToken token = parser.nextToken();
+            if (token == JsonToken.START_OBJECT || token == JsonToken.START_ARRAY) {
+                parser.skipChildren();
             } else {
-                String value = jsonParser.getText();
+                String value = parser.getText();
                 properties.add(new ObservationProperty(key, value));
             }
         }
@@ -146,36 +149,13 @@ public class ObservationDeserializer extends Deserializer {
         return properties;
     }
 
-    private Collection<Attachment> parseAttachments(JsonParser jsonParser) throws Exception {
+    private Collection<Attachment> parseAttachments(JsonParser parser) throws JsonParseException, IOException {
         Collection<Attachment> attachments = new ArrayList<Attachment>();
-        while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
-            Attachment a = new Attachment();
-            while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
-                String name = jsonParser.getCurrentName();
-                if ("id".equals(name)) {
-                    jsonParser.nextToken();
-                    a.setRemoteId(jsonParser.getText());
-                } else if ("contentType".equals(name)) {
-                    jsonParser.nextToken();
-                    a.setContentType(jsonParser.getText());
-                } else if ("size".equals(name)) {
-                    jsonParser.nextToken();
-                    a.setSize(jsonParser.getLongValue());
-                } else if ("name".equals(name)) {
-                    jsonParser.nextToken();
-                    a.setName(jsonParser.getText());
-                } else if ("relativePath".equals(name)) {
-                    jsonParser.nextToken();
-                    a.setRemotePath(jsonParser.getText());
-                } else if ("url".equals(name)) {
-                    jsonParser.nextToken();
-                    a.setUrl(jsonParser.getText());
-                } else {
-                    jsonParser.skipChildren();
-                }
-            }
-            a.setDirty(false);
-            attachments.add(a);
+        
+        if (parser.getCurrentToken() != JsonToken.START_ARRAY) return attachments;
+        
+        while (parser.nextToken() != JsonToken.END_ARRAY) {
+            attachments.add(attachmentDeserializer.parseAttachment(parser));
         }
 
         return attachments;

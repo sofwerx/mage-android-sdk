@@ -11,11 +11,11 @@ import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
 import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
-import mil.nga.giat.mage.sdk.gson.deserializer.AttachmentDeserializer;
 import mil.nga.giat.mage.sdk.gson.serializer.LocationSerializer;
 import mil.nga.giat.mage.sdk.gson.serializer.ObservationSerializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
+import mil.nga.giat.mage.sdk.jackson.deserializer.AttachmentDeserializer;
 import mil.nga.giat.mage.sdk.jackson.deserializer.ObservationDeserializer;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import mil.nga.giat.mage.sdk.utils.MediaUtility;
@@ -49,6 +49,7 @@ public class MageServerPostRequests {
 	private static final String LOG_NAME = MageServerPostRequests.class.getName();
 	
     private static ObservationDeserializer observationDeserializer = new ObservationDeserializer();
+    private static AttachmentDeserializer attachmentDeserializer = new AttachmentDeserializer();
 
 	/**
 	 * POST an {@link Observation} to the server.
@@ -140,16 +141,15 @@ public class MageServerPostRequests {
 			Log.d(LOG_NAME, "Sending request " + request);
 			HttpResponse response = httpClient.execute(request);
 			entity = response.getEntity();
-			Log.d(LOG_NAME, "Got the entity back " + entity);
 			if (entity != null) {
-				Attachment a = AttachmentDeserializer.getGsonBuilder().fromJson(EntityUtils.toString(entity), Attachment.class);
+				Attachment a = attachmentDeserializer.parseAttachment(entity.getContent());
 				attachment.setContentType(a.getContentType());
 				attachment.setName(a.getName());
 				attachment.setRemoteId(a.getRemoteId());
 				attachment.setRemotePath(a.getRemotePath());
 				attachment.setSize(a.getSize());
 				attachment.setUrl(a.getUrl());
-				attachment.setDirty(false);
+				attachment.setDirty(a.isDirty());
 
 				// TODO go save this attachment again
 				DaoStore.getInstance(context).getAttachmentDao().update(attachment);
