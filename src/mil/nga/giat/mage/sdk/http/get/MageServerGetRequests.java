@@ -14,8 +14,8 @@ import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeature;
 import mil.nga.giat.mage.sdk.gson.deserializer.LayerDeserializer;
-import mil.nga.giat.mage.sdk.gson.deserializer.LocationDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
+import mil.nga.giat.mage.sdk.jackson.deserializer.LocationDeserializer;
 import mil.nga.giat.mage.sdk.jackson.deserializer.ObservationDeserializer;
 import mil.nga.giat.mage.sdk.jackson.deserializer.StaticFeatureDeserializer;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
@@ -47,6 +47,7 @@ public class MageServerGetRequests {
     private static final String LOG_NAME = MageServerGetRequests.class.getName();
     private static ObservationDeserializer observationDeserializer = new ObservationDeserializer();
     private static StaticFeatureDeserializer featureDeserializer = new StaticFeatureDeserializer();
+    private static LocationDeserializer locationDeserializer = new LocationDeserializer();
 
     private static List<Layer> layers = new ArrayList<Layer>();
     
@@ -331,7 +332,6 @@ public class MageServerGetRequests {
     public static Collection<Location> getLocations(Context context) {
 
         Collection<Location> locations = new ArrayList<Location>();
-        final Gson locationDeserializer = LocationDeserializer.getGsonBuilder();
 
         HttpEntity entity = null;
 
@@ -340,24 +340,12 @@ public class MageServerGetRequests {
             URL locationURL = new URL(serverURL, "/api/locations");
 
             DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
-            // Log.d(LOG_NAME, uriBuilder.build().toString());
             HttpGet get = new HttpGet(locationURL.toURI());
             HttpResponse response = httpclient.execute(get);
 
 			if (HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
 				entity = response.getEntity();
-
-				JSONArray jsonArray = new JSONArray(EntityUtils.toString(entity));
-				for (int i = 0; i < jsonArray.length(); i++) {
-					JSONObject user = (JSONObject) jsonArray.get(i);
-					JSONArray jsonLocations = user.getJSONArray("locations");
-					// concerned w/ the first (most recent) location for now
-					if (jsonLocations.length() > 0) {
-						JSONObject jsonLocation = (JSONObject) jsonLocations.get(0);
-						Location location = locationDeserializer.fromJson(jsonLocation.toString(), Location.class);
-						locations.add(location);
-					}
-				}
+                locations = locationDeserializer.parseLocations(entity.getContent());
 			} else {
 				entity = response.getEntity();
 				String error = EntityUtils.toString(entity);
@@ -377,7 +365,5 @@ public class MageServerGetRequests {
         }
 
         return locations;
-
     }
-
 }

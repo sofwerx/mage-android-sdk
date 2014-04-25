@@ -1,4 +1,5 @@
 package mil.nga.giat.mage.sdk.jackson.deserializer;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,88 +11,82 @@ import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeatureGeometry;
 import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeatureProperty;
 import android.util.Log;
 
-import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
 
 public class StaticFeatureDeserializer extends Deserializer {
     
-    private static JsonFactory factory = new JsonFactory();
-    private static ObjectMapper mapper = new ObjectMapper();
     private GeometryDeserializer geometryDeserializer = new GeometryDeserializer();
-    
-    static {
-        factory.setCodec(mapper);
-    }
-    
-    public List<StaticFeature> parseStaticFeatures(InputStream is, Layer layer) throws Exception {
+
+    public List<StaticFeature> parseStaticFeatures(InputStream is, Layer layer) throws JsonParseException, IOException {
         List<StaticFeature> features = new ArrayList<StaticFeature>();
         
-        JsonParser jsonParser = factory.createParser(is);
-        jsonParser.nextToken();
+        JsonParser parser = factory.createParser(is);
+        parser.nextToken();
         
-        if (jsonParser.getCurrentToken() != JsonToken.START_OBJECT) return features;
+        if (parser.getCurrentToken() != JsonToken.START_OBJECT) return features;
 
-        while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
-            String name = jsonParser.getCurrentName();
+        while (parser.nextToken() != JsonToken.END_OBJECT) {
+            String name = parser.getCurrentName();
             if ("features".equals(name)) {
-                jsonParser.nextToken();
-                while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
-                    StaticFeature feature = parseFeature(jsonParser);
+                parser.nextToken();
+                while (parser.nextToken() != JsonToken.END_ARRAY) {
+                    StaticFeature feature = parseFeature(parser);
                     feature.setLayer(layer);
                     features.add(feature);
                 }
             } else {
-                skipField(jsonParser);
+                parser.nextToken();
+                parser.skipChildren();
             }
         }
 
-        jsonParser.close();
+        parser.close();
         return features;
     }
 
-    private StaticFeature parseFeature(JsonParser jsonParser) throws Exception {
+    private StaticFeature parseFeature(JsonParser parser) throws JsonParseException, IOException {
         StaticFeature o = new StaticFeature();
-        if (jsonParser.getCurrentToken() != JsonToken.START_OBJECT) return o;
+        if (parser.getCurrentToken() != JsonToken.START_OBJECT) return o;
 
         
-        while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
-            String name = jsonParser.getCurrentName();
+        while (parser.nextToken() != JsonToken.END_OBJECT) {
+            String name = parser.getCurrentName();
             if ("id".equals(name)) {
-                jsonParser.nextToken();
-                o.setRemoteId(jsonParser.getText());
+                parser.nextToken();
+                o.setRemoteId(parser.getText());
             } else if ("geometry".equals(name)) {
-                jsonParser.nextToken();
-                Geometry g = geometryDeserializer.parseGeometry(jsonParser);
+                parser.nextToken();
+                Geometry g = geometryDeserializer.parseGeometry(parser);
                 o.setStaticFeatureGeometry(new StaticFeatureGeometry(g));
             } else if ("properties".equals(name)) {
-                jsonParser.nextToken();
-                o.setProperties(parseProperties(jsonParser));
+                parser.nextToken();
+                o.setProperties(parseProperties(parser));
             } else {
-                skipField(jsonParser);
+                parser.nextToken();
+                parser.skipChildren();
             }
         }
 
         return o;
     }
 
-    private Collection<StaticFeatureProperty> parseProperties(JsonParser jsonParser)  throws Exception{
+    private Collection<StaticFeatureProperty> parseProperties(JsonParser parser)  throws JsonParseException, IOException {
         Collection<StaticFeatureProperty> properties = new ArrayList<StaticFeatureProperty>();
-        return parseProperties(jsonParser, properties, "");
+        return parseProperties(parser, properties, "");
     }
     
-    private Collection<StaticFeatureProperty> parseProperties(JsonParser jsonParser, Collection<StaticFeatureProperty> properties, String keyPrefix) throws Exception {
-        while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
-            String key = keyPrefix + jsonParser.getCurrentName().toLowerCase();
-            JsonToken token = jsonParser.nextToken();
+    private Collection<StaticFeatureProperty> parseProperties(JsonParser parser, Collection<StaticFeatureProperty> properties, String keyPrefix) throws JsonParseException, IOException {
+        while (parser.nextToken() != JsonToken.END_OBJECT) {
+            String key = keyPrefix + parser.getCurrentName().toLowerCase();
+            JsonToken token = parser.nextToken();
             if (token == JsonToken.START_OBJECT) {
-                parseProperties(jsonParser, properties, key);
+                parseProperties(parser, properties, key);
             } else {
-                String value = jsonParser.getText();
+                String value = parser.getText();
                 properties.add(new StaticFeatureProperty(key, value));
-                Log.i("static features", "static feature key inserted: " + key);
             }
         }
         
