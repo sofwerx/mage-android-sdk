@@ -3,6 +3,7 @@ package mil.nga.giat.mage.sdk.datastore.observation;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -79,7 +80,7 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 	}
 
 	@Override
-	public Observation create(Observation pObservation) throws ObservationException {
+	public Observation create(Observation observation) throws ObservationException {
 
 		Observation createdObservation;
 
@@ -87,13 +88,14 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 		try {
 
 			// create Observation geometry.
-			observationGeometryDao.create(pObservation.getObservationGeometry());
+			observationGeometryDao.create(observation.getObservationGeometry());
 
 			// create the Observation.
-			createdObservation = observationDao.createIfNotExists(pObservation);
+			observation.setLocalLastModified(new Date());
+			createdObservation = observationDao.createIfNotExists(observation);
 
 			// create Observation properties.
-			Collection<ObservationProperty> properties = pObservation.getProperties();
+			Collection<ObservationProperty> properties = observation.getProperties();
 			if (properties != null) {
 				for (ObservationProperty property : properties) {
 					property.setObservation(createdObservation);
@@ -102,7 +104,7 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 			}
 
 			// create Observation attachments.
-			Collection<Attachment> attachments = pObservation.getAttachments();
+			Collection<Attachment> attachments = observation.getAttachments();
 			if (attachments != null) {
 				for (Attachment attachment : attachments) {
 					attachment.setObservation(createdObservation);
@@ -111,83 +113,95 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 			}
 
 		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "There was a problem creating the observation: " + pObservation + ".", sqle);
-			throw new ObservationException("There was a problem creating the observation: " + pObservation + ".", sqle);
+			Log.e(LOG_NAME, "There was a problem creating the observation: " + observation + ".", sqle);
+			throw new ObservationException("There was a problem creating the observation: " + observation + ".", sqle);
 		}
 		
 		// fire the event
-		ConcurrentSkipListSet<Observation> observations = new ConcurrentSkipListSet<Observation>();
-		observations.add(createdObservation);
 		for (IObservationEventListener listener : listeners) {
-			listener.onObservationCreated(observations);
+			listener.onObservationCreated(Collections.singletonList(createdObservation));
 		}
+		
 		return createdObservation;
 	}
 
 	@Override
-	public Observation read(String pRemoteId) throws ObservationException {
-		Observation observation = null;
+	public Observation read(Long id) throws ObservationException {
 		try {
-			List<Observation> results = observationDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
-			if (results != null && results.size() > 0) {
-				observation = results.get(0);
-			}
+		    return observationDao.queryForId(id);
 		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
-			throw new ObservationException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+			Log.e(LOG_NAME, "Unable to query for existance for id = '" + id + "'", sqle);
+			throw new ObservationException("Unable to query for existance for id = '" + id + "'", sqle);
 		}
-
-		return observation;
 	}
 	
-	public void update(Observation pObservation) throws ObservationException {
-		try {
-			observationGeometryDao.update(pObservation.getObservationGeometry());
-			observationDao.update(pObservation);
+    @Override
+    public Observation read(String pRemoteId) throws ObservationException {
+        Observation observation = null;
+        try {
+            List<Observation> results = observationDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
+            if (results != null && results.size() > 0) {
+                observation = results.get(0);
+            }
+        } catch (SQLException sqle) {
+            Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+            throw new ObservationException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+        }
 
-			Collection<ObservationProperty> properties = pObservation.getProperties();
+        return observation;
+    }
+	
+	private void save(Observation observation) throws ObservationException {
+		try {
+			observationGeometryDao.update(observation.getObservationGeometry());
+			observation.setLocalLastModified(new Date());
+			observationDao.update(observation);
+
+			Collection<ObservationProperty> properties = observation.getProperties();
 			if (properties != null) {
 				for (ObservationProperty property : properties) {
-					property.setObservation(pObservation);
+					property.setObservation(observation);
 					observationPropertyDao.createOrUpdate(property);
 				}
 			}
 
-			Collection<Attachment> attachments = pObservation.getAttachments();
+			Collection<Attachment> attachments = observation.getAttachments();
 			if (attachments != null) {
 				for (Attachment attachment : attachments) {
-					attachment.setObservation(pObservation);
+					attachment.setObservation(observation);
 					attachmentDao.createOrUpdate(attachment);
 				}
 			}
 
 		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "There was a problem updating the observation: " + pObservation + ".", sqle);
-			throw new ObservationException("There was a problem updating the observation: " + pObservation + ".", sqle);
+			Log.e(LOG_NAME, "There was a problem updating the observation: " + observation + ".", sqle);
+			throw new ObservationException("There was a problem updating the observation: " + observation + ".", sqle);
 		}
 		
 		// fire the event
 		for (IObservationEventListener listener : listeners) {
-			listener.onObservationUpdated(pObservation);
+			listener.onObservationUpdated(observation);
 		}
 	}
 
 	/**
 	 * We have to realign all the foreign ids so the update works correctly
 	 * 
-	 * @param pNewObservation
+	 * @param observation
 	 * @param pOldObservation
 	 * @throws ObservationException
 	 */
-	public Observation update(Observation pNewObservation, Observation pOldObservation) throws ObservationException {
-		pNewObservation.setId(pOldObservation.getId());
+	public Observation update(Observation observation) throws ObservationException {
+	    Observation pOldObservation = read(observation.getId());
+	    
+		observation.setId(pOldObservation.getId());
 
-		if (pNewObservation.getObservationGeometry() != null && pOldObservation.getObservationGeometry() != null) {
-			pNewObservation.getObservationGeometry().setPk_id(pOldObservation.getObservationGeometry().getPk_id());
+		if (observation.getObservationGeometry() != null && pOldObservation.getObservationGeometry() != null) {
+			observation.getObservationGeometry().setPk_id(pOldObservation.getObservationGeometry().getPk_id());
 		}
 
 		// FIXME : make this run faster?
-		for (ObservationProperty op : pNewObservation.getProperties()) {
+		for (ObservationProperty op : observation.getProperties()) {
 			for (ObservationProperty oop : pOldObservation.getProperties()) {
 				if (op.getKey().equalsIgnoreCase(oop.getKey())) {
 					op.setPk_id(oop.getPk_id());
@@ -197,7 +211,7 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 		}
 
 		// FIXME : make this run faster?
-		for (Attachment a : pNewObservation.getAttachments()) {
+		for (Attachment a : observation.getAttachments()) {
 			for (Attachment oa : pOldObservation.getAttachments()) {
 				if (a.getRemoteId() != null && a.getRemoteId().equalsIgnoreCase(oa.getRemoteId())) {
 					a.setId(oa.getId());
@@ -206,33 +220,11 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 			}
 		}
 
-		update(pNewObservation);
-		return pNewObservation;
-	}
-
-	/**
-	 * Read an Observation from the data-store
-	 * 
-	 * @param pPrimaryKey
-	 *            The primary key of the Obervation to read.
-	 * @return A fully constructed Observation.
-	 * @throws OrmException
-	 *             If there was an error reading the Observation from the
-	 *             database.
-	 */
-	public Observation readByPrimaryKey(Long pPrimaryKey) throws ObservationException {
-		Observation observation;
-		try {
-			// NOTE: Observation Collections are set up to be 'eager'. Any
-			// future collections
-			// added to the Observation class needs to be eager as well.
-			observation = observationDao.queryForId(pPrimaryKey);
-		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "Unable to read Observation: " + pPrimaryKey, sqle);
-			throw new ObservationException("Unable to read Observation: " + pPrimaryKey, sqle);
-		}
+		save(observation);
+		
 		return observation;
 	}
+
 
 	public Collection<Observation> readAll() throws ObservationException {
 		ConcurrentSkipListSet<Observation> observations = new ConcurrentSkipListSet<Observation>();

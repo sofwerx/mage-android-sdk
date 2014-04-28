@@ -8,25 +8,16 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import mil.nga.giat.mage.sdk.R;
-import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.datastore.location.LocationGeometry;
 import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
-import mil.nga.giat.mage.sdk.datastore.observation.Observation;
-import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
-import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
-import mil.nga.giat.mage.sdk.http.post.MageServerPostRequests;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
-import mil.nga.giat.mage.sdk.service.ObservationAlarmReceiver;
-import android.app.AlarmManager;
 import android.app.AlertDialog;
-import android.app.IntentService;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -36,7 +27,6 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -82,6 +72,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 	protected AtomicBoolean preferenceSemaphore = new AtomicBoolean(false);
 
 	// the last time a location was pulled form the phone.
+	protected Location lastLocation;
 	protected long lastLocationPullTime = 0;
 	
 	protected synchronized long getLastLocationPullTime() {
@@ -145,6 +136,11 @@ public class LocationService extends Service implements LocationListener, OnShar
 	
 	public void registerOnLocationListener(LocationListener listener) {
 	    locationListeners.add(listener);
+	    
+	    if (lastLocation != null) {        
+	        Log.i(LOG_NAME, "location service added listener, pushing last known location to listener");
+	        listener.onLocationChanged(lastLocation);
+	    }
 	}
 	
 	public void unregisterOnLocationListener(LocationListener listener) {
@@ -218,6 +214,8 @@ public class LocationService extends Service implements LocationListener, OnShar
 
 	@Override
 	public void onLocationChanged(Location location) {
+	    Log.i(LOG_NAME, "location service has detected a location change");
+	    
 		if (location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
 			setLastLocationPullTime(System.currentTimeMillis());
 			
@@ -225,15 +223,18 @@ public class LocationService extends Service implements LocationListener, OnShar
 				saveLocation(location, "ACTIVE");
 			}
 		}
-		 
-		long lastLocationTime = getLastLocationPullTime();
-		if (location.getProvider().equals(LocationManager.GPS_PROVIDER) || 
-		        lastLocationTime == 0 || 
-		        new Date().getTime() - lastLocationTime > getUserReportingFrequency()) {
-		    for (LocationListener listener : locationListeners) {
-		        listener.onLocationChanged(location);
-		    }		    
-		}
+		
+        if (location.getProvider().equals(LocationManager.GPS_PROVIDER) || 
+                lastLocation == null || 
+                new Date().getTime() - lastLocation.getTime() > getUserReportingFrequency()) {
+            
+            Log.i(LOG_NAME, "location service saved a new location telling all listeners");
+            for (LocationListener listener : locationListeners) {
+                listener.onLocationChanged(location);
+            }
+        }
+        
+        lastLocation = location;
 	}
 
 	@Override
@@ -292,41 +293,6 @@ public class LocationService extends Service implements LocationListener, OnShar
 			removeLocationUpdates();
 		}
 	}
-	/*
-	// TODO: Should this be in an AsyncTask?
-	private void saveLocation(Location location, String state) {
-		if(location != null && location.getTime() > 0) {
-			// INTEGRATION WITH LOCATION DATASTORE
-			LocationHelper locationHelper = LocationHelper.getInstance(mContext);
-
-			// build properties
-			Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();
-			locationProperties.add(new LocationProperty("REPORTED_TIME", String.valueOf(System.currentTimeMillis())));
-			locationProperties.add(new LocationProperty("TIME", String.valueOf(location.getTime())));
-			locationProperties.add(new LocationProperty("ACCURACY", String.valueOf(location.getAccuracy())));
-			locationProperties.add(new LocationProperty("BEARING", String.valueOf(location.getBearing())));
-			locationProperties.add(new LocationProperty("SPEED", String.valueOf(location.getSpeed())));
-			locationProperties.add(new LocationProperty("PROVIDER", String.valueOf(location.getProvider())));
-			locationProperties.add(new LocationProperty("ALTITUDE", String.valueOf(location.getAltitude())));
-
-			// build geometry
-			LocationGeometry locationGeometry = new LocationGeometry(new PointGeometry(location.getLatitude(), location.getLongitude()));
-
-			// build location
-			mil.nga.giat.mage.sdk.datastore.location.Location loc = new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", locationProperties, locationGeometry);
-
-			loc.setLocationGeometry(locationGeometry);
-			loc.setProperties(locationProperties);
-
-			// save the location
-			try {
-				Log.d(LOG_NAME, locationHelper.createLocation(loc).toString());
-			} catch (LocationException le) {
-				// TODO: is this good enough?
-				Log.w(LOG_NAME, "Unable to record current location locally!", le);
-			}
-		}
-	}*/
 	
 	/**
 	 * Polls for locations at time specified by the settings.
@@ -446,59 +412,6 @@ public class LocationService extends Service implements LocationListener, OnShar
 			}
 		}
 	}
-
-//	public class saveLocation extends AsyncTask<Object, Void, Void> {		
-//		@Override
-//		protected Void doInBackground(Object... params) {
-//
-//			Location location = (Location) params[0];
-//			String state = (String) params[1];
-//
-//			if (location != null && location.getTime() > 0) {
-//				// INTEGRATION WITH LOCATION DATASTORE
-//				LocationHelper locationHelper = LocationHelper.getInstance(mContext);
-//
-//				// build properties
-//				Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();				
-//				//locationProperties.add(new LocationProperty("timestamp", DateUtility.getISO8601().format(new Date(location.getTime()))));
-//				locationProperties.add(new LocationProperty("accuracy", String.valueOf(location.getAccuracy())));
-//				locationProperties.add(new LocationProperty("bearing", String.valueOf(location.getBearing())));
-//				locationProperties.add(new LocationProperty("speed", String.valueOf(location.getSpeed())));
-//				locationProperties.add(new LocationProperty("provider", String.valueOf(location.getProvider())));
-//				locationProperties.add(new LocationProperty("altitude", String.valueOf(location.getAltitude())));
-//
-//				// build geometry
-//				LocationGeometry locationGeometry = new LocationGeometry(geometryFactory.createPoint(new Coordinate(location.getLongitude(), location.getLatitude())));
-//
-//				User currentUser = null;
-//				List<User> currentUsers;
-//				try {
-//					currentUsers = userHelper.readCurrentUsers();
-//					if(currentUsers.size() > 0) {
-//						currentUser = currentUsers.get(0);
-//					}
-//				} catch (UserException e) {
-//					Log.e(LOG_NAME, "Could not get current User!");
-//				}
-//				
-//				// build location
-//				mil.nga.giat.mage.sdk.datastore.location.Location loc = new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", currentUser, locationProperties, locationGeometry);
-//
-//				loc.setLocationGeometry(locationGeometry);
-//				loc.setProperties(locationProperties);
-//
-//				// save the location
-//				try {
-//					loc = locationHelper.create(loc);
-//					Log.d(LOG_NAME, "Save location: " + loc.getLocationGeometry().getGeometry());
-//				} catch (LocationException le) {
-//					// TODO: is this good enough?
-//					Log.w(LOG_NAME, "Unable to record current location locally!", le);
-//				}
-//			}
-//			return null;
-//		}
-//	}
 	
 	/**
 	 * Will alert the polling thread that changes have been made

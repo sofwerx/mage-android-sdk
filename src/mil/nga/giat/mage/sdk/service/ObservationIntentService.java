@@ -1,7 +1,6 @@
 package mil.nga.giat.mage.sdk.service;
 
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
-import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.exceptions.ObservationException;
@@ -31,7 +30,7 @@ public class ObservationIntentService extends IntentService {
 		Long observationId = intent.getLongExtra(OBSERVATION_ID, -1);
 		Log.i(LOG_NAME, "Handling observation: " + observationId);
 		try {
-			Observation observation = ObservationHelper.getInstance(getApplicationContext()).readByPrimaryKey(observationId);
+			Observation observation = ObservationHelper.getInstance(getApplicationContext()).read(observationId);
 			if (!observation.isDirty()) {
 				Log.i(LOG_NAME, "Already pushed observation " + observationId + ", skipping.");
 				return;

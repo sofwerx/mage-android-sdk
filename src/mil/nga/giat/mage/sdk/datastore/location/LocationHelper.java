@@ -3,12 +3,11 @@ package mil.nga.giat.mage.sdk.datastore.location;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
-import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.ILocationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
@@ -119,12 +118,9 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 			}
 
 			// fire the event...unless of course its 'myself'
-			if(!pLocation.isCurrentUser() && !userId.equals(pLocation.getUser().getRemoteId())) {
-								
-				ConcurrentSkipListSet<Location> locations = new ConcurrentSkipListSet<Location>();
-				locations.add(createdLocation);
+			if (!pLocation.isCurrentUser() && !userId.equals(pLocation.getUser().getRemoteId())) {		
 				for (ILocationEventListener listener : listeners) {
-					listener.onLocationCreated(locations);
+					listener.onLocationCreated(Collections.singletonList(createdLocation));
 				}
 			}
 
@@ -137,20 +133,30 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	}
 
 	@Override
-	public Location read(String pRemoteId) throws LocationException {
-		Location location = null;
+	public Location read(Long id) throws LocationException {
 		try {
-			List<Location> results = locationDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
-			if (results != null && results.size() > 0) {
-				location = results.get(0);
-			}
+			return locationDao.queryForId(id);
 		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
-			throw new LocationException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+			Log.e(LOG_NAME, "Unable to query for existance for id = '" + id + "'", sqle);
+			throw new LocationException("Unable to query for existance for id = '" + id + "'", sqle);
 		}
-
-		return location;
 	}
+	
+    @Override
+    public Location read(String pRemoteId) throws LocationException {
+        Location location = null;
+        try {
+            List<Location> results = locationDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
+            if (results != null && results.size() > 0) {
+                location = results.get(0);
+            }
+        } catch (SQLException sqle) {
+            Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+            throw new LocationException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+        }
+
+        return location;
+    }
 
 	/**
 	 * Light-weight query for testing the existence of a location in the local data-store.

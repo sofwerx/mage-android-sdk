@@ -91,19 +91,29 @@ public class UserHelper extends DaoHelper<User> {
 	}
 
 	@Override
-	public User read(String pRemoteId) throws UserException {
-		User user = null;
+	public User read(Long id) throws UserException {
 		try {
-			List<User> results = userDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
-			if (results != null && results.size() > 0) {
-				user = results.get(0);
-			}
+			return userDao.queryForId(id);
 		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
-			throw new UserException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+			Log.e(LOG_NAME, "Unable to query for existance for id = '" + id + "'", sqle);
+			throw new UserException("Unable to query for existance for id = '" + id + "'", sqle);
 		}
-		return user;
 	}
+	
+    @Override
+    public User read(String pRemoteId) throws UserException {
+        User user = null;
+        try {
+            List<User> results = userDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
+            if (results != null && results.size() > 0) {
+                user = results.get(0);
+            }
+        } catch (SQLException sqle) {
+            Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+            throw new UserException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+        }
+        return user;
+    }
 
 	public void update(User pUser) throws UserException {
 		try {

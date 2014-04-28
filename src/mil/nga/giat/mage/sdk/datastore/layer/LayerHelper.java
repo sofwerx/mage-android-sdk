@@ -157,6 +157,16 @@ public class LayerHelper extends DaoHelper<Layer> implements IEventDispatcher<IL
     }
 
     @Override
+    public Layer read(Long id) throws LayerException {
+        try {
+            return layerDao.queryForId(id);
+        } catch (SQLException sqle) {
+            Log.e(LOG_NAME, "Unable to query for existance for id = '" + id + "'", sqle);
+            throw new LayerException("Unable to query for existance for id = '" + id + "'", sqle);
+        }
+    }
+    
+    @Override
     public Layer read(String pRemoteId) throws LayerException {
         Layer layer = null;
         try {

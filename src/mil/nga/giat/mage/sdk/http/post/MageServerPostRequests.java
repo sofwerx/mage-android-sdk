@@ -88,7 +88,8 @@ public class MageServerPostRequests {
 				entity = response.getEntity();
 				Observation returnedObservation = observationDeserializer.parseObservation(entity.getContent());
 				returnedObservation.setDirty(Boolean.FALSE);
-				savedObservation = observationHelper.update(returnedObservation, observation);
+				returnedObservation.setId(observation.getId());
+				savedObservation = observationHelper.update(returnedObservation);
 			} else {
 				entity = response.getEntity();
 				String error = EntityUtils.toString(entity);

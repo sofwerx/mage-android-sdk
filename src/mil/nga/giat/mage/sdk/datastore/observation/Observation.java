@@ -37,6 +37,9 @@ public class Observation implements Comparable<Observation>, Temporal {
     @DatabaseField(columnName = "device_id")
     private String deviceId;
 
+    @DatabaseField(canBeNull = false, columnName = "local_last_modified", dataType = DataType.DATE_LONG)
+    private Date localLastModified = new Date(0);
+    
     @DatabaseField(canBeNull = false, columnName = "last_modified", dataType = DataType.DATE_LONG)
     private Date lastModified = new Date(0);
 
@@ -134,10 +137,18 @@ public class Observation implements Comparable<Observation>, Temporal {
         this.lastModified = lastModified;
     }
 
+    public Date getLocalLastModified() {
+        return localLastModified;
+    }
+
+    public void setLocalLastModified(Date localLastModified) {
+        this.localLastModified = localLastModified;
+    }
+
     public Date getLastModified() {
         return lastModified;
     }
-
+    
     public void setDirty(boolean dirty) {
         this.dirty = dirty;
     }

@@ -154,20 +154,30 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEv
 	}
 
 	@Override
-	public StaticFeature read(String pRemoteId) throws StaticFeatureException {
-		StaticFeature staticFeature = null;
+	public StaticFeature read(Long id) throws StaticFeatureException {
 		try {
-			List<StaticFeature> results = staticFeatureDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
-			if (results != null && results.size() > 0) {
-				staticFeature = results.get(0);
-			}
+			return staticFeatureDao.queryForId(id);
 		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
-			throw new StaticFeatureException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+			Log.e(LOG_NAME, "Unable to query for existance for id = '" + id + "'", sqle);
+			throw new StaticFeatureException("Unable to query for existance for id = '" + id + "'", sqle);
 		}
-
-		return staticFeature;
 	}
+
+    @Override
+    public StaticFeature read(String pRemoteId) throws StaticFeatureException {
+        StaticFeature staticFeature = null;
+        try {
+            List<StaticFeature> results = staticFeatureDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
+            if (results != null && results.size() > 0) {
+                staticFeature = results.get(0);
+            }
+        } catch (SQLException sqle) {
+            Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+            throw new StaticFeatureException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+        }
+
+        return staticFeature;
+    }
 
 	public List<StaticFeature> readAll(String pLayerId) throws StaticFeatureException {
 		List<StaticFeature> staticFeatures = new ArrayList<StaticFeature>();

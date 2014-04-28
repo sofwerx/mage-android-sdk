@@ -77,17 +77,28 @@ public class RoleHelper extends DaoHelper<Role> {
 	}
 
 	@Override
-	public Role read(String pRemoteId) throws RoleException {
-		Role role = null;
+	public Role read(Long id) throws RoleException {
 		try {
-			List<Role> results = roleDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
-			if (results != null && results.size() > 0) {
-				role = results.get(0);
-			}
+			return roleDao.queryForId(id);
 		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
-			throw new RoleException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+			Log.e(LOG_NAME, "Unable to query for existance for id = '" + id + "'", sqle);
+			throw new RoleException("Unable to query for existance for id = '" + id + "'", sqle);
 		}
-		return role;
+
 	}
+	
+    @Override
+    public Role read(String pRemoteId) throws RoleException {
+        Role role = null;
+        try {
+            List<Role> results = roleDao.queryBuilder().where().eq("remote_id", pRemoteId).query();
+            if (results != null && results.size() > 0) {
+                role = results.get(0);
+            }
+        } catch (SQLException sqle) {
+            Log.e(LOG_NAME, "Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+            throw new RoleException("Unable to query for existance for remote_id = '" + pRemoteId + "'", sqle);
+        }
+        return role;
+    }
 }
