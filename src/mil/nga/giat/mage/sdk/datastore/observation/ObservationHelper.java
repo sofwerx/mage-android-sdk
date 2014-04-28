@@ -248,7 +248,6 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 
 		try {
 			queryBuilder.where().isNotNull("remote_id");
-			queryBuilder.where().eq("dirty", false);
 			queryBuilder.orderBy("last_modified", false);
 			queryBuilder.limit(1L);
 			Observation o = observationDao.queryForFirst(queryBuilder.prepare());

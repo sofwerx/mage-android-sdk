@@ -229,12 +229,12 @@ public class MageServerGetRequests {
 
             ObservationHelper observationHelper = ObservationHelper.getInstance(context);
 
-            // TODO : should we add one millisecond to this?
-            Date lastModifiedDate = observationHelper.getLatestRemoteLastModified();
+            Date lastModifiedDate = new Date(observationHelper.getLatestRemoteLastModified().getTime() + 1);
 
             URL observationURL = new URL(serverURL, "/FeatureServer/" + fieldObservationLayerId + "/features");
             Uri.Builder uriBuilder = Uri.parse(observationURL.toURI().toString()).buildUpon();
             uriBuilder.appendQueryParameter("startDate", DateUtility.getISO8601().format(lastModifiedDate));
+            Log.i(LOG_NAME, "fetch all observations after: " + DateUtility.getISO8601().format(lastModifiedDate));
 
             DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
             Log.d(LOG_NAME, uriBuilder.build().toString());
