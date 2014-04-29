@@ -79,7 +79,6 @@ public class ObservationPushIntentService extends ConnectivityAwareIntentService
 
 	@Override
 	public void onObservationCreated(Collection<Observation> observations) {
-		Log.i(LOG_NAME, "SEW was here!");
 		for (Observation observation : observations) {
 			if (observation.isDirty()) {
 				synchronized (pushSemaphore) {
