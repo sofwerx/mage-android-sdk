@@ -114,9 +114,8 @@ public class ObservationDeserializer extends Deserializer {
         return observation;
     }
 
-    // FIXME : BILLY, you need to get the correct state!
     private State parseState(JsonParser parser) throws JsonParseException, IOException {
-        State state = null;
+        State state = State.ACTIVE;
         
         if (parser.getCurrentToken() != JsonToken.START_OBJECT) return state;
 
@@ -124,7 +123,14 @@ public class ObservationDeserializer extends Deserializer {
             String name = parser.getCurrentName();
             if ("name".equals(name)) {
                 parser.nextToken();
-                state = State.ACTIVE;
+                String stateString = parser.getText();
+                if(stateString != null) {
+	                try {
+	                	state = State.valueOf(stateString.trim().toUpperCase());
+	                } catch(Exception e) {
+	                	Log.e(LOG_NAME, "Could not parse state: " +String.valueOf(stateString));
+	                }
+                }
             } else {
                 parser.nextToken();
                 parser.skipChildren();

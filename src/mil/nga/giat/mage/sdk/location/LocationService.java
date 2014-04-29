@@ -121,11 +121,6 @@ public class LocationService extends Service implements LocationListener, OnShar
 	
 	private final Handler mHandler = new Handler();
 
-	/**
-	 * FIXME: Should this take a storage utility to save locations?
-	 * 
-	 * @param context
-	 */
 	public LocationService(Context context) {
 		this.mContext = context;
 		this.userHelper = UserHelper.getInstance(mContext);

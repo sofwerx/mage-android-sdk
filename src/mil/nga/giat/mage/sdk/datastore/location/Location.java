@@ -31,7 +31,7 @@ public class Location implements Comparable<Location>, Temporal {
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
 	private User user;
 
-    @DatabaseField(canBeNull = false, version = true, columnName = "last_modified", dataType = DataType.DATE_LONG)
+    @DatabaseField(canBeNull = false, columnName = "last_modified", dataType = DataType.DATE_LONG)
     private Date lastModified = new Date(0);
 
 	@DatabaseField(canBeNull = false, columnName = "current_user")
