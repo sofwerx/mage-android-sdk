@@ -193,6 +193,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 		try {
 			queryBuilder.where().eq("current_user", true);
 		
+			// FIXME: we should not be doing this!!!  last_modified is not set on our locations!  Use the other last_modified field!!!!
 			//this is used for psudo-batching...optional.
 			if(maxReturn > 0) {
 				queryBuilder.limit(maxReturn);

@@ -13,6 +13,7 @@ import mil.nga.giat.mage.sdk.datastore.location.Location;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeature;
+import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.gson.deserializer.LayerDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.jackson.deserializer.LocationDeserializer;
@@ -329,41 +330,38 @@ public class MageServerGetRequests {
 //        return observations;
 //    }
 
-    public static Collection<Location> getLocations(Context context) {
+	public static Collection<Location> getLocations(Context context) {
+		Collection<Location> locations = new ArrayList<Location>();
+		HttpEntity entity = null;
+		try {
+			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
+			URL locationURL = new URL(serverURL, "/api/locations");
 
-        Collection<Location> locations = new ArrayList<Location>();
-
-        HttpEntity entity = null;
-
-        try {
-            URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
-            URL locationURL = new URL(serverURL, "/api/locations");
-
-            DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
-            HttpGet get = new HttpGet(locationURL.toURI());
-            HttpResponse response = httpclient.execute(get);
+			DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
+			HttpGet get = new HttpGet(locationURL.toURI());
+			HttpResponse response = httpclient.execute(get);
 
 			if (HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
 				entity = response.getEntity();
-                locations = locationDeserializer.parseLocations(entity.getContent());
+				locations = locationDeserializer.parseLocations(entity.getContent(), UserHelper.getInstance(context).readCurrentUsers());
 			} else {
 				entity = response.getEntity();
 				String error = EntityUtils.toString(entity);
 				Log.e(LOG_NAME, "Bad request.");
 				Log.e(LOG_NAME, error);
 			}
-        } catch (Exception e) {
-            Log.e(LOG_NAME, "There was a failure while performing an Location Fetch opperation.", e);
-        } finally {
-        	try {
-                if (entity != null) {
-                    entity.consumeContent();
-                }
-            } catch (Exception e) {
-                Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
-            }
-        }
+		} catch (Exception e) {
+			Log.e(LOG_NAME, "There was a failure while performing an Location Fetch opperation.", e);
+		} finally {
+			try {
+				if (entity != null) {
+					entity.consumeContent();
+				}
+			} catch (Exception e) {
+				Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
+			}
+		}
 
-        return locations;
-    }
+		return locations;
+	}
 }

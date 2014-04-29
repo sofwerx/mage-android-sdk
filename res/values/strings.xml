@@ -26,8 +26,6 @@
     <string name="observationPushFrequencyDefaultValue">60000</string>
     <string name="locationPushFrequencyKey">locationPushFrequency</string>
     <string name="locationPushFrequencyDefaultValue">60000</string>
-    <string name="locationFetchFrequencyKey">locationFetchFrequency</string>
-    <string name="locationFetchFrequencyDefaultValue">60000</string>
     <string name="haveLayersBeenFetchedOnceKey">haveLayersBeenReadOnce</string>
     <string name="haveLayersBeenFetchedOnceDefaultValue">false</string>
 

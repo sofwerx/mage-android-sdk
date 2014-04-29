@@ -277,9 +277,7 @@ public class MageServerPostRequests {
 //		return attachment;
 //	}
 
-	public static Location postLocation(Location location, Context context) {
-
-		Location savedLocation = location;
+	public static void postLocation(Location location, Context context) {
 		HttpEntity entity = null;
 		try {
 			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
@@ -290,8 +288,6 @@ public class MageServerPostRequests {
 			request.addHeader("Content-Type", "application/json; charset=utf-8");
 			Gson gson = LocationSerializer.getGsonBuilder(context);
 			request.setEntity(new StringEntity(gson.toJson(location)));
-			
-			
 
 			HttpResponse response = httpClient.execute(request);
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
@@ -315,7 +311,6 @@ public class MageServerPostRequests {
 	            Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
 	        }
 		}
-		return savedLocation;
 	}
 
 }

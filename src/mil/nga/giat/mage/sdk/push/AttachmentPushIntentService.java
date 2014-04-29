@@ -1,4 +1,4 @@
-package mil.nga.giat.mage.sdk.service;
+package mil.nga.giat.mage.sdk.push;
 
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
@@ -10,16 +10,16 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.util.Log;
 
-public class AttachmentIntentService extends IntentService {
+public class AttachmentPushIntentService extends IntentService {
 	
-	private static final String LOG_NAME = AttachmentIntentService.class.getName();
+	private static final String LOG_NAME = AttachmentPushIntentService.class.getName();
 	
 	public static final String ATTACHMENT_PUSHED = "mil.nga.giat.mage.sdk.service.ATTACHMENT_PUSHED";
 	
 	public static final String ATTACHMENT_ID = "attachmentId";
 
-	public AttachmentIntentService() {
-		super("AttachmentIntentService");
+	public AttachmentPushIntentService() {
+		super(LOG_NAME);
 	}
 
 	@Override

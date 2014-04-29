@@ -114,6 +114,7 @@ public class ObservationDeserializer extends Deserializer {
         return observation;
     }
 
+    // FIXME : BILLY, you need to get the correct state!
     private State parseState(JsonParser parser) throws JsonParseException, IOException {
         State state = null;
         

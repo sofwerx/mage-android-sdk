@@ -35,7 +35,7 @@ public class Location implements Comparable<Location>, Temporal {
     private Date lastModified = new Date(0);
 
 	@DatabaseField(canBeNull = false, columnName = "current_user")
-	private boolean currentUser;
+	private boolean currentUser = false;
 
 	@DatabaseField
 	private String type;
