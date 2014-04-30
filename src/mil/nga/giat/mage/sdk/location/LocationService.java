@@ -105,7 +105,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 	
 	protected final synchronized boolean getLocationServiceEnabled() {
 	    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-        return preferences.getBoolean("locationServiceEnabled", false);
+        return preferences.getBoolean(mContext.getString(R.string.locationServiceEnabledKey), false);
 	}
 	
     protected final synchronized boolean shouldReportUserLocation() {
@@ -209,27 +209,21 @@ public class LocationService extends Service implements LocationListener, OnShar
 
 	@Override
 	public void onLocationChanged(Location location) {
-	    Log.i(LOG_NAME, "location service has detected a location change");
-	    
 		if (location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
 			setLastLocationPullTime(System.currentTimeMillis());
-			
+
 			if (shouldReportUserLocation()) {
 				saveLocation(location, "ACTIVE");
 			}
 		}
-		
-        if (location.getProvider().equals(LocationManager.GPS_PROVIDER) || 
-                lastLocation == null || 
-                new Date().getTime() - lastLocation.getTime() > getUserReportingFrequency()) {
-            
-            Log.i(LOG_NAME, "location service saved a new location telling all listeners");
-            for (LocationListener listener : locationListeners) {
-                listener.onLocationChanged(location);
-            }
-        }
-        
-        lastLocation = location;
+
+		if (location.getProvider().equals(LocationManager.GPS_PROVIDER) || lastLocation == null || new Date().getTime() - lastLocation.getTime() > getUserReportingFrequency()) {
+			for (LocationListener listener : locationListeners) {
+				listener.onLocationChanged(location);
+			}
+		}
+
+		lastLocation = location;
 	}
 
 	@Override
@@ -371,28 +365,24 @@ public class LocationService extends Service implements LocationListener, OnShar
 			// build properties
 			Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();				
 			//locationProperties.add(new LocationProperty("timestamp", DateUtility.getISO8601().format(new Date(location.getTime()))));
-			locationProperties.add(new LocationProperty("accuracy", String.valueOf(location.getAccuracy())));
-			locationProperties.add(new LocationProperty("bearing", String.valueOf(location.getBearing())));
-			locationProperties.add(new LocationProperty("speed", String.valueOf(location.getSpeed())));
-			locationProperties.add(new LocationProperty("provider", String.valueOf(location.getProvider())));
-			locationProperties.add(new LocationProperty("altitude", String.valueOf(location.getAltitude())));
+			locationProperties.add(new LocationProperty("accuracy", location.getAccuracy()));
+			locationProperties.add(new LocationProperty("bearing", location.getBearing()));
+			locationProperties.add(new LocationProperty("speed", location.getSpeed()));
+			locationProperties.add(new LocationProperty("provider", location.getProvider()));
+			locationProperties.add(new LocationProperty("altitude", location.getAltitude()));
 
 			// build geometry
 			LocationGeometry locationGeometry = new LocationGeometry(geometryFactory.createPoint(new Coordinate(location.getLongitude(), location.getLatitude())));
 
 			User currentUser = null;
-			List<User> currentUsers;
 			try {
-				currentUsers = userHelper.readCurrentUsers();
-				if(currentUsers.size() > 0) {
-					currentUser = currentUsers.get(0);
-				}
+				currentUser = userHelper.readCurrentUser();
 			} catch (UserException e) {
 				Log.e(LOG_NAME, "Could not get current User!");
 			}
 			
 			// build location
-			mil.nga.giat.mage.sdk.datastore.location.Location loc = new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", currentUser, locationProperties, locationGeometry);
+			mil.nga.giat.mage.sdk.datastore.location.Location loc = new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", currentUser, locationProperties, locationGeometry, new Date(location.getTime()));
 
 			loc.setLocationGeometry(locationGeometry);
 			loc.setProperties(locationProperties);
@@ -414,7 +404,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 	    if (key.equalsIgnoreCase(mContext.getString(R.string.locationServiceEnabledKey))) {
-	        boolean locationServiceEnabled = sharedPreferences.getBoolean("locationServiceEnabled", false);
+	        boolean locationServiceEnabled = sharedPreferences.getBoolean(mContext.getString(R.string.locationServiceEnabledKey), false);
 	        if (locationServiceEnabled) {
 	            start();
 	        } else {

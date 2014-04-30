@@ -41,11 +41,12 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 	protected void onHandleIntent(Intent intent) {
 		super.onHandleIntent(intent);
 		PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).registerOnSharedPreferenceChangeListener(this);
+		ObservationHelper observationHelper = ObservationHelper.getInstance(getApplicationContext());
+		UserHelper userHelper = UserHelper.getInstance(getApplicationContext());
+		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
 		while (true) {
-			ObservationHelper observationHelper = ObservationHelper.getInstance(getApplicationContext());
-			UserHelper userHelper = UserHelper.getInstance(getApplicationContext());
-			SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-			Boolean isDataFetchEnabled = sharedPreferences.getBoolean("dataFetchEnabled", true);
+			Boolean isDataFetchEnabled = sharedPreferences.getBoolean(getApplicationContext().getString(R.string.dataFetchEnabledKey), true);
 
 			if (isConnected && isDataFetchEnabled) {
 
@@ -90,7 +91,7 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 					isConnected = ConnectivityUtility.isOnline(getApplicationContext());
 				}
 			} else {
-				Log.d(LOG_NAME, "The device is currently disconnected. Nothing to fetch.");
+				Log.d(LOG_NAME, "The device is currently disconnected, or data fetch is disabled. Not performing fetch.");
 			}
 
 			long frequency = getobservationFetchFrequency();
@@ -122,7 +123,7 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 	 */
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-		if (key.equalsIgnoreCase(getApplicationContext().getString(R.string.observationFetchFrequencyKey))) {
+		if (key.equalsIgnoreCase(getApplicationContext().getString(R.string.observationFetchFrequencyKey)) || key.equalsIgnoreCase(getApplicationContext().getString(R.string.dataFetchEnabledKey))) {
 			synchronized (fetchSemaphore) {
 				fetchSemaphore.notifyAll();
 			}

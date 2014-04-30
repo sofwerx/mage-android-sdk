@@ -54,11 +54,11 @@ public class UserServerFetch extends AbstractServerFetch {
 					isCurrentUser = true;
 				} else {
 					try {
-						for (User u : userHelper.readCurrentUsers()) {
+						User u = userHelper.readCurrentUser();
+						if(u != null) {
 							String rid = u.getRemoteId();
 							if (rid != null && rid.equalsIgnoreCase(userId)) {
 								isCurrentUser = true;
-								break;
 							}
 						}
 					} catch (UserException e) {
@@ -85,7 +85,7 @@ public class UserServerFetch extends AbstractServerFetch {
 								Log.d(LOG_NAME, "created user with remote_id " + user.getRemoteId());
 							} else {
 								// perform update?
-								user.setPk_id(oldUser.getPk_id());
+								user.setId(oldUser.getId());
 								user.setCurrentUser(isCurrentUser);
 								user.setFetchedDate(new Date());
 								userHelper.update(user);

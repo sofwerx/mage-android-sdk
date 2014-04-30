@@ -30,8 +30,6 @@ public class UserHelper extends DaoHelper<User> {
 	private static final String LOG_NAME = UserHelper.class.getName();
 
 	private final Dao<User, Long> userDao;
-
-	public String USER_ID = "";
 	
 	/**
 	 * Singleton.
@@ -63,13 +61,6 @@ public class UserHelper extends DaoHelper<User> {
 
 		try {
 			userDao = daoStore.getUserDao();
-
-			//get the current logged in userId
-			SharedPreferences sp = 
-					PreferenceManager.getDefaultSharedPreferences(pContext.getApplicationContext());			
-			
-			USER_ID = sp.getString("userId", "");			
-			
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to communicate with User database.", sqle);
 
@@ -133,27 +124,21 @@ public class UserHelper extends DaoHelper<User> {
 	 * @throws UserException
 	 *             Indicates a problem reading users from the datastore.
 	 */
-	public List<User> readCurrentUsers() throws UserException {
+	public User readCurrentUser() throws UserException {
 
-		List<User> currentUsers = null;
-
+		User currentUser = null;
 		try {
 			QueryBuilder<User, Long> qb = userDao.queryBuilder();
 			Where<User, Long> where = qb.where();
 			where.eq("isCurrentUser", Boolean.TRUE);
 			PreparedQuery<User> preparedQuery = qb.prepare();
-			currentUsers = userDao.query(preparedQuery);
+			currentUser = userDao.queryForFirst(preparedQuery);
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "There was a problem reading active users.");
 			throw new UserException("There was a problem reading active users.", sqle);
-		} finally {
-			if (currentUsers == null) {
-				currentUsers = new ArrayList<User>();
-			}
 		}
 
-		return currentUsers;
-
+		return currentUser;
 	}
 
 	/**

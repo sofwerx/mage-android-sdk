@@ -192,7 +192,7 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 							Log.d(LOG_NAME, "created user with remote_id " + user.getRemoteId());
 						} else {
 							// TODO: perform update?
-							user.setPk_id(oldUser.getPk_id());
+							user.setId(oldUser.getId());
 							user.setCurrentUser(true);
 							user.setFetchedDate(new Date());
 							userHelper.update(user);

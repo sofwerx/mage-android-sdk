@@ -1,11 +1,10 @@
 package mil.nga.giat.mage.sdk.gson.serializer;
 
+import java.io.Serializable;
 import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collection;
+import java.util.List;
 
-import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.location.Location;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
@@ -21,85 +20,83 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * Used to convert a Location object into a json String.
+ * 
  * @author travis
- *
+ * 
  */
-public class LocationSerializer implements JsonSerializer<Location>{
+public class LocationSerializer implements JsonSerializer<Collection<Location>> {
 
-	private Set<String> doubleProperties = new HashSet<String>();
-		
 	public LocationSerializer(Context context) {
 		super();
-		String[] doubleFields = context.getResources().getStringArray(R.array.double_fields_array);
-		if(doubleFields != null && doubleFields.length > 0) {
-			doubleProperties = new HashSet<String>(Arrays.asList(doubleFields));
-		}	
 	}
 
 	@Override
-	public JsonElement serialize(Location location, Type locationType, JsonSerializationContext context) {
-		//create required components
+	public JsonElement serialize(Collection<Location> locations, Type locationType, JsonSerializationContext context) {
+		// create required components
 		JsonArray jsonLocations = new JsonArray();
-		JsonObject jsonLocation = new JsonObject();
-		JsonObject jsonProperties = new JsonObject();
-				
-		jsonLocation.add("geometry", new JsonParser().parse(GeometrySerializer.getGsonBuilder().toJson(location.getLocationGeometry().getGeometry())));
-		jsonLocation.add("properties", jsonProperties);
-		
-		// timestamp is not a property in a Location object, not sure why.  Gotta submit that to the server
-		// lets go ahead and add it manually
-		jsonProperties.add("timestamp", new JsonPrimitive(DateUtility.getISO8601().format(location.getLastModified())));
-		
-		//...including json properties
-		for(LocationProperty property : location.getProperties()) {
-			String key = property.getKey();
-			String value = property.getValue();
+		for (Location location : locations) {
 
-			if (doubleProperties.contains(key)) {
-				// TODO: This will eventually be changed to a Date...
-				// TODO: Perhaps we should wrap in an Exception?
-				Double convertedValue = Double.valueOf(value);
-				jsonProperties.add(key, new JsonPrimitive(convertedValue));
-			} else {
+			JsonObject jsonLocation = new JsonObject();
+			JsonObject jsonProperties = new JsonObject();
+
+			jsonLocation.add("geometry", new JsonParser().parse(GeometrySerializer.getGsonBuilder().toJson(location.getLocationGeometry().getGeometry())));
+			jsonLocation.add("properties", jsonProperties);
+			jsonProperties.add("timestamp", new JsonPrimitive(DateUtility.getISO8601().format(location.getTimestamp())));
+			jsonProperties.add("user", new JsonPrimitive(location.getUser().getId()));
+
+			// properties
+			for (LocationProperty property : location.getProperties()) {
+				String key = property.getKey();
+				Serializable value = property.getValue();
+
 				conditionalAdd(key, value, jsonProperties);
 			}
+			// assemble final location array
+			jsonLocations.add(jsonLocation);
 		}
-		
-		//assemble final location array
-		jsonLocations.add(jsonLocation);
-		
+
 		return jsonLocations;
 	}
 
 	/**
-	 * Convenience method for returning a Gson object with a registered GSon
-	 * TypeAdaptor i.e. custom serializer.
+	 * Convenience method for returning a Gson object with a registered GSon TypeAdaptor i.e. custom serializer.
 	 * 
-	 * @return A Gson object that can be used to convert {@link Observation} object
-	 * into a JSON string.
+	 * @return A Gson object that can be used to convert {@link Observation} object into a JSON string.
 	 */
 	public static Gson getGsonBuilder(Context context) {
 		GsonBuilder gsonBuilder = new GsonBuilder();
-		gsonBuilder.registerTypeAdapter(Location.class, new LocationSerializer(context));
+		gsonBuilder.registerTypeAdapter(new TypeToken<List<Location>>(){}.getType(), new LocationSerializer(context));
 		return gsonBuilder.create();
 	}
-	
+
 	/**
-	 * Utility used to ensure we don't add junk to the json string.  For now,
-	 * we skip null property values.
-	 * @param property Property to add.
-	 * @param toAdd Property value to add.
-	 * @param pJsonObject Object to conditionally add to.
+	 * Utility used to ensure we don't add junk to the json string. For now, we skip null property values.
+	 * 
+	 * @param property
+	 *            Property to add.
+	 * @param toAdd
+	 *            Property value to add.
+	 * @param pJsonObject
+	 *            Object to conditionally add to.
 	 * @return A reference to json object.
 	 */
-	private JsonObject conditionalAdd(String property, Object toAdd, final JsonObject pJsonObject) {
+	private JsonObject conditionalAdd(String property, Serializable toAdd, final JsonObject pJsonObject) {
 		if (toAdd != null) {
-			pJsonObject.add(property, new JsonPrimitive(toAdd.toString()));
+			if (toAdd instanceof Double) {
+				pJsonObject.add(property, new JsonPrimitive((Double) toAdd));
+			} else if (toAdd instanceof Float) {
+				pJsonObject.add(property, new JsonPrimitive((Float) toAdd));
+			} else if (toAdd instanceof Boolean) {
+				pJsonObject.add(property, new JsonPrimitive((Boolean) toAdd));
+			} else {
+				pJsonObject.add(property, new JsonPrimitive(toAdd.toString()));
+			}
 		}
 		return pJsonObject;
 	}
-	
+
 }

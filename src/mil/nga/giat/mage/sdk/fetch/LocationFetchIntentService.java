@@ -9,6 +9,7 @@ import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.datastore.location.Location;
 import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
+import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
@@ -37,14 +38,13 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 	protected void onHandleIntent(Intent intent) {
 		super.onHandleIntent(intent);
 		PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).registerOnSharedPreferenceChangeListener(this);
-
 		LocationHelper locationHelper = LocationHelper.getInstance(getApplicationContext());
 		UserHelper userHelper = UserHelper.getInstance(getApplicationContext());
 		UserServerFetch userFetch = new UserServerFetch(getApplicationContext());
 		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
 		while (true) {
-			Boolean isDataFetchEnabled = sharedPreferences.getBoolean("dataFetchEnabled", Boolean.TRUE);
+			Boolean isDataFetchEnabled = sharedPreferences.getBoolean(getApplicationContext().getString(R.string.dataFetchEnabledKey), true);
 			if (isConnected && isDataFetchEnabled) {
 
 				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch Locations...");
@@ -52,36 +52,38 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 					Collection<Location> locations = MageServerGetRequests.getLocations(getApplicationContext());
 					for (Location location : locations) {
 
+						
 						// make sure that the user exists and is persisted in the local data-store
-						User user = null;
-						String userId = location.getPropertiesMap().get("user");
+						String userId = null;
+						LocationProperty userIdProperty = location.getPropertiesMap().get("user");
+						if(userIdProperty != null) {
+							userId = userIdProperty.getValue().toString();
+						}
+						
 						if (userId != null) {
-							user = userHelper.read(userId);
+							User user = userHelper.read(userId);
 							// TODO : test the timer to make sure users are updated as needed!
 							final long sixHoursInMillseconds = 6 * 60 * 60 * 1000;
 							if (user == null || (new Date()).after(new Date(user.getFetchedDate().getTime() + sixHoursInMillseconds))) {
 								// get any users that were not recognized or expired
 								userFetch.fetch(new String[] { userId });
 								user = userHelper.read(userId);
-								location.setUser(user);
 							}
-						}
-
-						Location existingLocation = locationHelper.read(location.getRemoteId());
-						// if there is no existing location, create one
-						if (existingLocation == null) {
-							// a user wasn't read in above
-							if (user == null) {
-								user = userHelper.read(userId);
-							}
-							// delete old location and create new one
-							if (user != null && user.getRemoteId() != null) {
-								location.setUser(user);
-								locationHelper.deleteUserLocations(String.valueOf(user.getPk_id()));
-								locationHelper.create(location);
-								Log.d(LOG_NAME, "created location with remote_id " + location.getRemoteId());
-							} else {
-								Log.w(LOG_NAME, "Warning, a location was trying to be saved w/ no user.");
+							location.setUser(user);
+							
+							// if there is no existing location, create one
+							if (locationHelper.read(location.getRemoteId()) == null) {
+								// delete old location and create new one
+								if (user != null) {
+									// don't pull your own locations for now!
+									if(!user.isCurrentUser()) {
+										locationHelper.create(location);
+										Log.d(LOG_NAME, "Created location with remote_id " + location.getRemoteId());
+										locationHelper.deleteUserLocations(String.valueOf(user.getId()), true);
+									}
+								} else {
+									Log.w(LOG_NAME, "A location with no user was found and discarded.  Userid: " + userId);
+								}
 							}
 						}
 					}
@@ -89,7 +91,7 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 					Log.e(LOG_NAME, "There was a failure while performing an Location Fetch opperation.", e);
 				}
 			} else {
-				Log.d(LOG_NAME, "The device is currently disconnected. No Locations to fetch.");
+				Log.d(LOG_NAME, "The device is currently disconnected, or data fetch is disabled. Not performing fetch.");
 			}
 
 			long frequency = getLocationFetchFrequency();
@@ -121,7 +123,7 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 	 */
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-		if (key.equalsIgnoreCase(getApplicationContext().getString(R.string.userFetchFrequencyKey))) {
+		if (key.equalsIgnoreCase(getApplicationContext().getString(R.string.userFetchFrequencyKey)) || key.equalsIgnoreCase(getApplicationContext().getString(R.string.dataFetchEnabledKey))) {
 			synchronized (fetchSemaphore) {
 				fetchSemaphore.notifyAll();
 			}

@@ -9,6 +9,7 @@ import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.datastore.location.Location;
 import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
+import mil.nga.giat.mage.sdk.exceptions.LocationException;
 import mil.nga.giat.mage.sdk.http.post.MageServerPostRequests;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import android.content.Intent;
@@ -39,10 +40,27 @@ public class LocationPushIntentService extends ConnectivityAwareIntentService {
 			if (isConnected) {
 				pushFrequency = getLocationPushFrequency();
 				LocationHelper locationHelper = LocationHelper.getInstance(getApplicationContext());
-				// FIXME: causing a null pointer exception, because of the last_modified stuff.
-				List<Location> locations = locationHelper.getCurrentUserLocations(10L);
-				for (Location location : locations) {
-					MageServerPostRequests.postLocation(location, getApplicationContext());
+
+				int batchSize = 20;
+				int failedAttemptCount = 0;
+				List<Location> locations = locationHelper.getCurrentUserLocations(getApplicationContext(), batchSize);
+				while(!locations.isEmpty() || failedAttemptCount > 3) {
+					Boolean status = MageServerPostRequests.postLocations(locations, getApplicationContext());
+					// we've sync'ed. Don't need the locations anymore.
+					if (status) {
+						Log.d(LOG_NAME, "Pushed " + locations.size() + " locations.");
+						for (Location location : locations) {
+							try {
+								LocationHelper.getInstance(getApplicationContext()).delete(location.getId());
+							} catch (LocationException e) {
+								Log.e(LOG_NAME, "Could not delete the location.", e);
+							}
+						}
+					} else {
+						Log.e(LOG_NAME, "Failed to push locations.");
+						failedAttemptCount++;
+					}
+					locations = locationHelper.getCurrentUserLocations(getApplicationContext(), batchSize);
 				}
 			} else {
 				Log.d(LOG_NAME, "The device is currently disconnected. Can't push locations.");

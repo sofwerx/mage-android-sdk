@@ -8,9 +8,12 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
+import mil.nga.giat.mage.sdk.datastore.user.User;
+import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.ILocationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
+import mil.nga.giat.mage.sdk.exceptions.UserException;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
@@ -34,8 +37,6 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	private final Dao<Location, Long> locationDao;
 	private final Dao<LocationGeometry, Long> locationGeometryDao;
 	private final Dao<LocationProperty, Long> locationPropertyDao;
-
-	private static String userId;
 	
 	private Collection<ILocationEventListener> listeners = new CopyOnWriteArrayList<ILocationEventListener>();
 
@@ -66,12 +67,6 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	 */
 	private LocationHelper(Context context) {
 		super(context);
-
-		//get the current logged in userId
-		SharedPreferences sp = 
-				PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
-		
-		userId = sp.getString("userId", "");
 				
 		try {
 			locationDao = daoStore.getLocationDao();
@@ -117,13 +112,9 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 				}
 			}
 
-			// fire the event...unless of course its 'myself'
-			if (!pLocation.isCurrentUser() && !userId.equals(pLocation.getUser().getRemoteId())) {		
-				for (ILocationEventListener listener : listeners) {
-					listener.onLocationCreated(Collections.singletonList(createdLocation));
-				}
+			for (ILocationEventListener listener : listeners) {
+				listener.onLocationCreated(Collections.singletonList(createdLocation));
 			}
-
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "There was a problem creating the location: " + pLocation + ".", sqle);
 			throw new LocationException("There was a problem creating the location: " + pLocation + ".", sqle);
@@ -179,33 +170,30 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 		
 		return exists;
 	}
-	
-	/**
-	 * Gets a List of Locations from the data-store that are dirty (i.e. should be
-	 * synced with the server).
-	 * @return
-	 */
-	public List<Location> getCurrentUserLocations(Long maxReturn) {
-		
+
+	public List<Location> getCurrentUserLocations(Context context, int limit) {
+
 		QueryBuilder<Location, Long> queryBuilder = locationDao.queryBuilder();
 		List<Location> locations = new ArrayList<Location>();
-
+		User currentUser = null;
 		try {
-			queryBuilder.where().eq("current_user", true);
-		
-			// FIXME: we should not be doing this!!!  last_modified is not set on our locations!  Use the other last_modified field!!!!
-			//this is used for psudo-batching...optional.
-			if(maxReturn > 0) {
-				queryBuilder.limit(maxReturn);
-				queryBuilder.orderBy("last_modified", Boolean.FALSE);
+			currentUser = UserHelper.getInstance(context.getApplicationContext()).readCurrentUser();
+		} catch (UserException e) {
+			e.printStackTrace();
+		}
+		if (currentUser != null) {
+			try {
+				if (limit > 0) {
+					queryBuilder.limit(limit);
+					queryBuilder.orderBy("timestamp", false);
+				}
+				queryBuilder.where().eq("user_id", currentUser.getId());
+				locations = locationDao.query(queryBuilder.prepare());
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				Log.e(LOG_NAME, "Could not get current users Locations.");
 			}
-			
-			locations = locationDao.query(queryBuilder.prepare());
-		} 
-		catch (SQLException e) {
-			// TODO Auto-generated catch block
-			Log.e(LOG_NAME, "Could not get dirty Locations.");
-		}		
+		}
 		return locations;
 	}
 	
@@ -217,28 +205,36 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	 *            The user's local id
 	 * @throws LocationException
 	 */
-	public Integer deleteUserLocations(String userLocalId) throws LocationException {
+	public Integer deleteUserLocations(String userLocalId, Boolean keepMostRecent) throws LocationException {
 
 		int numberLocationsDeleted = 0;
 
 		try {
-			QueryBuilder<Location, Long> qb = locationDao.queryBuilder();
-			qb.where().eq("user_id", userLocalId).and().isNotNull("remote_id");
+			// newset first
+			QueryBuilder<Location, Long> qb = locationDao.queryBuilder().orderBy("timestamp", false);
+			qb.where().eq("user_id", userLocalId);
 			
 			//deleting one at a time ensures that all child records are cleaned up and
 			//events are fired at the correct granularity.
 			//TODO: is this performant enough?
 			List<Location> locations = qb.query();
-			for(Location location : locations) {
-				delete(location.getId());
-				numberLocationsDeleted++;
+			
+			// if we should keep the most recent record, then skip one record.
+			int i = 0;
+			if(keepMostRecent) {
+				i = 1;
 			}
 			
+			for (; i < locations.size(); i++) {
+				Location location = locations.get(i);
+				delete(location.getId());
+				numberLocationsDeleted++;	
+			}
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to delete user's locations", sqle);
 			throw new LocationException("Unable to delete user's locations", sqle);
 		}
-		Log.d(LOG_NAME, "Successfully deleted " + numberLocationsDeleted + " for user " + userLocalId);
+		Log.d(LOG_NAME, "Deleted " + numberLocationsDeleted + " locations for user with local id: " + userLocalId);
 		return numberLocationsDeleted;
 	}
 
@@ -258,7 +254,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 			Collection<LocationProperty> properties = location.getProperties();
 			if (properties != null) {
 				for (LocationProperty property : properties) {
-					locationPropertyDao.deleteById(property.getPk_id());
+					locationPropertyDao.deleteById(property.getId());
 				}
 			}
 

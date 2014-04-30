@@ -2,6 +2,7 @@ package mil.nga.giat.mage.sdk.jackson.deserializer;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,11 +24,8 @@ import com.fasterxml.jackson.core.JsonToken;
 public class LocationDeserializer extends Deserializer {
 
 	private GeometryDeserializer geometryDeserializer = new GeometryDeserializer();
-	
-	private List<User> currentUsers = null;
 
-	public Collection<Location> parseLocations(InputStream is, List<User> currentUsers) throws JsonParseException, IOException {
-		this.currentUsers = currentUsers;
+	public Collection<Location> parseLocations(InputStream is) throws JsonParseException, IOException {
 		JsonParser parser = factory.createParser(is);
 
 		List<Location> locations = new ArrayList<Location>();
@@ -93,33 +91,26 @@ public class LocationDeserializer extends Deserializer {
 			}
 		}
 
-		Map<String, String> properties = location.getPropertiesMap();
+		Map<String, LocationProperty> properties = location.getPropertiesMap();
 
 		// userId is special pull it out of properties and set it at the top level
-		String userId = properties.get("user");
+		LocationProperty userId = properties.get("user");
 		if (userId != null) {
 			User user = new User();
-			user.setRemoteId(userId);
+			user.setRemoteId(userId.getValue().toString());
 			location.setUser(user);
-			for (User u : currentUsers) {
-				if(u.getRemoteId().equalsIgnoreCase(userId)) {
-					location.setIsCurrentUser(true);
-					break;
-				}
-			}
 		}
 
 		// timestamp is special pull it out of properties and set it at the top level
-		String timestamp = properties.get("timestamp");
+		LocationProperty timestamp = properties.get("timestamp");
 		if (timestamp != null) {
 			try {
-				Date d = DateUtility.getISO8601().parse(timestamp);
-				location.setLastModified(d);
+				Date d = DateUtility.getISO8601().parse(timestamp.getValue().toString());
+				location.setTimestamp(d);
 			} catch (ParseException pe) {
 				Log.w("Unable to parse date: " + timestamp + " for location: " + location.getRemoteId(), pe);
 			}
 		}
-
 		return location;
 	}
 
@@ -131,7 +122,29 @@ public class LocationDeserializer extends Deserializer {
 			if (token == JsonToken.START_OBJECT || token == JsonToken.START_ARRAY) {
 				parser.skipChildren();
 			} else {
-				String value = parser.getText();
+				Serializable value = parser.getText();
+				if(token.isNumeric()) {
+					switch (parser.getNumberType()) {
+					case BIG_DECIMAL:
+						break;
+					case BIG_INTEGER:
+						break;
+					case DOUBLE:
+						value = parser.getDoubleValue();
+						break;
+					case FLOAT:
+						value = parser.getFloatValue();
+						break;
+					case INT:
+						value = parser.getIntValue();
+						break;
+					case LONG:
+						value = parser.getLongValue();
+						break;
+					default:
+						break;
+					}
+				}
 				LocationProperty property = new LocationProperty(key, value);
 				property.setLocation(location);
 				properties.add(property);

@@ -3,6 +3,7 @@ package mil.nga.giat.mage.sdk.http.post;
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
+import java.util.List;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.DaoStore;
@@ -37,6 +38,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * A class that contains common POST requests to the MAGE server.
@@ -168,116 +170,9 @@ public class MageServerPostRequests {
 		}
 		return attachment;
 	}
-	
-//	public static Attachment postAttachment(Attachment attachment, Context context) {
-//		try { 
-//			Log.d(LOG_NAME, "Pushing attachment " + attachment.getId() + " to " + attachment.getObservation().getUrl() + "/attachments");
-//			URL url = new URL(attachment.getObservation().getUrl() + "/attachments");
-//            // open a URL connection to the Servlet
-//          FileInputStream fileInputStream = new FileInputStream(new File(attachment.getLocalPath()));
-//          String fileName = new File(attachment.getLocalPath()).getName();
-//          HttpURLConnection conn = null;
-//          DataOutputStream dos = null;
-//          int bytesRead, bytesAvailable, bufferSize;
-//          byte[] buffer;
-//          int maxBufferSize = 1 * 1024 * 1024; 
-//          
-//          String lineEnd = "\r\n";
-//          String twoHyphens = "--";
-//          String boundary = "*****";
-//          
-//          String mimeType = MediaUtility.getMimeType(attachment.getLocalPath());
-//           
-//          // Open a HTTP  connection to  the URL
-//          conn = (HttpURLConnection) url.openConnection(); 
-//          conn.setDoInput(true); // Allow Inputs
-//          conn.setDoOutput(true); // Allow Outputs
-//          conn.setUseCaches(false); // Don't use a Cached Copy
-//          conn.setRequestMethod("POST");
-//          conn.setRequestProperty("Connection", "Keep-Alive");
-//          conn.setRequestProperty("ENCTYPE", "multipart/form-data");
-//          conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
-//          conn.setRequestProperty("uploaded_file", fileName); 
-//          String token = PreferenceHelper.getInstance(context).getValue(R.string.tokenKey);
-//			if (token != null && !token.trim().isEmpty()) {
-//				conn.setRequestProperty("Authorization", "Bearer " + token);
-//			}
-//           
-//          dos = new DataOutputStream(conn.getOutputStream());
-// 
-//          dos.writeBytes(twoHyphens + boundary + lineEnd); 
-//          dos.writeBytes("Content-Disposition: form-data;name=\"attachment\";filename=\""
-//                                    + fileName + "\"" + lineEnd + "Content-Type: "+mimeType+ lineEnd);
-//           
-//          dos.writeBytes(lineEnd);
-// 
-//          // create a buffer of  maximum size
-//          bytesAvailable = fileInputStream.available(); 
-// 
-//          bufferSize = Math.min(bytesAvailable, maxBufferSize);
-//          buffer = new byte[bufferSize];
-// 
-//          // read file and write it into form...
-//          bytesRead = fileInputStream.read(buffer, 0, bufferSize);  
-//             
-//          while (bytesRead > 0) {
-//               
-//            dos.write(buffer, 0, bufferSize);
-//            bytesAvailable = fileInputStream.available();
-//            bufferSize = Math.min(bytesAvailable, maxBufferSize);
-//            bytesRead = fileInputStream.read(buffer, 0, bufferSize);   
-//             
-//           }
-// 
-//          // send multipart form data necesssary after file data...
-//          dos.writeBytes(lineEnd);
-//          dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
-// 
-//          // Responses from the server (code and message)
-//          int serverResponseCode = conn.getResponseCode();
-//          String serverResponseMessage = conn.getResponseMessage();
-//            
-//          Log.i("uploadFile", "HTTP Response is : "
-//                  + serverResponseMessage + ": " + serverResponseCode);
-//           
-//          if(serverResponseCode == 200){
-//               
-//              Log.d(LOG_NAME, "Uploaded correctly");
-//              
-//              BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));  
-//              
-//              Attachment a = AttachmentDeserializer.getGsonBuilder().fromJson(reader, Attachment.class);
-//				attachment.setContentType(a.getContentType());
-//				attachment.setName(a.getName());
-//				attachment.setRemoteId(a.getRemoteId());
-//				attachment.setRemotePath(a.getRemotePath());
-//				attachment.setSize(a.getSize());
-//				attachment.setUrl(a.getUrl());
-//				attachment.setDirty(false);
-//
-//				// TODO go save this attachment again
-//				DaoStore.getInstance(context).getAttachmentDao().update(attachment);
-//          }    
-//           
-//          //close the streams //
-//          fileInputStream.close();
-//          dos.flush();
-//          dos.close();
-//            
-//     } catch (MalformedURLException ex) {
-//          
-//          
-//         Log.e("Upload file to server", "error: " + ex.getMessage(), ex);  
-//     } catch (Exception e) {
-//          
-//       
-//         Log.e("Upload file to server Exception", "Exception : "
-//                                          + e.getMessage(), e);  
-//     }
-//		return attachment;
-//	}
 
-	public static void postLocation(Location location, Context context) {
+	public static Boolean postLocations(List<Location> locations, Context context) {
+		Boolean status = false;
 		HttpEntity entity = null;
 		try {
 			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
@@ -287,13 +182,12 @@ public class MageServerPostRequests {
 			HttpPost request = new HttpPost(endpointUri);
 			request.addHeader("Content-Type", "application/json; charset=utf-8");
 			Gson gson = LocationSerializer.getGsonBuilder(context);
-			request.setEntity(new StringEntity(gson.toJson(location)));
+			request.setEntity(new StringEntity(gson.toJson(locations, new TypeToken<List<Location>>(){}.getType())));
 
 			HttpResponse response = httpClient.execute(request);
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				entity = response.getEntity();
-				// we've sync'ed. Don't need the location anymore.
-				LocationHelper.getInstance(context).delete(location.getId());
+				status = true;
 			} else {
 				entity = response.getEntity();
 				String error = EntityUtils.toString(entity);
@@ -311,6 +205,7 @@ public class MageServerPostRequests {
 	            Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
 	        }
 		}
+		return status;
 	}
 
 }

@@ -31,17 +31,23 @@ public class Location implements Comparable<Location>, Temporal {
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
 	private User user;
 
-    @DatabaseField(canBeNull = false, columnName = "last_modified", dataType = DataType.DATE_LONG)
+    /**
+     * This is the time the location was reported at.  Time the GPS picked up.
+     */
+    @DatabaseField(canBeNull = false, dataType = DataType.DATE_LONG)
+    private Date timestamp = new Date(0);
+    
+    /**
+     * This is the time the server created or updated the observation.
+     */
+    @DatabaseField(columnName = "last_modified", dataType = DataType.DATE_LONG)
     private Date lastModified = new Date(0);
-
-	@DatabaseField(canBeNull = false, columnName = "current_user")
-	private boolean currentUser = false;
 
 	@DatabaseField
 	private String type;
 
 	@ForeignCollectionField(eager = true)
-	private Collection<LocationProperty> properties;
+	private Collection<LocationProperty> properties  = new ArrayList<LocationProperty>();
 
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
 	private LocationGeometry locationGeometry;
@@ -50,12 +56,11 @@ public class Location implements Comparable<Location>, Temporal {
 		// ORMLite needs a no-arg constructor
 	}
 
-	public Location(String type, User user, Collection<LocationProperty> properties, LocationGeometry locationGeometry) {
-		this(null, user, new Date(System.currentTimeMillis()), type, properties, locationGeometry);
-		this.setIsCurrentUser(true);
+	public Location(String type, User user, Collection<LocationProperty> properties, LocationGeometry locationGeometry, Date timestamp) {
+		this(null, user, null, type, properties, locationGeometry, timestamp);
 	}
 
-	public Location(String remoteId, User user, Date lastModified, String type, Collection<LocationProperty> properties, LocationGeometry locationGeometry) {
+	public Location(String remoteId, User user, Date lastModified, String type, Collection<LocationProperty> properties, LocationGeometry locationGeometry, Date timestamp) {
 		super();
 		this.remoteId = remoteId;
 		this.user = user;
@@ -63,7 +68,7 @@ public class Location implements Comparable<Location>, Temporal {
 		this.type = type;
 		this.properties = properties;
 		this.locationGeometry = locationGeometry;
-		this.setIsCurrentUser(false);
+		this.timestamp = timestamp;
 	}
 
 	public Long getId() {
@@ -90,28 +95,21 @@ public class Location implements Comparable<Location>, Temporal {
 		this.user = user;
 	}
 
+	@Override
+	public Date getTimestamp() {
+		return timestamp;
+	}
+
+	public void setTimestamp(Date timestamp) {
+		this.timestamp = timestamp;
+	}
+
 	public String getType() {
 		return type;
 	}
 
 	public void setType(String type) {
 		this.type = type;
-	}
-
-	public void setLastModified(Date lastModified) {
-		this.lastModified = lastModified;
-	}
-
-	public Date getLastModified() {
-		return lastModified;
-	}
-
-	public void setIsCurrentUser(boolean currentUser) {
-		this.currentUser = currentUser;
-	}
-
-	public boolean isCurrentUser() {
-		return currentUser;
 	}
 
 	public Collection<LocationProperty> getProperties() {
@@ -131,43 +129,18 @@ public class Location implements Comparable<Location>, Temporal {
 	}
 	
 	/**
-	 * A convenience method used for returning a Location's properties in a more
-	 * useful data-structure.
+	 * A convenience method used for returning a Location's properties in a more useful data-structure.
 	 * 
 	 * @return
 	 */
-	public Map<String, String> getPropertiesMap() {
+	public final Map<String, LocationProperty> getPropertiesMap() {
+	     Map<String, LocationProperty> propertiesMap = new HashMap<String, LocationProperty>();
+	        for (LocationProperty property : properties) {
+	            propertiesMap.put(property.getKey(), property);
+	        }
 
-		Map<String, String> propertiesMap = new HashMap<String, String>();
-
-		if (properties != null) {
-			for (LocationProperty property : properties) {
-				propertiesMap.put(property.getKey(), property.getValue());
-			}
-		}
-
-		return propertiesMap;
-	}
-
-	/**
-	 * A convenience method used for setting a Location's properties with a Map
-	 * (instead of a Collection).
-	 * 
-	 * @param propertiesMap
-	 *            A Map of ALL the properties to be set.
-	 */
-	public void setPropertiesMap(Map<String, String> propertiesMap) {
-		Collection<LocationProperty> properties = new ArrayList<LocationProperty>();
-
-		if (propertiesMap != null) {
-			for (String key : propertiesMap.keySet()) {
-				properties
-						.add(new LocationProperty(key, propertiesMap.get(key)));
-			}
-		}
-
-		setProperties(properties);
-	}
+	        return propertiesMap;
+	    }
 
 	@Override
 	public String toString() {
@@ -199,9 +172,4 @@ public class Location implements Comparable<Location>, Temporal {
 		Location other = (Location) obj;
 		return new EqualsBuilder().appendSuper(super.equals(obj)).append(_id, other._id).append(remoteId, other.remoteId).isEquals();
 	}
-
-    @Override
-    public Date getTimestamp() {
-        return lastModified;
-    }
 }
