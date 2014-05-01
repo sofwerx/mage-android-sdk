@@ -15,8 +15,6 @@ import mil.nga.giat.mage.sdk.event.ILocationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
@@ -171,7 +169,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 		return exists;
 	}
 
-	public List<Location> getCurrentUserLocations(Context context, int limit) {
+	public List<Location> getCurrentUserLocations(Context context, long limit) {
 
 		QueryBuilder<Location, Long> queryBuilder = locationDao.queryBuilder();
 		List<Location> locations = new ArrayList<Location>();

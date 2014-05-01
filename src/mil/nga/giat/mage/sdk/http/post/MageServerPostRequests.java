@@ -8,7 +8,6 @@ import java.util.List;
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.DaoStore;
 import mil.nga.giat.mage.sdk.datastore.location.Location;
-import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
 import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
@@ -82,7 +81,7 @@ public class MageServerPostRequests {
 				request = new HttpPut(endpointUri);
 			}
 			request.addHeader("Content-Type", "application/json; charset=utf-8");
-			Gson gson = ObservationSerializer.getGsonBuilder(context);
+			Gson gson = ObservationSerializer.getGsonBuilder();
 			request.setEntity(new StringEntity(gson.toJson(observation)));
 
 			HttpResponse response = httpClient.execute(request);

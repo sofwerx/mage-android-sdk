@@ -1,14 +1,9 @@
 package mil.nga.giat.mage.sdk.gson.serializer;
 
 import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
-import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationProperty;
-import android.content.Context;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -21,16 +16,9 @@ import com.google.gson.JsonSerializer;
 
 
 public class ObservationSerializer implements JsonSerializer<Observation> {
-
-	private Set<String> dateProperties = new HashSet<String>();
 	
-	public ObservationSerializer(Context context) {
+	public ObservationSerializer() {
 		super();
-		//initialize a Set of known properties that are to be treated as Dates.
-		String[] dateFields = context.getResources().getStringArray(R.array.date_fields_array);
-		if(dateFields != null && dateFields.length > 0) {
-			dateProperties = new HashSet<String>(Arrays.asList(dateFields));
-		}
 	}
 
 	/**
@@ -40,9 +28,9 @@ public class ObservationSerializer implements JsonSerializer<Observation> {
 	 * @return A Gson object that can be used to convert {@link Observation} object
 	 * into a JSON string.
 	 */
-	public static Gson getGsonBuilder(Context context) {
+	public static Gson getGsonBuilder() {
 		GsonBuilder gsonBuilder = new GsonBuilder();
-		gsonBuilder.registerTypeAdapter(Observation.class, new ObservationSerializer(context));
+		gsonBuilder.registerTypeAdapter(Observation.class, new ObservationSerializer());
 		return gsonBuilder.create();
 	}
 
@@ -61,19 +49,11 @@ public class ObservationSerializer implements JsonSerializer<Observation> {
 			String key = property.getKey();
 			String value = property.getValue();
 
-			//if (dateProperties.contains(key)) {
-				// TODO: This will eventually be changed to a Date...
-				// TODO: Perhaps we should wrap in an Exception?
-				//Long convertedValue = Long.valueOf(value);
-				//properties.add(key, new JsonPrimitive(convertedValue));
-			//} else {
-				conditionalAdd(key, value, properties);
-			//}
-
+			conditionalAdd(key, value, properties);
 		}
 		feature.add("properties", properties);
-		
-		//serialize the observation's state
+
+		// serialize the observation's state
 		JsonObject jsonState = new JsonObject();
 		jsonState.add("name", new JsonPrimitive(pObs.getState().toString()));
 		feature.add("state", jsonState);

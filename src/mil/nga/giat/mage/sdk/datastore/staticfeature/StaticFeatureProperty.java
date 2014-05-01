@@ -2,7 +2,6 @@ package mil.nga.giat.mage.sdk.datastore.staticfeature;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import com.google.gson.JsonParser;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 

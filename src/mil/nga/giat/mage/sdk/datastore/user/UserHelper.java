@@ -1,14 +1,11 @@
 package mil.nga.giat.mage.sdk.datastore.user;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
@@ -158,7 +155,5 @@ public class UserHelper extends DaoHelper<User> {
 			Log.e(LOG_NAME, "There was a problem deleting active users.");
 			throw new UserException("There was a problem deleting active users.", sqle);
 		}
-
 	}
-
 }

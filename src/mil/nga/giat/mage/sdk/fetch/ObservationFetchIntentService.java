@@ -10,7 +10,6 @@ import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.datastore.common.State;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
-import mil.nga.giat.mage.sdk.datastore.observation.ObservationProperty;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
@@ -27,6 +26,8 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 
 	private static final String LOG_NAME = ObservationFetchIntentService.class.getName();
 
+	private static boolean firstTimeToRun = true;
+	
 	public ObservationFetchIntentService() {
 		super(LOG_NAME);
 	}
@@ -44,7 +45,7 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 		ObservationHelper observationHelper = ObservationHelper.getInstance(getApplicationContext());
 		UserHelper userHelper = UserHelper.getInstance(getApplicationContext());
 		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-
+		
 		while (!isCanceled) {
 			Boolean isDataFetchEnabled = sharedPreferences.getBoolean(getApplicationContext().getString(R.string.dataFetchEnabledKey), true);
 
@@ -77,8 +78,7 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 						} else if (!observation.getState().equals(State.ARCHIVE) && oldObservation == null) {
 							observation = observationHelper.create(observation);
 							// FIXME : a simple proto-type for vibrations
-							ObservationProperty observationProperty = observation.getPropertiesMap().get("EVENTLEVEL");
-							if (observationProperty != null && observationProperty.getValue().equalsIgnoreCase("high")) {
+							if(!firstTimeToRun) {
 								Vibrator vibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
 								vibrator.vibrate(50);
 							}
@@ -119,6 +119,7 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 			} finally {
 				isConnected = ConnectivityUtility.isOnline(getApplicationContext());
 			}
+			firstTimeToRun = false;
 		}
 	}
 

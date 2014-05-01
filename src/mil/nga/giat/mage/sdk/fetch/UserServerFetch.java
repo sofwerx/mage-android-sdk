@@ -82,14 +82,14 @@ public class UserServerFetch extends AbstractServerFetch {
 								user.setCurrentUser(isCurrentUser);
 								user.setFetchedDate(new Date());
 								user = userHelper.create(user);
-								Log.d(LOG_NAME, "created user with remote_id " + user.getRemoteId());
+								Log.d(LOG_NAME, "Created user with remote_id " + user.getRemoteId());
 							} else {
 								// perform update?
 								user.setId(oldUser.getId());
 								user.setCurrentUser(isCurrentUser);
 								user.setFetchedDate(new Date());
 								userHelper.update(user);
-								Log.d(LOG_NAME, "updated user with remote_id " + user.getRemoteId());
+								Log.d(LOG_NAME, "Updated user with remote_id " + user.getRemoteId());
 							}
 						}
 					}

@@ -1,5 +1,0 @@
-<resources>
-    <string-array name="date_fields_array">
-        <item>timestamp</item>
-    </string-array>
-</resources>
