@@ -45,7 +45,7 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 		UserHelper userHelper = UserHelper.getInstance(getApplicationContext());
 		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
-		while (true) {
+		while (!isCanceled) {
 			Boolean isDataFetchEnabled = sharedPreferences.getBoolean(getApplicationContext().getString(R.string.dataFetchEnabledKey), true);
 
 			if (isConnected && isDataFetchEnabled) {
@@ -53,8 +53,12 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch Observations...");
 				try {
 					List<Observation> observations = MageServerGetRequests.getObservations(getApplicationContext());
-					Log.d(LOG_NAME, "Found observations " + observations.size());
+					Log.d(LOG_NAME, "Fetched " + observations.size() + " new observations");
 					for (Observation observation : observations) {
+						if(isCanceled) {
+							break;
+						}
+						
 						String userId = observation.getUserId();
 						if (userId != null) {
 							User user = userHelper.read(userId);
@@ -69,7 +73,7 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 						Observation oldObservation = observationHelper.read(observation.getRemoteId());
 						if (observation.getState().equals(State.ARCHIVE) && oldObservation != null) {
 							observationHelper.delete(oldObservation.getId());
-							Log.d(LOG_NAME, "deleted observation with remote_id " + observation.getRemoteId());
+							Log.d(LOG_NAME, "Deleted observation with remote_id " + observation.getRemoteId());
 						} else if (!observation.getState().equals(State.ARCHIVE) && oldObservation == null) {
 							observation = observationHelper.create(observation);
 							// FIXME : a simple proto-type for vibrations
@@ -78,11 +82,11 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 								Vibrator vibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
 								vibrator.vibrate(50);
 							}
-							Log.d(LOG_NAME, "created observation with remote_id " + observation.getRemoteId());
+							Log.d(LOG_NAME, "Created observation with remote_id " + observation.getRemoteId());
 						} else if (!observation.getState().equals(State.ARCHIVE) && oldObservation != null && !oldObservation.isDirty()) {
 							observation.setId(oldObservation.getId());
 							observation = observationHelper.update(observation);
-							Log.d(LOG_NAME, "updated observation with remote_id " + observation.getRemoteId());
+							Log.d(LOG_NAME, "Updated observation with remote_id " + observation.getRemoteId());
 						}
 					}
 				} catch (Exception e) {

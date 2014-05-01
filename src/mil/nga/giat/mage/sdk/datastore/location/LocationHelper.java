@@ -205,7 +205,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	 *            The user's local id
 	 * @throws LocationException
 	 */
-	public Integer deleteUserLocations(String userLocalId, Boolean keepMostRecent) throws LocationException {
+	public int deleteUserLocations(String userLocalId, Boolean keepMostRecent) throws LocationException {
 
 		int numberLocationsDeleted = 0;
 
@@ -234,7 +234,6 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 			Log.e(LOG_NAME, "Unable to delete user's locations", sqle);
 			throw new LocationException("Unable to delete user's locations", sqle);
 		}
-		Log.d(LOG_NAME, "Deleted " + numberLocationsDeleted + " locations for user with local id: " + userLocalId);
 		return numberLocationsDeleted;
 	}
 

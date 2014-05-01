@@ -36,18 +36,12 @@ public class Observation implements Comparable<Observation>, Temporal {
 
     @DatabaseField(columnName = "device_id")
     private String deviceId;
-
-    /**
-     * This is the time the record was created or updated in the local sqlite db.
-     */
-    @DatabaseField(canBeNull = false, columnName = "local_last_modified", dataType = DataType.DATE_LONG)
-    private Date localLastModified = new Date(0);
     
     /**
-     * This is the time the server created or updated the observation.
+     * This is the time the server created or updated the observation.  It can also be a local time, if no time from the server is given.
      */
     @DatabaseField(canBeNull = false, columnName = "last_modified", dataType = DataType.DATE_LONG)
-    private Date lastModified = new Date(0);
+    private Date lastModified = null;
 
     @DatabaseField(canBeNull = false)
     private boolean dirty = Boolean.TRUE;
@@ -69,7 +63,7 @@ public class Observation implements Comparable<Observation>, Temporal {
     }
 
     public Observation(ObservationGeometry observationGeometry, Collection<ObservationProperty> pProperties, Collection<Attachment> pAttachments) {
-        this(null, new Date(0), observationGeometry, pProperties, pAttachments);
+        this(null, null, observationGeometry, pProperties, pAttachments);
         this.setDirty(true);
     }
 
@@ -145,14 +139,6 @@ public class Observation implements Comparable<Observation>, Temporal {
     
     public void setLastModified(Date lastModified) {
         this.lastModified = lastModified;
-    }
-
-    public Date getLocalLastModified() {
-        return localLastModified;
-    }
-
-    public void setLocalLastModified(Date localLastModified) {
-        this.localLastModified = localLastModified;
     }
 
     public boolean isDirty() {

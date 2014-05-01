@@ -36,7 +36,7 @@ public class LocationPushIntentService extends ConnectivityAwareIntentService {
 	protected void onHandleIntent(Intent intent) {
 		super.onHandleIntent(intent);
 		pushFrequency = getLocationPushFrequency();
-		while (true) {
+		while (!isCanceled) {
 			if (isConnected) {
 				pushFrequency = getLocationPushFrequency();
 				LocationHelper locationHelper = LocationHelper.getInstance(getApplicationContext());
@@ -44,7 +44,7 @@ public class LocationPushIntentService extends ConnectivityAwareIntentService {
 				int batchSize = 20;
 				int failedAttemptCount = 0;
 				List<Location> locations = locationHelper.getCurrentUserLocations(getApplicationContext(), batchSize);
-				while(!locations.isEmpty() || failedAttemptCount > 3) {
+				while(!locations.isEmpty() && failedAttemptCount < 3) {
 					Boolean status = MageServerPostRequests.postLocations(locations, getApplicationContext());
 					// we've sync'ed. Don't need the locations anymore.
 					if (status) {

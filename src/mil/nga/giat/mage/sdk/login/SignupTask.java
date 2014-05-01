@@ -116,26 +116,8 @@ public class SignupTask extends AbstractAccountTask {
 				Log.e(LOG_NAME, "Bad request.");
 				Log.e(LOG_NAME, error);
 			}
-		} catch (MalformedURLException e) {
-			// already checked for this!
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception e) {
+			Log.e(LOG_NAME, "Problem signing up.", e);
 		} finally {
 			try {
 				if (entity != null) {

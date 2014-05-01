@@ -90,8 +90,11 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 			// create Observation geometry.
 			observationGeometryDao.create(observation.getObservationGeometry());
 
+			// set last Modified
+			if (observation.getLastModified() == null) {
+				observation.setLastModified(new Date());
+			}
 			// create the Observation.
-			observation.setLocalLastModified(new Date());
 			createdObservation = observationDao.createIfNotExists(observation);
 
 			// create Observation properties.
@@ -150,39 +153,6 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 
         return observation;
     }
-	
-	private void save(Observation observation) throws ObservationException {
-		try {
-			observationGeometryDao.update(observation.getObservationGeometry());
-			observation.setLocalLastModified(new Date());
-			observationDao.update(observation);
-
-			Collection<ObservationProperty> properties = observation.getProperties();
-			if (properties != null) {
-				for (ObservationProperty property : properties) {
-					property.setObservation(observation);
-					observationPropertyDao.createOrUpdate(property);
-				}
-			}
-
-			Collection<Attachment> attachments = observation.getAttachments();
-			if (attachments != null) {
-				for (Attachment attachment : attachments) {
-					attachment.setObservation(observation);
-					attachmentDao.createOrUpdate(attachment);
-				}
-			}
-
-		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "There was a problem updating the observation: " + observation + ".", sqle);
-			throw new ObservationException("There was a problem updating the observation: " + observation + ".", sqle);
-		}
-		
-		// fire the event
-		for (IObservationEventListener listener : listeners) {
-			listener.onObservationUpdated(observation);
-		}
-	}
 
 	/**
 	 * We have to realign all the foreign ids so the update works correctly
@@ -192,6 +162,7 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 	 * @throws ObservationException
 	 */
 	public Observation update(Observation observation) throws ObservationException {
+		// set all the ids as needed
 	    Observation pOldObservation = read(observation.getId());
 	    
 		observation.setId(pOldObservation.getId());
@@ -220,7 +191,41 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 			}
 		}
 
-		save(observation);
+		// do the update
+		try {
+			observationGeometryDao.update(observation.getObservationGeometry());
+			
+			// if the observation is dirty, set the last_modified date!
+			if(observation.isDirty()) {
+				observation.setLastModified(new Date());
+			}
+			observationDao.update(observation);
+
+			Collection<ObservationProperty> properties = observation.getProperties();
+			if (properties != null) {
+				for (ObservationProperty property : properties) {
+					property.setObservation(observation);
+					observationPropertyDao.createOrUpdate(property);
+				}
+			}
+
+			Collection<Attachment> attachments = observation.getAttachments();
+			if (attachments != null) {
+				for (Attachment attachment : attachments) {
+					attachment.setObservation(observation);
+					attachmentDao.createOrUpdate(attachment);
+				}
+			}
+
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "There was a problem updating the observation: " + observation + ".", sqle);
+			throw new ObservationException("There was a problem updating the observation: " + observation + ".", sqle);
+		}
+		
+		// fire the event
+		for (IObservationEventListener listener : listeners) {
+			listener.onObservationUpdated(observation);
+		}
 		
 		return observation;
 	}
@@ -242,12 +247,12 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 	 * 
 	 * @return
 	 */
-	public Date getLatestRemoteLastModified() {
+	public Date getLatestCleanLastModified() {
 		Date lastModifiedDate = new Date(0);
 		QueryBuilder<Observation, Long> queryBuilder = observationDao.queryBuilder();
 
 		try {
-			queryBuilder.where().isNotNull("remote_id");
+			queryBuilder.where().eq("dirty", Boolean.FALSE);
 			queryBuilder.orderBy("last_modified", false);
 			queryBuilder.limit(1L);
 			Observation o = observationDao.queryForFirst(queryBuilder.prepare());

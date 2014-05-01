@@ -154,26 +154,8 @@ public class PreferenceHelper {
 					Log.e(LOG_NAME, "Bad request.");
 					Log.e(LOG_NAME, error);
 				}
-			} catch (MalformedURLException mue) {
-				mue.printStackTrace();
-			} catch (URISyntaxException use) {
-				// TODO Auto-generated catch block
-				use.printStackTrace();
-			} catch (UnsupportedEncodingException uee) {
-				// TODO Auto-generated catch block
-				uee.printStackTrace();
-			} catch (ClientProtocolException cpe) {
-				// TODO Auto-generated catch block
-				cpe.printStackTrace();
-			} catch (IOException ioe) {
-				// TODO Auto-generated catch block
-				ioe.printStackTrace();
-			} catch (ParseException pe) {
-				// TODO Auto-generated catch block
-				pe.printStackTrace();
-			} catch (JSONException je) {
-				// TODO Auto-generated catch block
-				je.printStackTrace();
+			} catch (Exception e) {
+				Log.e(LOG_NAME, "Problem reading server settings.", e);
 			} finally {
 				try {
 					if (entity != null) {

@@ -43,7 +43,7 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 		UserServerFetch userFetch = new UserServerFetch(getApplicationContext());
 		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
-		while (true) {
+		while (!isCanceled) {
 			Boolean isDataFetchEnabled = sharedPreferences.getBoolean(getApplicationContext().getString(R.string.dataFetchEnabledKey), true);
 			if (isConnected && isDataFetchEnabled) {
 
@@ -51,7 +51,9 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 				try {
 					Collection<Location> locations = MageServerGetRequests.getLocations(getApplicationContext());
 					for (Location location : locations) {
-
+						if(isCanceled) {
+							break;
+						}
 						
 						// make sure that the user exists and is persisted in the local data-store
 						String userId = null;
@@ -77,9 +79,11 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 								if (user != null) {
 									// don't pull your own locations for now!
 									if(!user.isCurrentUser()) {
+										userId = String.valueOf(user.getId());
 										locationHelper.create(location);
-										Log.d(LOG_NAME, "Created location with remote_id " + location.getRemoteId());
-										locationHelper.deleteUserLocations(String.valueOf(user.getId()), true);
+										Log.d(LOG_NAME, "Created location with remote_id " + location.getRemoteId() + " for user with id: " + userId);
+										int numberOfLocationsDeleted = locationHelper.deleteUserLocations(userId, true);
+										Log.d(LOG_NAME, "Deleted " + numberOfLocationsDeleted + " locations for user with id: " + userId);
 									}
 								} else {
 									Log.w(LOG_NAME, "A location with no user was found and discarded.  Userid: " + userId);

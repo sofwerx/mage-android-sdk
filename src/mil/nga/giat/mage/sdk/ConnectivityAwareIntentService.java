@@ -13,7 +13,9 @@ public abstract class ConnectivityAwareIntentService extends IntentService imple
 	}
 
 	protected Boolean isConnected = Boolean.TRUE;
-	
+
+	protected boolean isCanceled = false;
+
 	private static final String LOG_NAME = ConnectivityAwareIntentService.class.getName();
 
 	@Override
@@ -57,5 +59,11 @@ public abstract class ConnectivityAwareIntentService extends IntentService imple
 		isConnected = ConnectivityUtility.isOnline(getApplicationContext());
 		//enable connectivity event handling
 		NetworkChangeReceiver.getInstance().addListener(this);		
+	}
+	
+	@Override
+	public void onDestroy() {
+		isCanceled = true;
+		super.onDestroy();
 	}
 }

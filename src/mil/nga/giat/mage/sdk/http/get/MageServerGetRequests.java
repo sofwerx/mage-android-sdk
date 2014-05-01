@@ -206,7 +206,9 @@ public class MageServerGetRequests {
         
         long stop = System.currentTimeMillis();
         
-        Log.d(LOG_NAME, "Took " + (stop - start) + " millis to deserialize " + staticFeatures.size() + " static features.");
+        if(staticFeatures.size() > 0) {
+        	Log.d(LOG_NAME, "Took " + (stop - start) + " millis to deserialize " + staticFeatures.size() + " static features.");
+        }
         return staticFeatures;
     }
 
@@ -228,7 +230,7 @@ public class MageServerGetRequests {
 
             ObservationHelper observationHelper = ObservationHelper.getInstance(context);
 
-            Date lastModifiedDate = new Date(observationHelper.getLatestRemoteLastModified().getTime() + 1);
+            Date lastModifiedDate = observationHelper.getLatestCleanLastModified();
 
             URL observationURL = new URL(serverURL, "/FeatureServer/" + fieldObservationLayerId + "/features");
             Uri.Builder uriBuilder = Uri.parse(observationURL.toURI().toString()).buildUpon();
@@ -264,7 +266,9 @@ public class MageServerGetRequests {
         }
         long stop = System.currentTimeMillis();
         
-        Log.d(LOG_NAME, "Took " + (stop - start) + " millis to deserialize " + observations.size() + " observations.");
+        if(observations.size() > 0) {
+        	Log.d(LOG_NAME, "Took " + (stop - start) + " millis to deserialize " + observations.size() + " observations.");
+        }
         
         return observations;
     }
