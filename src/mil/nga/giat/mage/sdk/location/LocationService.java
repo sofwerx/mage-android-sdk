@@ -213,7 +213,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 			setLastLocationPullTime(System.currentTimeMillis());
 
 			if (shouldReportUserLocation()) {
-				saveLocation(location, "ACTIVE");
+				saveLocation(location, false);
 			}
 		}
 
@@ -314,7 +314,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 							if (location != null && shouldReportUserLocation()) {
 								mHandler.post(new Runnable() {
 									public void run() {
-										saveLocation(location, "STALE");
+										saveLocation(location, true);
 									}
 								});
 							}
@@ -357,7 +357,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 
 	}
 	
-	private void saveLocation(Location location, String state) {
+	private void saveLocation(Location location, Boolean isEcho) {
 		if (location != null && location.getTime() > 0) {
 			// INTEGRATION WITH LOCATION DATASTORE
 			LocationHelper locationHelper = LocationHelper.getInstance(mContext);
@@ -365,7 +365,12 @@ public class LocationService extends Service implements LocationListener, OnShar
 			// build properties
 			Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();				
 			//locationProperties.add(new LocationProperty("timestamp", DateUtility.getISO8601().format(new Date(location.getTime()))));
-			locationProperties.add(new LocationProperty("accuracy", location.getAccuracy()));
+			locationProperties.add(new LocationProperty("isEcho", isEcho));
+			if(!isEcho) {				
+				locationProperties.add(new LocationProperty("accuracy", Float.valueOf(location.getAccuracy())));
+			} else {
+				locationProperties.add(new LocationProperty("accuracy", Long.valueOf(getMinimumDistanceChangeForUpdates()).floatValue()));
+			}
 			locationProperties.add(new LocationProperty("bearing", location.getBearing()));
 			locationProperties.add(new LocationProperty("speed", location.getSpeed()));
 			locationProperties.add(new LocationProperty("provider", location.getProvider()));
