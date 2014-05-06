@@ -363,10 +363,10 @@ public class LocationService extends Service implements LocationListener, OnShar
 			LocationHelper locationHelper = LocationHelper.getInstance(mContext);
 
 			// build properties
-			Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();				
-			//locationProperties.add(new LocationProperty("timestamp", DateUtility.getISO8601().format(new Date(location.getTime()))));
+			Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();
+			// locationProperties.add(new LocationProperty("timestamp", DateUtility.getISO8601().format(new Date(location.getTime()))));
 			locationProperties.add(new LocationProperty("isEcho", isEcho));
-			if(!isEcho) {				
+			if (!isEcho) {
 				locationProperties.add(new LocationProperty("accuracy", Float.valueOf(location.getAccuracy())));
 			} else {
 				locationProperties.add(new LocationProperty("accuracy", Long.valueOf(getMinimumDistanceChangeForUpdates()).floatValue()));
