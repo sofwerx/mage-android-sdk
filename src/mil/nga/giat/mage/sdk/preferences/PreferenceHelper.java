@@ -1,6 +1,5 @@
 package mil.nga.giat.mage.sdk.preferences;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -68,26 +67,25 @@ public class PreferenceHelper {
 	 * 
 	 */
 	public synchronized void initialize(Integer... xmlFiles) {
-		if (!initialized) {			
-			final R.xml drawableResources = new R.xml();
-			final Class<R.xml> c = R.xml.class;
-			final Field[] fields = c.getDeclaredFields();
-
+		if (!initialized) {
 			Set<Integer> resourcesToLoad = new LinkedHashSet<Integer>();
+			resourcesToLoad.add(R.xml.overrides);
 			resourcesToLoad.add(R.xml.mdkprivatepreferences);
 			resourcesToLoad.add(R.xml.mdkpublicpreferences);
 			resourcesToLoad.add(R.xml.locationpreferences);
 			resourcesToLoad.add(R.xml.fetchpreferences);
 			
+			/*final Class<R.xml> c = R.xml.class;
+			final Field[] fields = c.getDeclaredFields();
 			// add any other files you might have added
 			for (int i = 0, max = fields.length; i < max; i++) {
 			    try {
-			        final int resourceId = fields[i].getInt(drawableResources);
+			        final int resourceId = fields[i].getInt(new R.xml());
 			        resourcesToLoad.add(resourceId);
 			    } catch (Exception e) {
 			        continue;
 			    }
-			}
+			}*/
 			
 			// load preferences from mdk xml files first
 			initializeLocal(resourcesToLoad.toArray((new Integer[0])));
