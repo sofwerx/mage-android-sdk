@@ -1,9 +1,12 @@
 package mil.nga.giat.mage.sdk.preferences;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -64,10 +67,30 @@ public class PreferenceHelper {
 	 * properties.
 	 * 
 	 */
-	public synchronized void initialize(int... xmlFiles) {
-		if (!initialized) {
+	public synchronized void initialize(Integer... xmlFiles) {
+		if (!initialized) {			
+			final R.xml drawableResources = new R.xml();
+			final Class<R.xml> c = R.xml.class;
+			final Field[] fields = c.getDeclaredFields();
+
+			Set<Integer> resourcesToLoad = new LinkedHashSet<Integer>();
+			resourcesToLoad.add(R.xml.mdkprivatepreferences);
+			resourcesToLoad.add(R.xml.mdkpublicpreferences);
+			resourcesToLoad.add(R.xml.locationpreferences);
+			resourcesToLoad.add(R.xml.fetchpreferences);
+			
+			// add any other files you might have added
+			for (int i = 0, max = fields.length; i < max; i++) {
+			    try {
+			        final int resourceId = fields[i].getInt(drawableResources);
+			        resourcesToLoad.add(resourceId);
+			    } catch (Exception e) {
+			        continue;
+			    }
+			}
+			
 			// load preferences from mdk xml files first
-			initializeLocal(new int[] { R.xml.mdkprivatepreferences, R.xml.mdkpublicpreferences, R.xml.locationpreferences, R.xml.fetchpreferences });
+			initializeLocal(resourcesToLoad.toArray((new Integer[0])));
 
 			// add programmatic preferences
 			SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
@@ -84,8 +107,9 @@ public class PreferenceHelper {
 		}
 	}
 
-	private synchronized void initializeLocal(int... xmlFiles) {
+	private synchronized void initializeLocal(Integer... xmlFiles) {
 		for (int id : xmlFiles) {
+			Log.d(LOG_NAME, "Loading resources from: " + mContext.getResources().getResourceEntryName(id));
 			PreferenceManager.setDefaultValues(mContext, id, true);
 		}
 	}
