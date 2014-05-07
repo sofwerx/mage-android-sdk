@@ -175,11 +175,7 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 
 	@Override
 	public void onUpgrade(SQLiteDatabase database, ConnectionSource connectionSource, int oldVersion, int newVersion) {
-		try {
-			dropTables();
-		} catch (SQLException se) {
-			Log.e(LOG_NAME, "Could not drop tables.", se);
-		}
+		resetDatabase();
 	}
 
 	/**
