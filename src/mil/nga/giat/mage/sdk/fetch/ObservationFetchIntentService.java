@@ -26,7 +26,7 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 
 	private static final String LOG_NAME = ObservationFetchIntentService.class.getName();
 
-	private static boolean firstTimeToRun = true;
+	private boolean firstTimeToRun = true;
 	
 	public ObservationFetchIntentService() {
 		super(LOG_NAME);

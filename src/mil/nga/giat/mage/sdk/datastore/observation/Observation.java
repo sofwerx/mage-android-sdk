@@ -31,7 +31,7 @@ public class Observation implements Comparable<Observation>, Temporal {
     @DatabaseField(unique = true, columnName = "url")
     private String url;
 
-    @DatabaseField(columnName = "user_id")
+    @DatabaseField(columnName = "user_id", canBeNull=false)
     private String userId;
 
     @DatabaseField(columnName = "device_id")

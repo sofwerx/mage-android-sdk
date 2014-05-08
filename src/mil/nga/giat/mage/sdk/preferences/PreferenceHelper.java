@@ -48,7 +48,6 @@ public class PreferenceHelper {
 
 	private static PreferenceHelper preferenceHelper;
 	private static Context mContext;
-	private boolean initialized = false;
 
 	public static PreferenceHelper getInstance(final Context context) {
 		if (context == null) {
@@ -66,43 +65,44 @@ public class PreferenceHelper {
 	 * properties.
 	 * 
 	 */
-	public synchronized void initialize(Integer... xmlFiles) {
-		if (!initialized) {
-			Set<Integer> resourcesToLoad = new LinkedHashSet<Integer>();
-			resourcesToLoad.add(R.xml.overrides);
-			resourcesToLoad.add(R.xml.mdkprivatepreferences);
-			resourcesToLoad.add(R.xml.mdkpublicpreferences);
-			resourcesToLoad.add(R.xml.locationpreferences);
-			resourcesToLoad.add(R.xml.fetchpreferences);
-			
-			/*final Class<R.xml> c = R.xml.class;
-			final Field[] fields = c.getDeclaredFields();
-			// add any other files you might have added
-			for (int i = 0, max = fields.length; i < max; i++) {
-			    try {
-			        final int resourceId = fields[i].getInt(new R.xml());
-			        resourcesToLoad.add(resourceId);
-			    } catch (Exception e) {
-			        continue;
-			    }
-			}*/
-			
-			// load preferences from mdk xml files first
-			initializeLocal(resourcesToLoad.toArray((new Integer[0])));
-
-			// add programmatic preferences
-			SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-			Editor editor = sharedPreferences.edit();
-			try {
-				editor.putString(mContext.getString(R.string.buildVersionKey), mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionName).commit();
-			} catch (NameNotFoundException nnfe) {
-				nnfe.printStackTrace();
-			}
-
-			// load other xml files
-			initializeLocal(xmlFiles);
-			initialized = true;
+	public synchronized void initialize(Boolean forceReinitialize, Integer... xmlFiles) {
+		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+		if (forceReinitialize) {
+			// clear the old ones
+			sharedPreferences.edit().clear().commit();
 		}
+		Set<Integer> resourcesToLoad = new LinkedHashSet<Integer>();
+		resourcesToLoad.add(R.xml.overrides);
+		resourcesToLoad.add(R.xml.mdkprivatepreferences);
+		resourcesToLoad.add(R.xml.mdkpublicpreferences);
+		resourcesToLoad.add(R.xml.locationpreferences);
+		resourcesToLoad.add(R.xml.fetchpreferences);
+		
+		/*final Class<R.xml> c = R.xml.class;
+		final Field[] fields = c.getDeclaredFields();
+		// add any other files you might have added
+		for (int i = 0, max = fields.length; i < max; i++) {
+		    try {
+		        final int resourceId = fields[i].getInt(new R.xml());
+		        resourcesToLoad.add(resourceId);
+		    } catch (Exception e) {
+		        continue;
+		    }
+		}*/
+		
+		// load preferences from mdk xml files first
+		initializeLocal(resourcesToLoad.toArray((new Integer[0])));
+
+		// add programmatic preferences
+		Editor editor = sharedPreferences.edit();
+		try {
+			editor.putString(mContext.getString(R.string.buildVersionKey), mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionName).commit();
+		} catch (NameNotFoundException nnfe) {
+			nnfe.printStackTrace();
+		}
+
+		// load other xml files
+		initializeLocal(xmlFiles);
 	}
 
 	private synchronized void initializeLocal(Integer... xmlFiles) {
