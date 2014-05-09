@@ -277,7 +277,7 @@ public class MageServerGetRequests {
 		HttpEntity entity = null;
 		try {
 			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
-			URL locationURL = new URL(serverURL, "/api/locations");
+			URL locationURL = new URL(serverURL, "/api/locations/users");
 
 			DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
 			HttpGet get = new HttpGet(locationURL.toURI());
