@@ -8,14 +8,17 @@ import java.util.List;
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.datastore.DaoStore;
 import mil.nga.giat.mage.sdk.datastore.location.Location;
+import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
 import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
+import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.gson.serializer.LocationSerializer;
 import mil.nga.giat.mage.sdk.gson.serializer.ObservationSerializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
 import mil.nga.giat.mage.sdk.jackson.deserializer.AttachmentDeserializer;
+import mil.nga.giat.mage.sdk.jackson.deserializer.LocationDeserializer;
 import mil.nga.giat.mage.sdk.jackson.deserializer.ObservationDeserializer;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import mil.nga.giat.mage.sdk.utils.MediaUtility;
@@ -51,6 +54,7 @@ public class MageServerPostRequests {
 	
     private static ObservationDeserializer observationDeserializer = new ObservationDeserializer();
     private static AttachmentDeserializer attachmentDeserializer = new AttachmentDeserializer();
+    private static LocationDeserializer locationDeserializer = new LocationDeserializer();
 
 	/**
 	 * POST an {@link Observation} to the server.
@@ -171,6 +175,8 @@ public class MageServerPostRequests {
 	}
 
 	public static Boolean postLocations(List<Location> locations, Context context) {
+		LocationHelper locationHelper = LocationHelper.getInstance(context);
+		
 		Boolean status = false;
 		HttpEntity entity = null;
 		try {
@@ -186,6 +192,17 @@ public class MageServerPostRequests {
 			HttpResponse response = httpClient.execute(request);
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				entity = response.getEntity();
+				// it is imperative that the order of the returnedLocations match the order that was posted!!!
+				// if the order changes from the server, all of this will break!
+				List<Location> returnedLocations = locationDeserializer.parseLocations(entity.getContent());
+				for(int i=0; i < returnedLocations.size(); i++) {
+					//Log.i(LOG_NAME, "old, new : " + locations.get(i).getTimestamp() + ", " + returnedLocations.get(i).getTimestamp());
+					Location returnedLocation = returnedLocations.get(i);
+					returnedLocation.setId(locations.get(i).getId());
+					// locations that are posted are only from the current user
+					returnedLocation.setUser(UserHelper.getInstance(context).readCurrentUser());
+					locationHelper.update(returnedLocation);
+				}
 				status = true;
 			} else {
 				entity = response.getEntity();

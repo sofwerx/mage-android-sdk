@@ -285,7 +285,7 @@ public class MageServerGetRequests {
 
 			if (HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
 				entity = response.getEntity();
-				locations = locationDeserializer.parseLocations(entity.getContent());
+				locations = locationDeserializer.parseUserLocations(entity.getContent());
 			} else {
 				entity = response.getEntity();
 				String error = EntityUtils.toString(entity);

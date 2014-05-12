@@ -1,15 +1,24 @@
 package mil.nga.giat.mage.sdk.push;
 
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.Where;
+
 import mil.nga.giat.mage.sdk.ConnectivityAwareIntentService;
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
+import mil.nga.giat.mage.sdk.datastore.DaoStore;
 import mil.nga.giat.mage.sdk.datastore.location.Location;
 import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
+import mil.nga.giat.mage.sdk.datastore.user.User;
+import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
+import mil.nga.giat.mage.sdk.exceptions.UserException;
 import mil.nga.giat.mage.sdk.http.post.MageServerPostRequests;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import android.content.Intent;
@@ -42,28 +51,52 @@ public class LocationPushIntentService extends ConnectivityAwareIntentService {
 				LocationHelper locationHelper = LocationHelper.getInstance(getApplicationContext());
 
 				long batchSize = 20;
+				int minNumberOfLocationsToKeep = 40;
 				int failedAttemptCount = 0;
-				List<Location> locations = locationHelper.getCurrentUserLocations(getApplicationContext(), batchSize);
+
+				User currentUser = null;
+				try {
+					currentUser = UserHelper.getInstance(getApplicationContext()).readCurrentUser();
+				} catch (UserException e) {
+					e.printStackTrace();
+				}
+
+				List<Location> locations = locationHelper.getCurrentUserLocations(getApplicationContext(), batchSize, false);
 				while (!locations.isEmpty() && failedAttemptCount < 3) {
 					Boolean status = MageServerPostRequests.postLocations(locations, getApplicationContext());
 					// we've sync'ed. Don't need the locations anymore.
 					if (status) {
 						Log.d(LOG_NAME, "Pushed " + locations.size() + " locations.");
 
-						// FIXME : don't delete all the locations.
-						// FIXME : set a dirty flag?
-						for (Location location : locations) {
-							try {
-								LocationHelper.getInstance(getApplicationContext()).delete(location.getId());
-							} catch (LocationException e) {
-								Log.e(LOG_NAME, "Could not delete the location.", e);
+						// Delete location where:
+						// the user is current user
+						// the remote id is set. (have been sent to server)
+						// past the lower n ammount!
+						try {
+							if (currentUser != null) {
+								Dao<Location, Long> locationDao = DaoStore.getInstance(getApplicationContext()).getLocationDao();
+								QueryBuilder<Location, Long> queryBuilder = locationDao.queryBuilder();
+								Where<Location, Long> where = queryBuilder.where().eq("user_id", currentUser.getId());
+								where.and().isNotNull("remote_id");
+								queryBuilder.orderBy("timestamp", false);
+								List<Location> locationsToDelete = queryBuilder.query();
+
+								for (int i = minNumberOfLocationsToKeep; i < locationsToDelete.size(); i++) {
+									try {
+										LocationHelper.getInstance(getApplicationContext()).delete(locationsToDelete.get(i).getId());
+									} catch (LocationException e) {
+										Log.e(LOG_NAME, "Could not delete the location.", e);
+									}
+								}
 							}
+						} catch (SQLException e) {
+							e.printStackTrace();
 						}
 					} else {
 						Log.e(LOG_NAME, "Failed to push locations.");
 						failedAttemptCount++;
 					}
-					locations = locationHelper.getCurrentUserLocations(getApplicationContext(), batchSize);
+					locations = locationHelper.getCurrentUserLocations(getApplicationContext(), batchSize, false);
 				}
 			} else {
 				Log.d(LOG_NAME, "The device is currently disconnected. Can't push locations.");

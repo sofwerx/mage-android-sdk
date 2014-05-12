@@ -64,7 +64,7 @@ public class Observation implements Comparable<Observation>, Temporal {
 
     public Observation(ObservationGeometry observationGeometry, Collection<ObservationProperty> pProperties, Collection<Attachment> pAttachments) {
         this(null, null, observationGeometry, pProperties, pAttachments);
-        this.setDirty(true);
+        this.dirty = true;
     }
 
     public Observation(String remoteId, Date lastModified, ObservationGeometry observationGeometry, Collection<ObservationProperty> pProperties, Collection<Attachment> pAttachments) {

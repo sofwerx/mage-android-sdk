@@ -19,6 +19,7 @@ import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.Where;
 
 /**
  * A utility class for accessing {@link Location} data from the physical data
@@ -146,6 +147,59 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 
         return location;
     }
+    
+    /**
+	 * We have to realign all the foreign ids so the update works correctly
+	 * 
+	 * @param location
+	 * @throws LocationException
+	 */
+	public Location update(Location location) throws LocationException {
+		// set all the ids as needed
+		Location pOldLocation = read(location.getId());
+	    
+		location.setId(pOldLocation.getId());
+
+		if (location.getLocationGeometry() != null && pOldLocation.getLocationGeometry() != null) {
+			location.getLocationGeometry().setPk_id(pOldLocation.getLocationGeometry().getPk_id());
+		}
+
+		// FIXME : make this run faster?
+		for (LocationProperty lp : location.getProperties()) {
+			for (LocationProperty olp : pOldLocation.getProperties()) {
+				if (lp.getKey().equalsIgnoreCase(olp.getKey())) {
+					lp.setId(olp.getId());
+					break;
+				}
+			}
+		}
+
+		// do the update
+		try {
+			locationGeometryDao.update(location.getLocationGeometry());
+			
+			locationDao.update(location);
+
+			Collection<LocationProperty> properties = location.getProperties();
+			if (properties != null) {
+				for (LocationProperty property : properties) {
+					property.setLocation(location);
+					locationPropertyDao.createOrUpdate(property);
+				}
+			}
+
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "There was a problem updating the location: " + location + ".", sqle);
+			throw new LocationException("There was a problem updating the location: " + location + ".", sqle);
+		}
+		
+		// fire the event
+		for (ILocationEventListener listener : listeners) {
+			listener.onLocationUpdated(location);
+		}
+		
+		return location;
+	}
 
 	/**
 	 * Light-weight query for testing the existence of a location in the local data-store.
@@ -169,7 +223,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 		return exists;
 	}
 
-	public List<Location> getCurrentUserLocations(Context context, long limit) {
+	public List<Location> getCurrentUserLocations(Context context, long limit, boolean includeRemote) {
 
 		QueryBuilder<Location, Long> queryBuilder = locationDao.queryBuilder();
 		List<Location> locations = new ArrayList<Location>();
@@ -186,7 +240,10 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 					// most recent first!
 					queryBuilder.orderBy("timestamp", false);
 				}
-				queryBuilder.where().eq("user_id", currentUser.getId());
+				Where<Location, Long> where = queryBuilder.where().eq("user_id", currentUser.getId());
+				if(!includeRemote) {
+					where.and().isNull("remote_id");
+				}
 				locations = locationDao.query(queryBuilder.prepare());
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block

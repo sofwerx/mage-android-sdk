@@ -13,7 +13,6 @@ import java.util.Map;
 import mil.nga.giat.mage.sdk.datastore.location.Location;
 import mil.nga.giat.mage.sdk.datastore.location.LocationGeometry;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
-import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.utils.DateUtility;
 import android.util.Log;
 
@@ -25,7 +24,7 @@ public class LocationDeserializer extends Deserializer {
 
 	private GeometryDeserializer geometryDeserializer = new GeometryDeserializer();
 
-	public Collection<Location> parseLocations(InputStream is) throws JsonParseException, IOException {
+	public List<Location> parseUserLocations(InputStream is) throws JsonParseException, IOException {
 		JsonParser parser = factory.createParser(is);
 
 		List<Location> locations = new ArrayList<Location>();
@@ -51,16 +50,33 @@ public class LocationDeserializer extends Deserializer {
 		while (parser.nextToken() != JsonToken.END_OBJECT) {
 			String name = parser.getCurrentName();
 			if ("locations".equals(name)) {
-				parser.nextToken();
-				while (parser.nextToken() != JsonToken.END_ARRAY) {
-					locations.add(parseLocation(parser));
-				}
+				locations.addAll(parseLocations(parser));
 			} else {
 				parser.nextToken();
 				parser.skipChildren();
 			}
 		}
 
+		return locations;
+	}
+	
+	public List<Location> parseLocations(InputStream is) throws JsonParseException, IOException {
+		JsonParser parser = factory.createParser(is);
+
+		List<Location> locations = new ArrayList<Location>();
+		locations.addAll(parseLocations(parser));
+		parser.close();
+
+		return locations;
+	}
+
+	
+	private Collection<Location> parseLocations(JsonParser parser) throws JsonParseException, IOException {
+		Collection<Location> locations = new ArrayList<Location>();
+		parser.nextToken();
+		while (parser.nextToken() != JsonToken.END_ARRAY) {
+			locations.add(parseLocation(parser));
+		}
 		return locations;
 	}
 
@@ -93,13 +109,7 @@ public class LocationDeserializer extends Deserializer {
 
 		Map<String, LocationProperty> properties = location.getPropertiesMap();
 
-		// userId is special pull it out of properties and set it at the top level
-		LocationProperty userId = properties.get("user");
-		if (userId != null) {
-			User user = new User();
-			user.setRemoteId(userId.getValue().toString());
-			location.setUser(user);
-		}
+		// don't set the user at this time.  Set it later.
 
 		// timestamp is special pull it out of properties and set it at the top level
 		LocationProperty timestamp = properties.get("timestamp");

@@ -158,7 +158,6 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 	 * We have to realign all the foreign ids so the update works correctly
 	 * 
 	 * @param observation
-	 * @param pOldObservation
 	 * @throws ObservationException
 	 */
 	public Observation update(Observation observation) throws ObservationException {
