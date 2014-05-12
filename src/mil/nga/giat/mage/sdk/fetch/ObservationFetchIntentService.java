@@ -52,14 +52,14 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 			if (isConnected && isDataFetchEnabled) {
 
 				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch Observations...");
-				try {
-					List<Observation> observations = MageServerGetRequests.getObservations(getApplicationContext());
-					Log.d(LOG_NAME, "Fetched " + observations.size() + " new observations");
-					for (Observation observation : observations) {
-						if(isCanceled) {
+				List<Observation> observations = MageServerGetRequests.getObservations(getApplicationContext());
+				Log.d(LOG_NAME, "Fetched " + observations.size() + " new observations");
+				for (Observation observation : observations) {
+					try {
+						if (isCanceled) {
 							break;
 						}
-						
+
 						String userId = observation.getUserId();
 						if (userId != null) {
 							User user = userHelper.read(userId);
@@ -78,7 +78,7 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 						} else if (!observation.getState().equals(State.ARCHIVE) && oldObservation == null) {
 							observation = observationHelper.create(observation);
 							// FIXME : a simple proto-type for vibrations
-							if(!firstTimeToRun) {
+							if (!firstTimeToRun) {
 								Vibrator vibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
 								vibrator.vibrate(50);
 							}
@@ -88,11 +88,10 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 							observation = observationHelper.update(observation);
 							Log.d(LOG_NAME, "Updated observation with remote_id " + observation.getRemoteId());
 						}
+					} catch (Exception e) {
+						Log.e(LOG_NAME, "There was a failure while performing an Observation Fetch opperation.", e);
+						continue;
 					}
-				} catch (Exception e) {
-					Log.e(LOG_NAME, "There was a failure while performing an Observation Fetch opperation.", e);
-				} finally {
-					isConnected = ConnectivityUtility.isOnline(getApplicationContext());
 				}
 			} else {
 				Log.d(LOG_NAME, "The device is currently disconnected, or data fetch is disabled. Not performing fetch.");
