@@ -37,6 +37,7 @@ public class ObservationPushIntentService extends ConnectivityAwareIntentService
 	protected void onHandleIntent(Intent intent) {
 		super.onHandleIntent(intent);
 		ObservationHelper.getInstance(getApplicationContext()).addListener(this);
+		pushFrequency = getObservationPushFrequency();
 		while (!isCanceled) {
 			if (isConnected) {
 				pushFrequency = getObservationPushFrequency();
@@ -45,7 +46,7 @@ public class ObservationPushIntentService extends ConnectivityAwareIntentService
 				ObservationHelper observationHelper = ObservationHelper.getInstance(getApplicationContext());
 				List<Observation> observations = observationHelper.getDirty();
 				for (Observation observation : observations) {
-					if(isCanceled) {
+					if (isCanceled) {
 						break;
 					}
 					Log.d(LOG_NAME, "Pushing observation with id: " + observation.getId());

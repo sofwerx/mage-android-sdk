@@ -183,6 +183,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 			try {
 				if (limit > 0) {
 					queryBuilder.limit(limit);
+					// most recent first!
 					queryBuilder.orderBy("timestamp", false);
 				}
 				queryBuilder.where().eq("user_id", currentUser.getId());

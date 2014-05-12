@@ -21,7 +21,7 @@ public class LocationPushIntentService extends ConnectivityAwareIntentService {
 
 	// in milliseconds
 	private long pushFrequency;
-	
+
 	protected AtomicBoolean pushSemaphore = new AtomicBoolean(false);
 
 	public LocationPushIntentService() {
@@ -44,11 +44,14 @@ public class LocationPushIntentService extends ConnectivityAwareIntentService {
 				long batchSize = 20;
 				int failedAttemptCount = 0;
 				List<Location> locations = locationHelper.getCurrentUserLocations(getApplicationContext(), batchSize);
-				while(!locations.isEmpty() && failedAttemptCount < 3) {
+				while (!locations.isEmpty() && failedAttemptCount < 3) {
 					Boolean status = MageServerPostRequests.postLocations(locations, getApplicationContext());
 					// we've sync'ed. Don't need the locations anymore.
 					if (status) {
 						Log.d(LOG_NAME, "Pushed " + locations.size() + " locations.");
+
+						// FIXME : don't delete all the locations.
+						// FIXME : set a dirty flag?
 						for (Location location : locations) {
 							try {
 								LocationHelper.getInstance(getApplicationContext()).delete(location.getId());
@@ -89,7 +92,7 @@ public class LocationPushIntentService extends ConnectivityAwareIntentService {
 			}
 		}
 	}
-	
+
 	@Override
 	public void onAnyConnected() {
 		super.onAnyConnected();

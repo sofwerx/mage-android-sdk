@@ -71,8 +71,9 @@ public class LocationService extends Service implements LocationListener, OnShar
 	// False means don't re-read gps settings.  True means re-read gps settings.  Gets triggered from preference change
 	protected AtomicBoolean preferenceSemaphore = new AtomicBoolean(false);
 
+	protected long priorOnLocationChangedTime = 0;
+	
 	// the last time a location was pulled form the phone.
-	protected Location lastLocation;
 	protected long lastLocationPullTime = 0;
 	
 	protected synchronized long getLastLocationPullTime() {
@@ -132,8 +133,9 @@ public class LocationService extends Service implements LocationListener, OnShar
 	public void registerOnLocationListener(LocationListener listener) {
 	    locationListeners.add(listener);
 	    
+		Location lastLocation = getLocation();
 	    if (lastLocation != null) {        
-	        Log.i(LOG_NAME, "location service added listener, pushing last known location to listener");
+	        Log.d(LOG_NAME, "location service added listener, pushing last known location to listener");
 	        listener.onLocationChanged(lastLocation);
 	    }
 	}
@@ -180,7 +182,6 @@ public class LocationService extends Service implements LocationListener, OnShar
 		if(location == null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
 			location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 		}
-		setLastLocationPullTime(System.currentTimeMillis());
 		return location;
 	}
 
@@ -217,13 +218,12 @@ public class LocationService extends Service implements LocationListener, OnShar
 			}
 		}
 
-		if (location.getProvider().equals(LocationManager.GPS_PROVIDER) || lastLocation == null || new Date().getTime() - lastLocation.getTime() > getUserReportingFrequency()) {
+		if (location.getProvider().equals(LocationManager.GPS_PROVIDER) || priorOnLocationChangedTime == 0 || (new Date().getTime() - priorOnLocationChangedTime > getUserReportingFrequency())) {
 			for (LocationListener listener : locationListeners) {
 				listener.onLocationChanged(location);
 			}
 		}
-
-		lastLocation = location;
+		priorOnLocationChangedTime = new Date().getTime();
 	}
 
 	@Override
@@ -310,6 +310,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 							}
 							
 							final Location location = getLocation();
+							setLastLocationPullTime(System.currentTimeMillis());
 							
 							if (location != null && shouldReportUserLocation()) {
 								mHandler.post(new Runnable() {
