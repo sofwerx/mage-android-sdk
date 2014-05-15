@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
+import mil.nga.giat.mage.sdk.datastore.DaoStore;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
@@ -18,6 +20,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
 
@@ -39,6 +42,8 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	
 	private Collection<ILocationEventListener> listeners = new CopyOnWriteArrayList<ILocationEventListener>();
 
+	private Context context;
+	
 	/**
 	 * Singleton.
 	 */
@@ -66,6 +71,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	 */
 	private LocationHelper(Context context) {
 		super(context);
+		this.context = context;
 				
 		try {
 			locationDao = daoStore.getLocationDao();
@@ -92,28 +98,34 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	}
 
 	@Override
-	public Location create(Location pLocation) throws LocationException {
+	public Location create(final Location pLocation) throws LocationException {
 
 		Location createdLocation;
 
 		try {
-			// create Location geometry.
-			locationGeometryDao.create(pLocation.getLocationGeometry());
-
-			createdLocation = locationDao.createIfNotExists(pLocation);
-
-			// create Location properties.
-			Collection<LocationProperty> locationProperties = pLocation.getProperties();
-			if (locationProperties != null) {
-				for (LocationProperty locationProperty : locationProperties) {
-					locationProperty.setLocation(createdLocation);
-					locationPropertyDao.create(locationProperty);
-				}
-			}
-
-			for (ILocationEventListener listener : listeners) {
-				listener.onLocationCreated(Collections.singletonList(createdLocation));
-			}
+			createdLocation = TransactionManager.callInTransaction(DaoStore.getInstance(context).getConnectionSource(),  new Callable<Location>() {
+                @Override
+                public Location call() throws Exception {
+					// create Location geometry.
+					locationGeometryDao.create(pLocation.getLocationGeometry());
+		
+					Location createdLocation = locationDao.createIfNotExists(pLocation);
+		
+					// create Location properties.
+					Collection<LocationProperty> locationProperties = pLocation.getProperties();
+					if (locationProperties != null) {
+						for (LocationProperty locationProperty : locationProperties) {
+							locationProperty.setLocation(createdLocation);
+							locationPropertyDao.create(locationProperty);
+						}
+					}
+		
+					for (ILocationEventListener listener : listeners) {
+						listener.onLocationCreated(Collections.singletonList(createdLocation));
+					}
+                    return createdLocation;
+                }
+			});
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "There was a problem creating the location: " + pLocation + ".", sqle);
 			throw new LocationException("There was a problem creating the location: " + pLocation + ".", sqle);
@@ -154,40 +166,46 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	 * @param location
 	 * @throws LocationException
 	 */
-	public Location update(Location location) throws LocationException {
+	public Location update(final Location location) throws LocationException {
 		// set all the ids as needed
-		Location pOldLocation = read(location.getId());
-	    
-		location.setId(pOldLocation.getId());
-
-		if (location.getLocationGeometry() != null && pOldLocation.getLocationGeometry() != null) {
-			location.getLocationGeometry().setPk_id(pOldLocation.getLocationGeometry().getPk_id());
-		}
-
-		// FIXME : make this run faster?
-		for (LocationProperty lp : location.getProperties()) {
-			for (LocationProperty olp : pOldLocation.getProperties()) {
-				if (lp.getKey().equalsIgnoreCase(olp.getKey())) {
-					lp.setId(olp.getId());
-					break;
-				}
-			}
-		}
+		final Location pOldLocation = read(location.getId());
 
 		// do the update
 		try {
-			locationGeometryDao.update(location.getLocationGeometry());
-			
-			locationDao.update(location);
+			TransactionManager.callInTransaction(DaoStore.getInstance(context).getConnectionSource(), new Callable<Void>() {
+				@Override
+				public Void call() throws Exception {
+					
+					location.setId(pOldLocation.getId());
 
-			Collection<LocationProperty> properties = location.getProperties();
-			if (properties != null) {
-				for (LocationProperty property : properties) {
-					property.setLocation(location);
-					locationPropertyDao.createOrUpdate(property);
+					if (location.getLocationGeometry() != null && pOldLocation.getLocationGeometry() != null) {
+						location.getLocationGeometry().setPk_id(pOldLocation.getLocationGeometry().getPk_id());
+					}
+
+					// FIXME : make this run faster?
+					for (LocationProperty lp : location.getProperties()) {
+						for (LocationProperty olp : pOldLocation.getProperties()) {
+							if (lp.getKey().equalsIgnoreCase(olp.getKey())) {
+								lp.setId(olp.getId());
+								break;
+							}
+						}
+					}
+					
+					locationGeometryDao.update(location.getLocationGeometry());
+					
+					locationDao.update(location);
+		
+					Collection<LocationProperty> properties = location.getProperties();
+					if (properties != null) {
+						for (LocationProperty property : properties) {
+							property.setLocation(location);
+							locationPropertyDao.createOrUpdate(property);
+						}
+					}
+					return null;
 				}
-			}
-
+			});
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "There was a problem updating the location: " + location + ".", sqle);
 			throw new LocationException("There was a problem updating the location: " + location + ".", sqle);
@@ -300,28 +318,34 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	 * @param pPrimaryKey
 	 * @throws OrmException
 	 */
-	public void delete(Long pPrimaryKey) throws LocationException {
+	public void delete(final Long pPrimaryKey) throws LocationException {
 		try {
-			// read the full Location in
-			Location location = locationDao.queryForId(pPrimaryKey);
+			TransactionManager.callInTransaction(DaoStore.getInstance(context).getConnectionSource(), new Callable<Void>() {
+				@Override
+				public Void call() throws Exception {
+					// read the full Location in
+					Location location = locationDao.queryForId(pPrimaryKey);
 
-			// delete Location properties.
-			Collection<LocationProperty> properties = location.getProperties();
-			if (properties != null) {
-				for (LocationProperty property : properties) {
-					locationPropertyDao.deleteById(property.getId());
+					// delete Location properties.
+					Collection<LocationProperty> properties = location.getProperties();
+					if (properties != null) {
+						for (LocationProperty property : properties) {
+							locationPropertyDao.deleteById(property.getId());
+						}
+					}
+
+					// delete Geometry (but not corresponding GeometryType).
+					locationGeometryDao.deleteById(location.getLocationGeometry().getPk_id());
+
+					// finally, delete the Location.
+					locationDao.deleteById(pPrimaryKey);
+
+					for (ILocationEventListener listener : listeners) {
+						listener.onLocationDeleted(location);
+					}
+					return null;
 				}
-			}
-
-			// delete Geometry (but not corresponding GeometryType).
-			locationGeometryDao.deleteById(location.getLocationGeometry().getPk_id());
-
-			// finally, delete the Location.
-			locationDao.deleteById(pPrimaryKey);
-			
-			for (ILocationEventListener listener : listeners) {
-				listener.onLocationDeleted(location);
-			}
+			});
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to delete Location: " + pPrimaryKey, sqle);
 			throw new LocationException("Unable to delete Location: " + pPrimaryKey, sqle);
