@@ -28,6 +28,8 @@ public class LocationPushIntentService extends ConnectivityAwareIntentService {
 
 	private static final String LOG_NAME = LocationPushIntentService.class.getName();
 
+	public static final int minNumberOfLocationsToKeep = 40;
+	
 	// in milliseconds
 	private long pushFrequency;
 
@@ -51,7 +53,6 @@ public class LocationPushIntentService extends ConnectivityAwareIntentService {
 				LocationHelper locationHelper = LocationHelper.getInstance(getApplicationContext());
 
 				long batchSize = 20;
-				int minNumberOfLocationsToKeep = 40;
 				int failedAttemptCount = 0;
 
 				User currentUser = null;
