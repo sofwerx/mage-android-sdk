@@ -52,7 +52,7 @@ public class LocationPushIntentService extends ConnectivityAwareIntentService {
 				pushFrequency = getLocationPushFrequency();
 				LocationHelper locationHelper = LocationHelper.getInstance(getApplicationContext());
 
-				long batchSize = 20;
+				long batchSize = 100;
 				int failedAttemptCount = 0;
 
 				User currentUser = null;
