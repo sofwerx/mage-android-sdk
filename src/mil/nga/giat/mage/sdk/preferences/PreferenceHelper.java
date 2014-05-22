@@ -1,5 +1,6 @@
 package mil.nga.giat.mage.sdk.preferences;
 
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -22,6 +23,8 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.google.common.io.CharStreams;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -34,7 +37,7 @@ import android.util.Log;
  * Loads the default configuration from the local property files, and also loads
  * the server configuration.
  * 
- * TODO: add setValue methods that provide similar functionallity as getValue
+ * TODO: add setValue methods that provide similar functionality as getValue
  * 
  * @author wiedemannse
  * 
@@ -118,9 +121,25 @@ public class PreferenceHelper {
 
 	private class RemotePreferenceColonization extends AsyncTask<URL, Void, Void> {
 
+		private final static String DEFAULT_DYNAMIC_FORM = "dynamic-form/default-dynamic-form.json";
+		
 		@Override
 		protected Void doInBackground(URL... arg0) {
 			initialize(arg0[0]);
+			
+			try {
+				String key = "gDynamicForm";
+				String dynamicForm = CharStreams.toString(new InputStreamReader(mContext.getAssets().open(DEFAULT_DYNAMIC_FORM), "UTF-8"));
+				
+				// TODO: read dynamic form from server
+				SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+				Editor editor = sharedPreferences.edit();
+				Log.i(LOG_NAME, key + " is " + sharedPreferences.getString(key, "empty") + ".  Setting it to " + String.valueOf(dynamicForm) + ".");
+				editor.putString(key, dynamicForm).commit();
+			} catch (Exception e) {
+				Log.e(LOG_NAME, "Could not set dynamic form.", e);
+			}
+			
 			return null;
 		}
 
