@@ -128,7 +128,8 @@ public class PreferenceHelper {
 			initialize(arg0[0]);
 			
 			try {
-				String key = "gDynamicForm";
+				// read in default dynamic form
+				String key = mContext.getString(R.string.dynamicFormKey);
 				String dynamicForm = CharStreams.toString(new InputStreamReader(mContext.getAssets().open(DEFAULT_DYNAMIC_FORM), "UTF-8"));
 				
 				// TODO: read dynamic form from server

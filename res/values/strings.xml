@@ -10,6 +10,7 @@
     <string name="tokenKey">token</string>
     <string name="tokenExpirationDateKey">tokenExpirationDate</string>
     <string name="deviceRegisteredKey">deviceRegistered</string>
+    <string name="dynamicFormKey">gDynamicForm</string>
     <!-- mdkpublicpreferences.xml -->
     <string name="locationServiceEnabledKey">locationServiceEnabled</string>
     <string name="dataFetchEnabledKey">dataFetchEnabled</string>
