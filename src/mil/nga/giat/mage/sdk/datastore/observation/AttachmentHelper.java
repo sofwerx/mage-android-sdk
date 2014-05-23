@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
+import com.google.common.io.Files;
+
 import mil.nga.giat.mage.sdk.datastore.DaoStore;
 import mil.nga.giat.mage.sdk.utils.MediaUtility;
 import android.content.Context;
@@ -23,10 +25,11 @@ public class AttachmentHelper {
 	 * @param context
 	 */
 	public static void stageForUpload(Attachment attachment, Context context) throws Exception {
-		boolean compressed = false;
+		//boolean compressed = false;
 		File stageDir = MediaUtility.getMediaStageDirectory();
+		File inFile = new File(attachment.getLocalPath());
 		File stagedFile = new File(stageDir, new File(attachment.getLocalPath()).getName());
-		
+		/*
 		// TODO : only rotate image media. ignore videos...
 		if (MediaUtility.isImage(stagedFile.getAbsolutePath())) {
 			
@@ -55,7 +58,10 @@ public class AttachmentHelper {
 		if (compressed) {
 			attachment.setLocalPath(stagedFile.getAbsolutePath());
 			DaoStore.getInstance(context).getAttachmentDao().update(attachment);
-		}
+		}*/
+		Files.copy(inFile, stagedFile);
+		attachment.setLocalPath(stagedFile.getAbsolutePath());
+		DaoStore.getInstance(context).getAttachmentDao().update(attachment);
 	}
 	
 }
