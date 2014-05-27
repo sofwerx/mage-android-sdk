@@ -18,11 +18,11 @@
     <string name="gpsSensitivityDefaultValue">100</string>
     <string name="reportLocationKey">reportLocation</string>
     <string name="userReportingFrequencyKey">userReportingFrequency</string>
-    <string name="userReportingFrequencyDefaultValue">300000</string>
+    <string name="userReportingFrequencyDefaultValue">120000</string>
     <string name="observationFetchFrequencyKey">observationFetchFrequency</string>
-    <string name="observationFetchFrequencyDefaultValue">300000</string>
+    <string name="observationFetchFrequencyDefaultValue">120000</string>
     <string name="userFetchFrequencyKey">userFetchFrequency</string>
-    <string name="userFetchFrequencyDefaultValue">300000</string>
+    <string name="userFetchFrequencyDefaultValue">120000</string>
     <string name="observationPushFrequencyKey">observationPushFrequency</string>
     <string name="observationPushFrequencyDefaultValue">60000</string>
     <string name="locationPushFrequencyKey">locationPushFrequency</string>
