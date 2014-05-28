@@ -1,18 +1,13 @@
 package mil.nga.giat.mage.sdk.datastore.observation;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-
-import com.google.common.io.Files;
 
 import mil.nga.giat.mage.sdk.datastore.DaoStore;
 import mil.nga.giat.mage.sdk.utils.MediaUtility;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
-import android.graphics.BitmapFactory;
 import android.util.Log;
+
+import com.google.common.io.Files;
 
 public class AttachmentHelper {
 	
@@ -29,16 +24,17 @@ public class AttachmentHelper {
 		File stageDir = MediaUtility.getMediaStageDirectory();
 		File inFile = new File(attachment.getLocalPath());
 		File stagedFile = new File(stageDir, new File(attachment.getLocalPath()).getName());
+		
+		Log.d(LOG_NAME, "Staging file: " + stagedFile.getAbsolutePath());
+		Log.d(LOG_NAME, "Local path is: " + attachment.getLocalPath());
+		if (stagedFile.getAbsolutePath().equalsIgnoreCase(attachment.getLocalPath())) {
+			Log.d(LOG_NAME, "Attachment is already staged.  Nothing to do.");
+			return;
+		}
+		
 		/*
 		// TODO : only rotate image media. ignore videos...
 		if (MediaUtility.isImage(stagedFile.getAbsolutePath())) {
-			
-			Log.d(LOG_NAME, "Staging file: " + stagedFile.getAbsolutePath());
-			Log.d(LOG_NAME, "Local path is: " + attachment.getLocalPath());
-			if (stagedFile.getAbsolutePath().equalsIgnoreCase(attachment.getLocalPath())) {
-				Log.d(LOG_NAME, "Nothing to do, already moved, returning");
-				return;
-			}
 			
 			OutputStream out = new FileOutputStream(stagedFile);
 		    // XXX problem with this is that other exif data is lost

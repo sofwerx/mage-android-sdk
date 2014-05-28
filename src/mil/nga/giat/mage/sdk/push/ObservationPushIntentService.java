@@ -51,7 +51,9 @@ public class ObservationPushIntentService extends ConnectivityAwareIntentService
 					}
 					Log.d(LOG_NAME, "Pushing observation with id: " + observation.getId());
 					observation = MageServerPostRequests.postObservation(observation, getApplicationContext());
-					Log.d(LOG_NAME, "Pushed observation with remote_id: " + observation.getRemoteId());
+					if(observation != null) {
+						Log.d(LOG_NAME, "Pushed observation with remote_id: " + observation.getRemoteId());
+					}
 				}
 			} else {
 				Log.d(LOG_NAME, "The device is currently disconnected. Can't push observations.");

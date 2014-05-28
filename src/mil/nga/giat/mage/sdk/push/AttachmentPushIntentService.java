@@ -40,7 +40,9 @@ public class AttachmentPushIntentService extends IntentService {
 			AttachmentHelper.stageForUpload(attachment, getApplicationContext());
 			Log.d(LOG_NAME, "Pushing attachment with id: " + attachment.getId());
 			attachment = MageServerPostRequests.postAttachment(attachment, getApplicationContext());
-			Log.d(LOG_NAME, "Pushed attachment with remote_id: " + attachment.getRemoteId());
+			if(attachment != null) {
+				Log.d(LOG_NAME, "Pushed attachment with remote_id: " + attachment.getRemoteId());
+			}
 			
 			Intent broadcastIntent = new Intent();
 			broadcastIntent.setAction(ATTACHMENT_PUSHED);
