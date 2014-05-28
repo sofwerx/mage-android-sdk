@@ -35,7 +35,7 @@ public class MediaUtility {
 	public static String getMimeType(String url)
 	{
 	    String type = null;
-	    String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+	    String extension = MimeTypeMap.getFileExtensionFromUrl(url.replaceAll("\\s*", ""));
 	    if (extension != null) {
 	        MimeTypeMap mime = MimeTypeMap.getSingleton();
 	        type = mime.getMimeTypeFromExtension(extension);
