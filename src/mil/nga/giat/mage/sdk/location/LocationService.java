@@ -362,6 +362,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 		if (location != null && location.getTime() > 0) {
 
 			if (location.getTime() > System.currentTimeMillis()) {
+				Log.d(LOG_NAME, "Location was in future.  Setting location time to system current time.");
 				location.setTime(System.currentTimeMillis());
 			}
 
