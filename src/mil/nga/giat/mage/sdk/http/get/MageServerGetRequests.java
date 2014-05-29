@@ -229,7 +229,7 @@ public class MageServerGetRequests {
 
             ObservationHelper observationHelper = ObservationHelper.getInstance(context);
 
-            Date lastModifiedDate = observationHelper.getLatestCleanLastModified();
+            Date lastModifiedDate = observationHelper.getLatestCleanLastModified(context);
 
             URL observationURL = new URL(serverURL, "/FeatureServer/" + fieldObservationLayerId + "/features");
             Uri.Builder uriBuilder = Uri.parse(observationURL.toURI().toString()).buildUpon();

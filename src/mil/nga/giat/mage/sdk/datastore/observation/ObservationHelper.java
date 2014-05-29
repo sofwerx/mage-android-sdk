@@ -10,9 +10,12 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
+import mil.nga.giat.mage.sdk.datastore.user.User;
+import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.event.IObservationEventListener;
 import mil.nga.giat.mage.sdk.exceptions.ObservationException;
+import mil.nga.giat.mage.sdk.exceptions.UserException;
 import android.content.Context;
 import android.util.Log;
 
@@ -246,20 +249,25 @@ public class ObservationHelper extends DaoHelper<Observation> implements IEventD
 	 * 
 	 * @return
 	 */
-	public Date getLatestCleanLastModified() {
+	public Date getLatestCleanLastModified(Context context) {
 		Date lastModifiedDate = new Date(0);
 		QueryBuilder<Observation, Long> queryBuilder = observationDao.queryBuilder();
 
 		try {
-			queryBuilder.where().eq("dirty", Boolean.FALSE);
-			queryBuilder.orderBy("last_modified", false);
-			queryBuilder.limit(1L);
-			Observation o = observationDao.queryForFirst(queryBuilder.prepare());
-			if (o != null) {
-				lastModifiedDate = o.getLastModified();
+			User currentUser = UserHelper.getInstance(context.getApplicationContext()).readCurrentUser();
+			if (currentUser != null) {
+				queryBuilder.where().eq("dirty", Boolean.FALSE).and().ne("user_id", String.valueOf(currentUser.getRemoteId()));
+				queryBuilder.orderBy("last_modified", false);
+				queryBuilder.limit(1L);
+				Observation o = observationDao.queryForFirst(queryBuilder.prepare());
+				if (o != null) {
+					lastModifiedDate = o.getLastModified();
+				}
 			}
 		} catch (SQLException se) {
-			Log.w(LOG_NAME, "Could not get last_modified date.");
+			Log.e(LOG_NAME, "Could not get last_modified date.");
+		} catch (UserException e) {
+			Log.e(LOG_NAME, "Could not get current user.");
 		}
 
 		return lastModifiedDate;
