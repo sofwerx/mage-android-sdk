@@ -170,6 +170,6 @@ public class Location implements Comparable<Location>, Temporal {
 		if (getClass() != obj.getClass())
 			return false;
 		Location other = (Location) obj;
-		return new EqualsBuilder().appendSuper(super.equals(obj)).append(_id, other._id).append(remoteId, other.remoteId).isEquals();
+		return new EqualsBuilder().append(_id, other._id).append(remoteId, other.remoteId).isEquals();
 	}
 }

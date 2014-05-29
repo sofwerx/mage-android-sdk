@@ -222,7 +222,7 @@ public class Observation implements Comparable<Observation>, Temporal {
         if (getClass() != obj.getClass())
             return false;
         Observation other = (Observation) obj;
-        return new EqualsBuilder().appendSuper(super.equals(obj)).append(_id, other._id).append(remoteId, other.remoteId).isEquals();
+        return new EqualsBuilder().append(_id, other._id).append(remoteId, other.remoteId).isEquals();
     }
 
     @Override
