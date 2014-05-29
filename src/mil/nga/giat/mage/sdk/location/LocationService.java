@@ -360,6 +360,11 @@ public class LocationService extends Service implements LocationListener, OnShar
 	
 	private void saveLocation(Location location, Boolean isEcho) {
 		if (location != null && location.getTime() > 0) {
+
+			if (location.getTime() > System.currentTimeMillis()) {
+				location.setTime(System.currentTimeMillis());
+			}
+
 			// INTEGRATION WITH LOCATION DATASTORE
 			LocationHelper locationHelper = LocationHelper.getInstance(mContext);
 
