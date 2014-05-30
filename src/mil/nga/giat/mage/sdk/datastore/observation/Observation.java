@@ -45,6 +45,12 @@ public class Observation implements Comparable<Observation>, Temporal {
      */
     @DatabaseField(canBeNull = false, columnName = "last_modified", dataType = DataType.DATE_LONG)
     private Date lastModified = null;
+    
+    /**
+     * This is the time the observation was made/reported at.
+     */
+    @DatabaseField(canBeNull = false, dataType = DataType.DATE_LONG)
+    private Date timestamp = new Date(0);
 
     @DatabaseField(canBeNull = false)
     private boolean dirty = Boolean.TRUE;
@@ -65,12 +71,12 @@ public class Observation implements Comparable<Observation>, Temporal {
         // ORMLite needs a no-arg constructor
     }
 
-    public Observation(ObservationGeometry observationGeometry, Collection<ObservationProperty> pProperties, Collection<Attachment> pAttachments) {
-        this(null, null, observationGeometry, pProperties, pAttachments);
+    public Observation(ObservationGeometry observationGeometry, Collection<ObservationProperty> pProperties, Collection<Attachment> pAttachments, Date timestamp) {
+        this(null, null, observationGeometry, pProperties, pAttachments, timestamp);
         this.dirty = true;
     }
 
-    public Observation(String remoteId, Date lastModified, ObservationGeometry observationGeometry, Collection<ObservationProperty> pProperties, Collection<Attachment> pAttachments) {
+    public Observation(String remoteId, Date lastModified, ObservationGeometry observationGeometry, Collection<ObservationProperty> pProperties, Collection<Attachment> pAttachments, Date timestamp) {
         super();
         this.remoteId = remoteId;
         this.lastModified = lastModified;
@@ -78,6 +84,7 @@ public class Observation implements Comparable<Observation>, Temporal {
         this.properties = pProperties;
         this.attachments = pAttachments;
         this.dirty = false;
+        this.timestamp = timestamp;
     }
 
     public Long getId() {
@@ -228,8 +235,12 @@ public class Observation implements Comparable<Observation>, Temporal {
         return new EqualsBuilder().append(_id, other._id).append(remoteId, other.remoteId).isEquals();
     }
 
-    @Override
-    public Date getTimestamp() {
-        return lastModified;
-    }
+	@Override
+	public Date getTimestamp() {
+		return timestamp;
+	}
+
+	public void setTimestamp(Date timestamp) {
+		this.timestamp = timestamp;
+	}
 }

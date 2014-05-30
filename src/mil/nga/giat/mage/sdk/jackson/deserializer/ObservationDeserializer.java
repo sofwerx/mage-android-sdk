@@ -7,8 +7,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import mil.nga.giat.mage.sdk.datastore.common.State;
+import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
 import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationGeometry;
@@ -110,6 +112,19 @@ public class ObservationDeserializer extends Deserializer {
                 parser.skipChildren();
             }
         }
+        
+		Map<String, ObservationProperty> properties = observation.getPropertiesMap();
+        
+		// timestamp is special pull it out of properties and set it at the top level
+ 		ObservationProperty timestamp = properties.get("timestamp");
+ 		if (timestamp != null) {
+ 			try {
+ 				Date d = DateUtility.getISO8601().parse(timestamp.getValue().toString());
+ 				observation.setTimestamp(d);
+ 			} catch (ParseException pe) {
+ 				Log.w("Unable to parse date: " + timestamp + " for location: " + observation.getRemoteId(), pe);
+ 			}
+ 		}
 
         return observation;
     }
