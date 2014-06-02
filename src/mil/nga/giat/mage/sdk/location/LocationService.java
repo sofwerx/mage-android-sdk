@@ -22,11 +22,13 @@ import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -59,7 +61,9 @@ public class LocationService extends Service implements LocationListener, OnShar
 	private static final long MIN_TIME_BW_UPDATES = 0 * 1000;
 
 	protected final LocationManager locationManager;
-	
+
+	private Intent batteryStatus;
+
 	protected boolean pollingRunning = false;
 	
 	protected Collection<LocationListener> locationListeners = new CopyOnWriteArrayList<LocationListener>();
@@ -126,6 +130,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 		this.mContext = context;
 		this.userHelper = UserHelper.getInstance(mContext);
 		this.locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
+		batteryStatus = mContext.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 		PreferenceManager.getDefaultSharedPreferences(mContext).registerOnSharedPreferenceChangeListener(this);
 		preferenceSemaphore.set(false);
 	}
@@ -382,6 +387,11 @@ public class LocationService extends Service implements LocationListener, OnShar
 			locationProperties.add(new LocationProperty("speed", location.getSpeed()));
 			locationProperties.add(new LocationProperty("provider", location.getProvider()));
 			locationProperties.add(new LocationProperty("altitude", location.getAltitude()));
+
+			int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+			if(level != -1) {
+				locationProperties.add(new LocationProperty("battery_level", level));
+			}
 
 			// build geometry
 			LocationGeometry locationGeometry = new LocationGeometry(geometryFactory.createPoint(new Coordinate(location.getLongitude(), location.getLatitude())));
