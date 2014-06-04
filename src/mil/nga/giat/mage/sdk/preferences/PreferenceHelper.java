@@ -13,6 +13,7 @@ import java.util.concurrent.TimeoutException;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
+import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -56,9 +57,9 @@ public class PreferenceHelper {
 		if (context == null) {
 			return null;
 		}
+		mContext = context;
 		if (preferenceHelper == null) {
 			preferenceHelper = new PreferenceHelper();
-			mContext = context;
 		}
 		return preferenceHelper;
 	}
@@ -115,38 +116,25 @@ public class PreferenceHelper {
 		}
 	}
 
-	public synchronized void readRemote(URL serverURL) throws InterruptedException, ExecutionException, TimeoutException {
-		new RemotePreferenceColonization().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, serverURL).get(30, TimeUnit.SECONDS);
+	public synchronized void readRemoteApi(URL serverURL) throws InterruptedException, ExecutionException, TimeoutException {
+		new RemotePreferenceColonizationApi().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, serverURL).get(30, TimeUnit.SECONDS);
 	}
 
-	private class RemotePreferenceColonization extends AsyncTask<URL, Void, Void> {
+	public synchronized void readRemoteForm() throws InterruptedException, ExecutionException, TimeoutException {
+		new RemotePreferenceColonizationForm().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR).get(30, TimeUnit.SECONDS);
+	}
 
-		private final static String DEFAULT_DYNAMIC_FORM = "dynamic-form/default-dynamic-form.json";
-		
+	private class RemotePreferenceColonizationApi extends AsyncTask<URL, Void, Void> {
+
 		@Override
 		protected Void doInBackground(URL... arg0) {
-			initialize(arg0[0]);
-			
-			try {
-				// read in default dynamic form
-				String key = mContext.getString(R.string.dynamicFormKey);
-				String dynamicForm = CharStreams.toString(new InputStreamReader(mContext.getAssets().open(DEFAULT_DYNAMIC_FORM), "UTF-8"));
-				
-				// TODO: read dynamic form from server
-				SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-				Editor editor = sharedPreferences.edit();
-				Log.i(LOG_NAME, key + " is " + sharedPreferences.getString(key, "empty") + ".  Setting it to " + String.valueOf(dynamicForm) + ".");
-				editor.putString(key, dynamicForm).commit();
-			} catch (Exception e) {
-				Log.e(LOG_NAME, "Could not set dynamic form.", e);
-			}
-			
+			URL serverURL = arg0[0];
+			initializeApi(serverURL);
 			return null;
 		}
 
 		/**
-		 * Flattens the json from the server and puts key, value pairs in the
-		 * DefaultSharedPreferences
+		 * Flattens the json from the server and puts key, value pairs in the DefaultSharedPreferences
 		 * 
 		 * @param sharedPreferenceName
 		 * @param json
@@ -173,7 +161,7 @@ public class PreferenceHelper {
 			}
 		}
 
-		private void initialize(URL serverURL) {
+		private void initializeApi(URL serverURL) {
 			HttpEntity entity = null;
 			try {
 				DefaultHttpClient httpclient = HttpClientManager.getInstance(mContext).getHttpClient();
@@ -191,7 +179,66 @@ public class PreferenceHelper {
 					Log.e(LOG_NAME, error);
 				}
 			} catch (Exception e) {
-				Log.e(LOG_NAME, "Problem reading server settings.", e);
+				Log.e(LOG_NAME, "Problem reading server api settings: " + serverURL, e);
+			} finally {
+				try {
+					if (entity != null) {
+						entity.consumeContent();
+					}
+				} catch (Exception e) {
+				}
+			}
+		}
+	}
+
+	private class RemotePreferenceColonizationForm extends AsyncTask<Void, Void, Void> {
+
+		private final static String DEFAULT_DYNAMIC_FORM = "dynamic-form/default-dynamic-form.json";
+
+		@Override
+		protected Void doInBackground(Void... arg0) {
+			initializeForm();
+			return null;
+		}
+
+		private void initializeForm() {
+			HttpEntity entity = null;
+
+			SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+			Editor editor = sharedPreferences.edit();
+			String key = mContext.getString(R.string.dynamicFormKey);
+
+			// read in default local form
+			try {
+				String dynamicForm = CharStreams.toString(new InputStreamReader(mContext.getAssets().open(DEFAULT_DYNAMIC_FORM), "UTF-8"));
+				Log.i(LOG_NAME, key + " is " + sharedPreferences.getString(key, "empty") + ".  Setting it to " + String.valueOf(dynamicForm) + ".");
+				editor.putString(key, dynamicForm).commit();
+			} catch (Exception e) {
+				Log.e(LOG_NAME, "Could not set local dynamic form.", e);
+			}
+
+			// read dynamic form from server
+			try {
+				String fieldObservationFormId = MageServerGetRequests.getFieldObservationFormId(mContext);
+				if (fieldObservationFormId != null) {
+					URL url = new URL(new URL(getValue(R.string.serverURLKey)), "api/forms/" + fieldObservationFormId);
+					HttpGet get = new HttpGet(url.toURI());
+					DefaultHttpClient httpclient = HttpClientManager.getInstance(mContext).getHttpClient();
+					HttpResponse response = httpclient.execute(get);
+					if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+						entity = response.getEntity();
+						String dynamicForm = EntityUtils.toString(entity);
+						Log.i(LOG_NAME, key + " is " + sharedPreferences.getString(key, "empty") + ".  Setting it to " + String.valueOf(dynamicForm) + ".");
+						editor.putString(key, dynamicForm).commit();
+					} else {
+						entity = response.getEntity();
+						String error = EntityUtils.toString(entity);
+						Log.e(LOG_NAME, "Bad request.");
+						Log.e(LOG_NAME, error);
+					}
+				}
+			} catch (Exception e) {
+				Log.e(LOG_NAME, "Could not set dynamic form.  Problem reading server api/form.", e);
 			} finally {
 				try {
 					if (entity != null) {

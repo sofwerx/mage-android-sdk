@@ -111,7 +111,7 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 			}
 			
 			try {
-				PreferenceHelper.getInstance(mApplicationContext).readRemote(sURL);
+				PreferenceHelper.getInstance(mApplicationContext).readRemoteApi(sURL);
 			} catch (Exception e) {
 				List<Integer> errorIndices = new ArrayList<Integer>();
 				errorIndices.add(2);
@@ -157,10 +157,12 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 				
 				// put the token information in the shared preferences
 				Editor editor = sharedPreferences.edit();
-				editor.putString(mApplicationContext.getString(R.string.tokenKey), json.getString("token").trim()).commit();				
+				editor.putString(mApplicationContext.getString(R.string.tokenKey), json.getString("token").trim()).commit();
+				Log.d(LOG_NAME, "Storing token: " + PreferenceHelper.getInstance(mApplicationContext).getValue(R.string.tokenKey));
 				try {
 					editor.putString(mApplicationContext.getString(R.string.tokenExpirationDateKey), DateUtility.getISO8601().format(DateUtility.getISO8601().parse(json.getString("expirationDate").trim()))).commit();
 				} catch (java.text.ParseException e) {
+					Log.e(LOG_NAME, "Problem parsing token expiration date.", e);
 				}
 				
 				// initialize local active user

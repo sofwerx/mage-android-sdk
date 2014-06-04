@@ -39,8 +39,13 @@ public class LayerDeserializer implements JsonDeserializer<Layer> {
 		String remoteId = feature.get("id").getAsString();
 		String type = feature.get("type").getAsString();
 		String name = feature.get("name").getAsString();
+		String formId = null;
+		JsonElement formIdJson = feature.get("formId");
+		if(formIdJson != null) {
+			formId = formIdJson.getAsString();
+		}
 
-		Layer layer = new Layer(remoteId, type, name);
+		Layer layer = new Layer(remoteId, type, name, formId);
 		return layer;
 	}
 }

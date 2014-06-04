@@ -272,20 +272,21 @@ public class LocationService extends Service implements LocationListener, OnShar
 	}
 	
     private void stop() {
-        destroy();
-    }
-	
-	/**
-	 * Call this to stop the location service
-	 */
-	public void destroy() {
-		pollingRunning = Boolean.FALSE;
+    	pollingRunning = Boolean.FALSE;
 		if (locationManager != null) {
 			synchronized (preferenceSemaphore) {
 				preferenceSemaphore.notifyAll();
 			}
 			removeLocationUpdates();
 		}
+    }
+	
+	/**
+	 * Call this to stop the location service
+	 */
+	public void destroy() {
+		stop();
+		PreferenceManager.getDefaultSharedPreferences(mContext).unregisterOnSharedPreferenceChangeListener(this);
 	}
 	
 	/**

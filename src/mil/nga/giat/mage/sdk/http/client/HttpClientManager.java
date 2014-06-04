@@ -54,10 +54,10 @@ public class HttpClientManager implements IEventDispatcher<IUserEventListener> {
 		if (context == null) {
 			return null;
 		}
+		mContext = context;
 		if (httpClientManager == null) {
 			httpClientManager = new HttpClientManager();
 		}
-		mContext = context;
 		return httpClientManager;
 	}
 
@@ -67,7 +67,7 @@ public class HttpClientManager implements IEventDispatcher<IUserEventListener> {
 		if (httpClient == null) {
 			BasicHttpParams params = new BasicHttpParams();
 			SchemeRegistry schemeRegistry = new SchemeRegistry();
-			// do not register http! only https
+			// register http?
 			schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
 			final SSLSocketFactory sslSocketFactory = SSLSocketFactory.getSocketFactory();
 			schemeRegistry.register(new Scheme("https", sslSocketFactory, 443));
