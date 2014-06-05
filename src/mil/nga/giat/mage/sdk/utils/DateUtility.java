@@ -10,7 +10,7 @@ public class DateUtility {
 
 	public static final DateFormat getISO8601() {
 		if (ISO8601 == null) {
-			ISO8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'");
+			ISO8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 			ISO8601.setTimeZone(TimeZone.getTimeZone("Zulu"));
 		}
 		return ISO8601;
