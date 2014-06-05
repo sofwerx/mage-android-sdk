@@ -31,8 +31,7 @@ public class UserServerFetch extends AbstractServerFetch {
 	}
 
 	private static final String LOG_NAME = UserServerFetch.class.getName();
-	
-	// TODO : should the context be a member variable?
+
 	public void fetch(String... userids) throws Exception {
 
 		// TODO : account for deserialization when no userids are given!
@@ -46,7 +45,7 @@ public class UserServerFetch extends AbstractServerFetch {
 
 			// loop over all the ids
 			for (String userId : userids) {
-				if(userId.equals("-1")) {
+				if (userId.equals("-1")) {
 					continue;
 				}
 				String userPath = "api/users";
@@ -58,7 +57,7 @@ public class UserServerFetch extends AbstractServerFetch {
 				} else {
 					try {
 						User u = userHelper.readCurrentUser();
-						if(u != null) {
+						if (u != null) {
 							String rid = u.getRemoteId();
 							if (rid != null && rid.equalsIgnoreCase(userId)) {
 								isCurrentUser = true;
