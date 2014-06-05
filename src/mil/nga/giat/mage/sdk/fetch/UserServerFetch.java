@@ -46,6 +46,9 @@ public class UserServerFetch extends AbstractServerFetch {
 
 			// loop over all the ids
 			for (String userId : userids) {
+				if(userId.equals("-1")) {
+					continue;
+				}
 				String userPath = "api/users";
 				userPath += "/" + userId;
 				boolean isCurrentUser = false;

@@ -35,7 +35,7 @@ public class Observation implements Comparable<Observation>, Temporal {
 	 * This is really the remote id!
 	 */
 	@DatabaseField(columnName = "user_id", canBeNull = false)
-	private String userId;
+	private String userId = "-1";
 
     @DatabaseField(columnName = "device_id")
     private String deviceId;
