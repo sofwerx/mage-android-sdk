@@ -46,8 +46,15 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 		UserHelper userHelper = UserHelper.getInstance(getApplicationContext());
 		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 		
+		Boolean isDataFetchEnabled = sharedPreferences.getBoolean(getApplicationContext().getString(R.string.dataFetchEnabledKey), true);
+
+		// FIXME : pull the icons here
+		if (!isCanceled && isConnected && isDataFetchEnabled) {
+			new ObservationBitmapFetch(getApplicationContext()).fetch();
+		}
+
 		while (!isCanceled) {
-			Boolean isDataFetchEnabled = sharedPreferences.getBoolean(getApplicationContext().getString(R.string.dataFetchEnabledKey), true);
+			isDataFetchEnabled = sharedPreferences.getBoolean(getApplicationContext().getString(R.string.dataFetchEnabledKey), true);
 
 			if (isConnected && isDataFetchEnabled) {
 
