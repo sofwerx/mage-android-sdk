@@ -219,7 +219,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 			setLastLocationPullTime(System.currentTimeMillis());
 
 			if (shouldReportUserLocation()) {
-				saveLocation(location, false);
+				saveLocation(location);
 			}
 		}
 
@@ -321,7 +321,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 							if (location != null && shouldReportUserLocation()) {
 								mHandler.post(new Runnable() {
 									public void run() {
-										saveLocation(location, true);
+										saveLocation(location, new Date().getTime());
 									}
 								});
 							}
@@ -363,8 +363,12 @@ public class LocationService extends Service implements LocationListener, OnShar
 		});
 
 	}
-	
-	private void saveLocation(Location location, Boolean isEcho) {
+
+	private void saveLocation(Location location) {
+		saveLocation(location, null);
+	}
+
+	private void saveLocation(Location location, Long echoTime) {
 		if (location != null && location.getTime() > 0) {
 
 			if (location.getTime() > System.currentTimeMillis()) {
@@ -378,11 +382,11 @@ public class LocationService extends Service implements LocationListener, OnShar
 			// build properties
 			Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();
 			// locationProperties.add(new LocationProperty("timestamp", DateUtility.getISO8601().format(new Date(location.getTime()))));
-			locationProperties.add(new LocationProperty("isEcho", isEcho));
-			if (!isEcho) {
-				locationProperties.add(new LocationProperty("accuracy", Float.valueOf(location.getAccuracy())));
+			if (echoTime != null) {
+				locationProperties.add(new LocationProperty("echoTime", echoTime));
+				locationProperties.add(new LocationProperty("accuracy", Math.max(Long.valueOf(getMinimumDistanceChangeForUpdates()).floatValue(), Float.valueOf(location.getAccuracy()))));
 			} else {
-				locationProperties.add(new LocationProperty("accuracy", Long.valueOf(getMinimumDistanceChangeForUpdates()).floatValue()));
+				locationProperties.add(new LocationProperty("accuracy", Float.valueOf(location.getAccuracy())));
 			}
 			locationProperties.add(new LocationProperty("bearing", location.getBearing()));
 			locationProperties.add(new LocationProperty("speed", location.getSpeed()));

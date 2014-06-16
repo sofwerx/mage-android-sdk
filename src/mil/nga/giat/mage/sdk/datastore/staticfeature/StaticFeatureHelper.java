@@ -3,7 +3,9 @@ package mil.nga.giat.mage.sdk.datastore.staticfeature;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -106,47 +108,46 @@ public class StaticFeatureHelper extends DaoHelper<StaticFeature> implements IEv
 	 * @return
 	 * @throws StaticFeatureException
 	 */
-	public void createAll(final Layer layer) throws StaticFeatureException {
-	    final Collection<StaticFeature> staticFeatures = MageServerGetRequests.getStaticFeatures(context, layer);
-	    
-	    try {
-            TransactionManager.callInTransaction(DaoStore.getInstance(context).getConnectionSource(),  new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    for (StaticFeature staticFeature : staticFeatures) {
-                        try {
-                            staticFeatureGeometryDao.create(staticFeature.getStaticFeatureGeometry());
-                            Collection<StaticFeatureProperty> properties = staticFeature.getProperties();
-                            staticFeature = staticFeatureDao.createIfNotExists(staticFeature);
-                            
-                            // create Static Feature properties.
-                            if (properties != null) {
-                                for (StaticFeatureProperty property : properties) {
-                                    property.setStaticFeature(staticFeature);
-                                    staticFeaturePropertyDao.create(property);
-                                }
-                            }
-                        } catch (SQLException sqle) {
-                            Log.e(LOG_NAME, "There was a problem creating the static feature: " + staticFeature + ".", sqle);
-                            continue;
-                            // TODO Throw exception?
-                        }
-                    }
-                    
-                    layer.setLoaded(true); 
-                    DaoStore.getInstance(context).getLayerDao().update(layer);
-                                        
-                    return null;
-                }
-            });
-        } catch (SQLException e) {
-            throw new StaticFeatureException("Unable to create layer " + layer.getName());
-        }
+	public Set<Layer> createAll(final Collection<StaticFeature> staticFeatures) throws StaticFeatureException {
+		final Set<Layer> layers = new HashSet<Layer>();
+
+		try {
+			TransactionManager.callInTransaction(DaoStore.getInstance(context).getConnectionSource(), new Callable<Void>() {
+				@Override
+				public Void call() throws Exception {
+					for (StaticFeature staticFeature : staticFeatures) {
+						try {
+							staticFeatureGeometryDao.create(staticFeature.getStaticFeatureGeometry());
+							Collection<StaticFeatureProperty> properties = staticFeature.getProperties();
+							staticFeature = staticFeatureDao.createIfNotExists(staticFeature);
+
+							// create Static Feature properties.
+							if (properties != null) {
+								for (StaticFeatureProperty property : properties) {
+									property.setStaticFeature(staticFeature);
+									staticFeaturePropertyDao.create(property);
+								}
+							}
+							layers.add(staticFeature.getLayer());
+						} catch (SQLException sqle) {
+							Log.e(LOG_NAME, "There was a problem creating the static feature: " + staticFeature + ".", sqle);
+							continue;
+							// TODO Throw exception?
+						}
+					}
+
+					return null;
+				}
+			});
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "There was a problem creating static features.", sqle);
+		}
 
 		// fire the event
 		for (IStaticFeatureEventListener listener : listeners) {
-			listener.onStaticFeaturesCreated(layer);
+			listener.onStaticFeaturesCreated(layers);
 		}
+		return layers;
 	}
 
 	public Boolean haveLayersBeenFetchedOnce() {

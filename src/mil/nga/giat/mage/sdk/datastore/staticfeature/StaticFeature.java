@@ -33,6 +33,9 @@ public class StaticFeature implements Comparable<StaticFeature> {
 	@ForeignCollectionField(eager = true)
 	private Collection<StaticFeatureProperty> properties = new ArrayList<StaticFeatureProperty>();
 	
+	@DatabaseField(columnName="local_path")
+	private String localPath;
+	
 	public StaticFeature() {
 		// ORMLite needs a no-arg constructor
 	}
@@ -82,6 +85,14 @@ public class StaticFeature implements Comparable<StaticFeature> {
 
 	public void setProperties(Collection<StaticFeatureProperty> properties) {
 		this.properties = properties;
+	}
+	
+	public String getLocalPath() {
+		return localPath;
+	}
+
+	public void setLocalPath(String localPath) {
+		this.localPath = localPath;
 	}
 	
 	   /**

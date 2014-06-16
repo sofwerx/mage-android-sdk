@@ -48,7 +48,7 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 		
 		Boolean isDataFetchEnabled = sharedPreferences.getBoolean(getApplicationContext().getString(R.string.dataFetchEnabledKey), true);
 
-		// FIXME : pull the icons here
+		// Pull the icons here
 		if (!isCanceled && isConnected && isDataFetchEnabled) {
 			new ObservationBitmapFetch(getApplicationContext()).fetch();
 		}

@@ -22,7 +22,6 @@ import mil.nga.giat.mage.sdk.jackson.deserializer.ObservationDeserializer;
 import mil.nga.giat.mage.sdk.jackson.deserializer.StaticFeatureDeserializer;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import mil.nga.giat.mage.sdk.utils.DateUtility;
-import mil.nga.giat.mage.sdk.utils.StorageUtility;
 import mil.nga.giat.mage.sdk.utils.ZipUtility;
 
 import org.apache.http.HttpEntity;
@@ -36,11 +35,12 @@ import org.json.JSONObject;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Environment;
 import android.util.Log;
 
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 /**
  * A class that contains common GET requests to the MAGE server.
@@ -54,7 +54,71 @@ public class MageServerGetRequests {
 	private static ObservationDeserializer observationDeserializer = new ObservationDeserializer();
 	private static StaticFeatureDeserializer featureDeserializer = new StaticFeatureDeserializer();
 	private static LocationDeserializer locationDeserializer = new LocationDeserializer();
+	
+	public static final String OBSERVATION_ICON_PATH = "/icons/observations";
 
+	public static void getAndSaveObservationIcons(Context context) {
+		HttpEntity entity = null;
+		try {
+			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
+
+			String dynamicFormString = PreferenceHelper.getInstance(context).getValue(R.string.dynamicFormKey);
+			JsonObject dynamicFormJson = new JsonParser().parse(dynamicFormString).getAsJsonObject();
+			String formId = dynamicFormJson.get("id").getAsString();
+			if (formId != null) {
+				URL observationIconsURL = new URL(serverURL, "/api/icons/" + formId + ".zip");
+				DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
+				Log.d(LOG_NAME, observationIconsURL.toString());
+				HttpGet get = new HttpGet(observationIconsURL.toURI());
+				HttpResponse response = httpclient.execute(get);
+
+				if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+					entity = response.getEntity();
+					File directory = new File(context.getFilesDir() + OBSERVATION_ICON_PATH);
+					File zipFile = new File(directory, formId + ".zip");
+					if (!zipFile.getParentFile().exists()) {
+						zipFile.getParentFile().mkdirs();
+					}
+					if (zipFile.exists()) {
+						zipFile.delete();
+					}
+					if(!zipFile.exists()) {
+						zipFile.createNewFile();
+					}
+					File zipDirectory = new File(directory, formId);
+					if(!zipDirectory.exists()) {
+						zipDirectory.mkdirs();
+					}
+					// copy stream to file
+					ByteStreams.copy(entity.getContent(), new FileOutputStream(zipFile));
+
+					Log.d(LOG_NAME, "Unziping " + zipFile.getAbsolutePath() + " to " + zipDirectory.getAbsolutePath() + ".");
+					// unzip file
+					ZipUtility.unzip(zipFile, zipDirectory);
+					// delete the zip
+					zipFile.delete();
+				} else {
+					String error = EntityUtils.toString(response.getEntity());
+					Log.e(LOG_NAME, "Bad request.");
+					Log.e(LOG_NAME, error);
+				}
+			} else {
+				Log.e(LOG_NAME, "Could not pull the observation icons, because the form id was: " + String.valueOf(formId));
+			}
+		} catch (Exception e) {
+			// this block should never flow exceptions up! Log for now.
+			Log.e(LOG_NAME, "There was a failure while retriving the observation icons.", e);
+		} finally {
+			try {
+				if (entity != null) {
+					entity.consumeContent();
+				}
+			} catch (Exception e) {
+				Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
+			}
+		}
+	}
+	
 	/**
 	 * Gets layers from the server.
 	 * 
@@ -326,62 +390,5 @@ public class MageServerGetRequests {
 		}
 
 		return locations;
-	}
-
-	public static void getAndSaveObservationIcons(Context context) {
-		HttpEntity entity = null;
-		try {
-			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
-
-			String formId = getFieldObservationFormId(context);
-			if (formId != null) {
-				URL observationIconsURL = new URL(serverURL, "/api/icons/" + formId + ".zip");
-				DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
-				Log.d(LOG_NAME, observationIconsURL.toString());
-				HttpGet get = new HttpGet(observationIconsURL.toURI());
-				HttpResponse response = httpclient.execute(get);
-
-				if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-					entity = response.getEntity();
-					File directory = new File(Environment.getExternalStorageDirectory(), "/MAGE/Icons");
-					File zipFile = new File(directory, formId + ".zip");
-					if (!zipFile.getParentFile().exists()) {
-						zipFile.getParentFile().mkdirs();
-					}
-					if(!zipFile.exists()) {
-						zipFile.createNewFile();
-					}
-					File zipDirectory = new File(directory, formId);
-					if(!zipDirectory.exists()) {
-						zipDirectory.mkdirs();
-					}
-					// copy stream to file
-					ByteStreams.copy(entity.getContent(), new FileOutputStream(zipFile));
-
-					Log.d(LOG_NAME, "Unziping " + zipFile.getAbsolutePath() + " to " + zipDirectory.getAbsolutePath() + ".");
-					// unzip file
-					ZipUtility.unzip(zipFile, zipDirectory);
-					// delete the zip
-					zipFile.delete();
-				} else {
-					String error = EntityUtils.toString(response.getEntity());
-					Log.e(LOG_NAME, "Bad request.");
-					Log.e(LOG_NAME, error);
-				}
-			} else {
-				Log.e(LOG_NAME, "Could not pull the observation icons, because the form id was: " + String.valueOf(formId));
-			}
-		} catch (Exception e) {
-			// this block should never flow exceptions up! Log for now.
-			Log.e(LOG_NAME, "There was a failure while retriving the observation icons.", e);
-		} finally {
-			try {
-				if (entity != null) {
-					entity.consumeContent();
-				}
-			} catch (Exception e) {
-				Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
-			}
-		}
 	}
 }
