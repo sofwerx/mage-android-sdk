@@ -3,6 +3,7 @@ package mil.nga.giat.mage.sdk.login;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Date;
 
 import mil.nga.giat.mage.sdk.R;
@@ -46,7 +47,7 @@ public class LocalAuthLoginTask extends AbstractAccountTask {
 
 		try {
 			// use a hash of the password as the token
-			String md5Password = MessageDigest.getInstance("MD5").digest(password.getBytes("UTF-8")).toString();
+			String md5Password = Arrays.toString(MessageDigest.getInstance("MD5").digest(password.getBytes("UTF-8")));
 			// put the token information in the shared preferences
 			SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mApplicationContext);
 			Editor editor = sharedPreferences.edit();
