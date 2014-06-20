@@ -1,8 +1,12 @@
 package mil.nga.giat.mage.sdk.login;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -73,6 +77,22 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 
 		// Make sure you have connectivity
 		if (!ConnectivityUtility.isOnline(mApplicationContext)) {
+
+			try {
+				String oldUsername = PreferenceHelper.getInstance(mApplicationContext).getValue(R.string.usernameKey);
+				String serverURLPref = PreferenceHelper.getInstance(mApplicationContext).getValue(R.string.serverURLKey);
+				String oldPasswordHash = PreferenceHelper.getInstance(mApplicationContext).getValue(R.string.passwordHashKey);
+				String md5Password = Arrays.toString(MessageDigest.getInstance("MD5").digest(password.getBytes("UTF-8")));
+				// TODO : check token expiration against current time?
+				if (oldUsername != null && oldPasswordHash != null && !oldPasswordHash.trim().isEmpty() && oldUsername.equals(username) && md5Password.equals(oldPasswordHash) && serverURL.equals(serverURLPref)) {
+					return new AccountStatus(AccountStatus.Status.DISCONNECTED_LOGIN, new ArrayList<Integer>(), new ArrayList<String>(), null);
+				}
+			} catch (NoSuchAlgorithmException nsae) {
+				nsae.printStackTrace();
+			} catch (UnsupportedEncodingException uee) {
+				uee.printStackTrace();
+			}
+
 			List<Integer> errorIndices = new ArrayList<Integer>();
 			errorIndices.add(2);
 			List<String> errorMessages = new ArrayList<String>();

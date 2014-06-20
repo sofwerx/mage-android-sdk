@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.Collection;
 
 import mil.nga.giat.mage.sdk.R;
+import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.datastore.DaoStore;
 import mil.nga.giat.mage.sdk.datastore.layer.Layer;
 import mil.nga.giat.mage.sdk.datastore.layer.LayerHelper;
@@ -53,6 +54,12 @@ public class StaticFeatureServerFetch extends AbstractServerFetch {
 		LayerHelper layerHelper = LayerHelper.getInstance(mContext);
 
 		sp.putString(mContext.getString(R.string.haveLayersBeenFetchedOnceKey), "false").commit();
+		// if you are disconnect, skip this
+		if(!ConnectivityUtility.isOnline(mContext)) {
+			Log.d(LOG_NAME, "Disconnected, not pulling static layers.");
+			return;
+		}
+
 		Log.d(LOG_NAME, "Pulling static layers.");
 		Collection<Layer> layers = MageServerGetRequests.getStaticLayers(mContext);
 		try {

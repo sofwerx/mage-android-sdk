@@ -15,6 +15,7 @@ public class AccountStatus {
 	
 	public static enum Status {
 		SUCCESSFUL_LOGIN,
+		DISCONNECTED_LOGIN,
 		FAILED_LOGIN,
 		SUCCESSFUL_REGISTRATION,
 		ALREADY_REGISTERED,

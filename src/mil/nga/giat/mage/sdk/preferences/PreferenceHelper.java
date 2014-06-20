@@ -1,6 +1,5 @@
 package mil.nga.giat.mage.sdk.preferences;
 
-import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -23,8 +22,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.google.common.io.CharStreams;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -193,8 +190,6 @@ public class PreferenceHelper {
 
 	private class RemotePreferenceColonizationForm extends AsyncTask<Void, Void, Void> {
 
-		private final static String DEFAULT_DYNAMIC_FORM = "dynamic-form/default-dynamic-form.json";
-
 		@Override
 		protected Void doInBackground(Void... arg0) {
 			initializeForm();
@@ -209,13 +204,13 @@ public class PreferenceHelper {
 			String key = mContext.getString(R.string.dynamicFormKey);
 
 			// read in default local form
-			try {
+			/*try {
 				String dynamicForm = CharStreams.toString(new InputStreamReader(mContext.getAssets().open(DEFAULT_DYNAMIC_FORM), "UTF-8"));
 				Log.i(LOG_NAME, key + " is " + sharedPreferences.getString(key, "empty") + ".  Setting it to " + String.valueOf(dynamicForm) + ".");
 				editor.putString(key, dynamicForm).commit();
 			} catch (Exception e) {
 				Log.e(LOG_NAME, "Could not set local dynamic form.", e);
-			}
+			}*/
 
 			// read dynamic form from server
 			try {

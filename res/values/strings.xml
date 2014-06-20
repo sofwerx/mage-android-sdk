@@ -4,6 +4,7 @@
     <!-- mdkprivatepreferences.xml -->
     <string name="buildVersionKey">buildVersion</string>
     <string name="usernameKey">username</string>
+    <string name="passwordHashKey">passwordHash</string>
     <string name="serverURLKey">serverURL</string>
     <string name="loginTaskKey">loginTask</string>
     <string name="loginTaskDefaultValue">mil.nga.giat.mage.sdk.login.FormAuthLoginTask</string>
@@ -15,7 +16,7 @@
     <string name="locationServiceEnabledKey">locationServiceEnabled</string>
     <string name="dataFetchEnabledKey">dataFetchEnabled</string>
     <string name="gpsSensitivityKey">gpsSensitivity</string>
-    <string name="gpsSensitivityDefaultValue">100</string>
+    <string name="gpsSensitivityDefaultValue">10</string>
     <string name="reportLocationKey">reportLocation</string>
     <string name="userReportingFrequencyKey">userReportingFrequency</string>
     <string name="userReportingFrequencyDefaultValue">300000</string>

@@ -45,23 +45,24 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 
 		while (!isCanceled) {
 			Boolean isDataFetchEnabled = sharedPreferences.getBoolean(getApplicationContext().getString(R.string.dataFetchEnabledKey), true);
+
 			if (isConnected && isDataFetchEnabled) {
 
 				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch Locations...");
 				try {
 					Collection<Location> locations = MageServerGetRequests.getLocations(getApplicationContext());
 					for (Location location : locations) {
-						if(isCanceled) {
+						if (isCanceled) {
 							break;
 						}
-						
+
 						// make sure that the user exists and is persisted in the local data-store
 						String userId = null;
 						LocationProperty userIdProperty = location.getPropertiesMap().get("user");
-						if(userIdProperty != null) {
+						if (userIdProperty != null) {
 							userId = userIdProperty.getValue().toString();
 						}
-						
+
 						if (userId != null) {
 							User user = userHelper.read(userId);
 							// TODO : test the timer to make sure users are updated as needed!
@@ -72,13 +73,13 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 								user = userHelper.read(userId);
 							}
 							location.setUser(user);
-							
+
 							// if there is no existing location, create one
 							if (locationHelper.read(location.getRemoteId()) == null) {
 								// delete old location and create new one
 								if (user != null) {
 									// don't pull your own locations for now!
-									if(!user.isCurrentUser()) {
+									if (!user.isCurrentUser()) {
 										userId = String.valueOf(user.getId());
 										locationHelper.create(location);
 										Log.d(LOG_NAME, "Created location with remote_id " + location.getRemoteId() + " for user with id: " + userId);
@@ -121,7 +122,7 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 			}
 		}
 	}
-	
+
 	/**
 	 * Will alert the fetching thread that changes have been made
 	 */
