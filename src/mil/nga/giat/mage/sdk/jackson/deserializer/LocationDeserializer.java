@@ -154,6 +154,8 @@ public class LocationDeserializer extends Deserializer {
 					default:
 						break;
 					}
+				} else if(token.isBoolean()) {
+					value = parser.getBooleanValue();
 				}
 				LocationProperty property = new LocationProperty(key, value);
 				property.setLocation(location);

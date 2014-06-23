@@ -1,5 +1,6 @@
 package mil.nga.giat.mage.sdk.gson.serializer;
 
+import java.io.Serializable;
 import java.lang.reflect.Type;
 
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
@@ -47,7 +48,7 @@ public class ObservationSerializer implements JsonSerializer<Observation> {
 		for (ObservationProperty property : pObs.getProperties()) {
 
 			String key = property.getKey();
-			String value = property.getValue();
+			Serializable value = property.getValue();
 
 			conditionalAdd(key, value, properties);
 		}
@@ -61,9 +62,28 @@ public class ObservationSerializer implements JsonSerializer<Observation> {
 		return feature;
 	}
 
-	private JsonObject conditionalAdd(String property, Object toAdd, final JsonObject pJsonObject) {
+	/**
+	 * Utility used to ensure we don't add junk to the json string. For now, we skip null property values.
+	 * 
+	 * @param property
+	 *            Property to add.
+	 * @param toAdd
+	 *            Property value to add.
+	 * @param pJsonObject
+	 *            Object to conditionally add to.
+	 * @return A reference to json object.
+	 */
+	private JsonObject conditionalAdd(String property, Serializable toAdd, final JsonObject pJsonObject) {
 		if (toAdd != null) {
-			pJsonObject.add(property, new JsonPrimitive(toAdd.toString()));
+			if (toAdd instanceof Double) {
+				pJsonObject.add(property, new JsonPrimitive((Double) toAdd));
+			} else if (toAdd instanceof Float) {
+				pJsonObject.add(property, new JsonPrimitive((Float) toAdd));
+			} else if (toAdd instanceof Boolean) {
+				pJsonObject.add(property, new JsonPrimitive((Boolean) toAdd));
+			} else {
+				pJsonObject.add(property, new JsonPrimitive(toAdd.toString()));
+			}
 		}
 		return pJsonObject;
 	}

@@ -1,7 +1,10 @@
 package mil.nga.giat.mage.sdk.datastore.observation;
 
+import java.io.Serializable;
+
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -14,8 +17,8 @@ public class ObservationProperty {
 	@DatabaseField(canBeNull = false, uniqueCombo = true)
 	private String key;
 
-	@DatabaseField(canBeNull = false)
-	private String value;
+	@DatabaseField(canBeNull = false, dataType=DataType.SERIALIZABLE)
+	private Serializable value;
 
 	@DatabaseField(foreign = true, uniqueCombo = true)
 	private Observation observation;
@@ -24,7 +27,7 @@ public class ObservationProperty {
 		// ORMLite needs a no-arg constructor
 	}
 
-	public ObservationProperty(String pKey, String pValue) {
+	public ObservationProperty(String pKey, Serializable pValue) {
 		this.key = pKey;
 		this.value = pValue;
 	}
@@ -45,7 +48,7 @@ public class ObservationProperty {
 		this.key = key;
 	}
 
-	public String getValue() {
+	public Serializable getValue() {
 		return value;
 	}
 

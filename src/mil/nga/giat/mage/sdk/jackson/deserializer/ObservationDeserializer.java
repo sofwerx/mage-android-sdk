@@ -1,6 +1,7 @@
 package mil.nga.giat.mage.sdk.jackson.deserializer;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -163,7 +164,31 @@ public class ObservationDeserializer extends Deserializer {
             if (token == JsonToken.START_OBJECT || token == JsonToken.START_ARRAY) {
                 parser.skipChildren();
             } else {
-                String value = parser.getText();
+                Serializable value = parser.getText();
+                if(token.isNumeric()) {
+					switch (parser.getNumberType()) {
+					case BIG_DECIMAL:
+						break;
+					case BIG_INTEGER:
+						break;
+					case DOUBLE:
+						value = parser.getDoubleValue();
+						break;
+					case FLOAT:
+						value = parser.getFloatValue();
+						break;
+					case INT:
+						value = parser.getIntValue();
+						break;
+					case LONG:
+						value = parser.getLongValue();
+						break;
+					default:
+						break;
+					}
+				} else if(token.isBoolean()) {
+					value = parser.getBooleanValue();
+				}
                 properties.add(new ObservationProperty(key, value));
             }
         }
