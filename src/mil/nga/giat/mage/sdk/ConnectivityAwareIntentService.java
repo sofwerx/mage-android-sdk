@@ -58,7 +58,7 @@ public abstract class ConnectivityAwareIntentService extends IntentService imple
 		//set up initial connection state
 		isConnected = ConnectivityUtility.isOnline(getApplicationContext());
 		//enable connectivity event handling
-		NetworkChangeReceiver.getInstance().addListener(this);		
+		NetworkChangeReceiver.getInstance().addListener(this);
 	}
 	
 	@Override

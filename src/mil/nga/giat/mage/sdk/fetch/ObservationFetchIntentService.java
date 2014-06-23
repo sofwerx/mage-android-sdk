@@ -7,13 +7,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import mil.nga.giat.mage.sdk.ConnectivityAwareIntentService;
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
+import mil.nga.giat.mage.sdk.connectivity.NetworkChangeReceiver;
 import mil.nga.giat.mage.sdk.datastore.common.State;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
+import mil.nga.giat.mage.sdk.event.IScreenEventListener;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
+import mil.nga.giat.mage.sdk.screen.ScreenChangeReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -22,7 +25,7 @@ import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-public class ObservationFetchIntentService extends ConnectivityAwareIntentService implements OnSharedPreferenceChangeListener {
+public class ObservationFetchIntentService extends ConnectivityAwareIntentService implements OnSharedPreferenceChangeListener, IScreenEventListener {
 
 	private static final String LOG_NAME = ObservationFetchIntentService.class.getName();
 
@@ -41,6 +44,7 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 	@Override
 	protected void onHandleIntent(Intent intent) {
 		super.onHandleIntent(intent);
+		ScreenChangeReceiver.getInstance().addListener(this);
 		PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).registerOnSharedPreferenceChangeListener(this);
 		ObservationHelper observationHelper = ObservationHelper.getInstance(getApplicationContext());
 		UserHelper userHelper = UserHelper.getInstance(getApplicationContext());
@@ -144,6 +148,14 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 	@Override
 	public void onAnyConnected() {
 		super.onAnyConnected();
+		synchronized (fetchSemaphore) {
+			fetchSemaphore.set(true);
+			fetchSemaphore.notifyAll();
+		}
+	}
+
+	@Override
+	public void onScreenOn() {
 		synchronized (fetchSemaphore) {
 			fetchSemaphore.set(true);
 			fetchSemaphore.notifyAll();

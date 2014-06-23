@@ -12,15 +12,17 @@ import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
+import mil.nga.giat.mage.sdk.event.IScreenEventListener;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
+import mil.nga.giat.mage.sdk.screen.ScreenChangeReceiver;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-public class LocationFetchIntentService extends ConnectivityAwareIntentService implements OnSharedPreferenceChangeListener {
+public class LocationFetchIntentService extends ConnectivityAwareIntentService implements OnSharedPreferenceChangeListener, IScreenEventListener {
 
 	private static final String LOG_NAME = LocationFetchIntentService.class.getName();
 
@@ -37,6 +39,7 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 	@Override
 	protected void onHandleIntent(Intent intent) {
 		super.onHandleIntent(intent);
+		ScreenChangeReceiver.getInstance().addListener(this);
 		PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).registerOnSharedPreferenceChangeListener(this);
 		LocationHelper locationHelper = LocationHelper.getInstance(getApplicationContext());
 		UserHelper userHelper = UserHelper.getInstance(getApplicationContext());
@@ -144,4 +147,11 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 		}
 	}
 
+	@Override
+	public void onScreenOn() {
+		synchronized (fetchSemaphore) {
+			fetchSemaphore.set(true);
+			fetchSemaphore.notifyAll();
+		}
+	}
 }
