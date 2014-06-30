@@ -384,7 +384,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 			// locationProperties.add(new LocationProperty("timestamp", DateUtility.getISO8601().format(new Date(location.getTime()))));
 			if (echoTime != null) {
 				locationProperties.add(new LocationProperty("echoTime", echoTime));
-				locationProperties.add(new LocationProperty("accuracy", Math.max(Long.valueOf(getMinimumDistanceChangeForUpdates()).floatValue(), Float.valueOf(location.getAccuracy()))));
+				locationProperties.add(new LocationProperty("accuracy", Float.valueOf(Math.max(Long.valueOf(getMinimumDistanceChangeForUpdates()).floatValue(), location.getAccuracy()))));
 			} else {
 				locationProperties.add(new LocationProperty("accuracy", Float.valueOf(location.getAccuracy())));
 			}

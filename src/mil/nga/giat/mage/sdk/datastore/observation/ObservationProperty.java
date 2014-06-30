@@ -52,7 +52,7 @@ public class ObservationProperty {
 		return value;
 	}
 
-	public void setValue(String value) {
+	public void setValue(Serializable value) {
 		this.value = value;
 	}
 
