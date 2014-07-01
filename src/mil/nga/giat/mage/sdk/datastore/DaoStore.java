@@ -194,8 +194,8 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 
 	@Override
 	public void close() {
-		super.close();
 		helperInstance = null;
+		super.close();
 	}
 
 	/**
