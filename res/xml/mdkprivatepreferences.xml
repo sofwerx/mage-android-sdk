@@ -26,4 +26,9 @@
         android:defaultValue="@string/haveLayersBeenFetchedOnceDefaultValue"
         android:key="@string/haveLayersBeenFetchedOnceKey" />
     
+    <!-- Option for some deployments.  Delete all data when logging out. -->
+    <EditTextPreference
+        android:defaultValue="@string/deleteAllDataOnLogoutDefaultValue"
+        android:key="@string/deleteAllDataOnLogoutKey" />
+    
 </PreferenceScreen>

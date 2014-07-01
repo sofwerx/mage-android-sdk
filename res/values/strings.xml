@@ -12,6 +12,11 @@
     <string name="tokenExpirationDateKey">tokenExpirationDate</string>
     <string name="deviceRegisteredKey">deviceRegistered</string>
     <string name="dynamicFormKey">gDynamicForm</string>
+    <string name="haveLayersBeenFetchedOnceKey">haveLayersBeenReadOnce</string>
+    <string name="haveLayersBeenFetchedOnceDefaultValue">false</string>
+    <string name="deleteAllDataOnLogoutKey">deleteAllDataOnLogout</string>
+    <string name="deleteAllDataOnLogoutDefaultValue">false</string>
+    
     <!-- mdkpublicpreferences.xml -->
     <string name="locationServiceEnabledKey">locationServiceEnabled</string>
     <string name="dataFetchEnabledKey">dataFetchEnabled</string>
@@ -28,8 +33,6 @@
     <string name="observationPushFrequencyDefaultValue">60000</string>
     <string name="locationPushFrequencyKey">locationPushFrequency</string>
     <string name="locationPushFrequencyDefaultValue">60000</string>
-    <string name="haveLayersBeenFetchedOnceKey">haveLayersBeenReadOnce</string>
-    <string name="haveLayersBeenFetchedOnceDefaultValue">false</string>
     <string name="imageUploadSizeKey">imageUploadSize</string>
 
 </resources>
