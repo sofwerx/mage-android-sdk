@@ -6,6 +6,7 @@ import mil.nga.giat.mage.sdk.datastore.observation.AttachmentHelper;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.exceptions.ObservationException;
 import mil.nga.giat.mage.sdk.http.post.MageServerPostRequests;
+import mil.nga.giat.mage.sdk.login.LoginTaskFactory;
 import android.app.IntentService;
 import android.content.Intent;
 import android.util.Log;
@@ -24,7 +25,7 @@ public class AttachmentPushIntentService extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		if (!ConnectivityUtility.isOnline(getApplicationContext())) {
+		if (!ConnectivityUtility.isOnline(getApplicationContext()) || LoginTaskFactory.getInstance(getApplicationContext()).isLocalLogin()) {
 			Log.d(LOG_NAME, "Not connected.  Will try later.");
 			return;
 		}

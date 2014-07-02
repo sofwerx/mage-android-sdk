@@ -21,6 +21,7 @@ import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.misc.TransactionManager;
+import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
 
@@ -352,6 +353,16 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 		}
 	}
 	
+	public void deleteAll() throws UserException {
+
+		try {
+			DeleteBuilder<Location, Long> db = locationDao.deleteBuilder();
+			db.delete();
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "There was a problem deleting locaions.", sqle);
+			throw new UserException("There was a problem deleting locations.", sqle);
+		}
+	}
 	
 	@Override
 	public boolean addListener(final ILocationEventListener listener) {

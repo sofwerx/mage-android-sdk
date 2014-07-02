@@ -7,9 +7,11 @@ import java.util.Arrays;
 import java.util.Date;
 
 import mil.nga.giat.mage.sdk.R;
+import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
+import mil.nga.giat.mage.sdk.datastore.user.Role;
+import mil.nga.giat.mage.sdk.datastore.user.RoleHelper;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.exceptions.LoginException;
-import mil.nga.giat.mage.sdk.exceptions.UserException;
 import mil.nga.giat.mage.sdk.utils.DateUtility;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -28,8 +30,13 @@ public class LocalAuthLoginTask extends AbstractAccountTask {
 
 	private static final String LOG_NAME = LocalAuthLoginTask.class.getName();
 
+	protected RoleHelper roleHelper;
+	protected LocationHelper locationHelper;
+	
 	public LocalAuthLoginTask(AccountDelegate delegate, Context applicationContext) {
 		super(delegate, applicationContext);
+		roleHelper = RoleHelper.getInstance(applicationContext);
+		locationHelper = LocationHelper.getInstance(applicationContext);
 	}
 
 	/**
@@ -62,24 +69,26 @@ public class LocalAuthLoginTask extends AbstractAccountTask {
 
 		// initialize local active user
 		try {
-			// get active users
-			User currentUser = userHelper.readCurrentUser();
-			if (currentUser == null) {
-
-				// delete active user(s)
-				userHelper.deleteCurrentUsers();
-
-				// create new active user.
-				currentUser = new User("NA", "unknown", "unknown", "unknown", username, null);
-				currentUser.setCurrentUser(Boolean.TRUE);
-				currentUser = userHelper.create(currentUser);
-			} else {
-				Log.d(LOG_NAME, "A Current Active User exists." + currentUser);
-			}
-
-		} catch (UserException e) {
+			
+			// FIXME : delete all locations for now
+			locationHelper.deleteAll();
+			
+			// delte roles
+			roleHelper.deleteAll();
+			
+			// delete active user(s)
+			userHelper.deleteCurrentUsers();
+			
+			Role defaultRole = new Role("NA", "LOCAL", "Local Auth", null);
+			defaultRole = roleHelper.create(defaultRole);
+			
+			// create new active user.
+			User currentUser = new User("NA", "unknown", username, "", username, defaultRole);
+			currentUser.setCurrentUser(Boolean.TRUE);
+			currentUser = userHelper.create(currentUser);
+		} catch (Exception e) {
 			// for now, treat as a warning. Not a great state to be in.
-			Log.w(LOG_NAME, "Unable to initialize a local Active User.");
+			Log.e(LOG_NAME, "Unable to initialize a local Active User.");
 		}
 
 		return new AccountStatus(AccountStatus.Status.SUCCESSFUL_LOGIN);

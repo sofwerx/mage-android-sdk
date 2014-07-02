@@ -72,7 +72,7 @@ public class UserHelper extends DaoHelper<User> {
 		try {
 			createdUser = userDao.createIfNotExists(pUser);
 		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "There was a problem creating user: " + pUser);
+			Log.e(LOG_NAME, "There was a problem creating user: " + pUser, sqle);
 			throw new UserException("There was a problem creating user: " + pUser, sqle);
 		}
 		return createdUser;
@@ -149,10 +149,9 @@ public class UserHelper extends DaoHelper<User> {
 		try {
 			DeleteBuilder<User, Long> db = userDao.deleteBuilder();
 			db.where().eq("isCurrentUser", Boolean.TRUE);
-
-			userDao.delete(db.prepare());
+			db.delete();
 		} catch (SQLException sqle) {
-			Log.e(LOG_NAME, "There was a problem deleting active users.");
+			Log.e(LOG_NAME, "There was a problem deleting active users.", sqle);
 			throw new UserException("There was a problem deleting active users.", sqle);
 		}
 	}

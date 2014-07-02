@@ -18,6 +18,7 @@ import mil.nga.giat.mage.sdk.exceptions.LayerException;
 import mil.nga.giat.mage.sdk.exceptions.StaticFeatureException;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
+import mil.nga.giat.mage.sdk.login.LoginTaskFactory;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -55,7 +56,7 @@ public class StaticFeatureServerFetch extends AbstractServerFetch {
 
 		sp.putString(mContext.getString(R.string.haveLayersBeenFetchedOnceKey), "false").commit();
 		// if you are disconnect, skip this
-		if(!ConnectivityUtility.isOnline(mContext)) {
+		if(!ConnectivityUtility.isOnline(mContext) || LoginTaskFactory.getInstance(mContext).isLocalLogin()) {
 			Log.d(LOG_NAME, "Disconnected, not pulling static layers.");
 			return;
 		}

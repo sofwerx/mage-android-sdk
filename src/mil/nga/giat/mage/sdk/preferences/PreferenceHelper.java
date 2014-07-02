@@ -1,5 +1,6 @@
 package mil.nga.giat.mage.sdk.preferences;
 
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -13,6 +14,7 @@ import java.util.concurrent.TimeoutException;
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
+import mil.nga.giat.mage.sdk.login.LoginTaskFactory;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -22,6 +24,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.google.common.io.CharStreams;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -43,6 +47,8 @@ import android.util.Log;
 public class PreferenceHelper {
 
 	private static final String LOG_NAME = PreferenceHelper.class.getName();
+	
+	private final static String DEFAULT_DYNAMIC_FORM = "dynamic-form/default-dynamic-form.json";
 	
 	private PreferenceHelper() {
 	}
@@ -204,42 +210,44 @@ public class PreferenceHelper {
 			String key = mContext.getString(R.string.dynamicFormKey);
 
 			// read in default local form
-			/*try {
+			try {
 				String dynamicForm = CharStreams.toString(new InputStreamReader(mContext.getAssets().open(DEFAULT_DYNAMIC_FORM), "UTF-8"));
 				Log.i(LOG_NAME, key + " is " + sharedPreferences.getString(key, "empty") + ".  Setting it to " + String.valueOf(dynamicForm) + ".");
 				editor.putString(key, dynamicForm).commit();
 			} catch (Exception e) {
 				Log.e(LOG_NAME, "Could not set local dynamic form.", e);
-			}*/
+			}
 
 			// read dynamic form from server
-			try {
-				String fieldObservationFormId = MageServerGetRequests.getFieldObservationFormId(mContext);
-				if (fieldObservationFormId != null) {
-					URL url = new URL(new URL(getValue(R.string.serverURLKey)), "api/forms/" + fieldObservationFormId);
-					HttpGet get = new HttpGet(url.toURI());
-					DefaultHttpClient httpclient = HttpClientManager.getInstance(mContext).getHttpClient();
-					HttpResponse response = httpclient.execute(get);
-					if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-						entity = response.getEntity();
-						String dynamicForm = EntityUtils.toString(entity);
-						Log.i(LOG_NAME, key + " is " + sharedPreferences.getString(key, "empty") + ".  Setting it to " + String.valueOf(dynamicForm) + ".");
-						editor.putString(key, dynamicForm).commit();
-					} else {
-						entity = response.getEntity();
-						String error = EntityUtils.toString(entity);
-						Log.e(LOG_NAME, "Bad request.");
-						Log.e(LOG_NAME, error);
-					}
-				}
-			} catch (Exception e) {
-				Log.e(LOG_NAME, "Could not set dynamic form.  Problem reading server api/form.", e);
-			} finally {
+			if(!LoginTaskFactory.getInstance(mContext).isLocalLogin()) {
 				try {
-					if (entity != null) {
-						entity.consumeContent();
+					String fieldObservationFormId = MageServerGetRequests.getFieldObservationFormId(mContext);
+					if (fieldObservationFormId != null) {
+						URL url = new URL(new URL(getValue(R.string.serverURLKey)), "api/forms/" + fieldObservationFormId);
+						HttpGet get = new HttpGet(url.toURI());
+						DefaultHttpClient httpclient = HttpClientManager.getInstance(mContext).getHttpClient();
+						HttpResponse response = httpclient.execute(get);
+						if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+							entity = response.getEntity();
+							String dynamicForm = EntityUtils.toString(entity);
+							Log.i(LOG_NAME, key + " is " + sharedPreferences.getString(key, "empty") + ".  Setting it to " + String.valueOf(dynamicForm) + ".");
+							editor.putString(key, dynamicForm).commit();
+						} else {
+							entity = response.getEntity();
+							String error = EntityUtils.toString(entity);
+							Log.e(LOG_NAME, "Bad request.");
+							Log.e(LOG_NAME, error);
+						}
 					}
 				} catch (Exception e) {
+					Log.e(LOG_NAME, "Could not set dynamic form.  Problem reading server api/form.", e);
+				} finally {
+					try {
+						if (entity != null) {
+							entity.consumeContent();
+						}
+					} catch (Exception e) {
+					}
 				}
 			}
 		}

@@ -14,6 +14,7 @@ import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.event.IScreenEventListener;
 import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
+import mil.nga.giat.mage.sdk.login.LoginTaskFactory;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import mil.nga.giat.mage.sdk.screen.ScreenChangeReceiver;
 import android.content.Intent;
@@ -49,7 +50,7 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 		while (!isCanceled) {
 			Boolean isDataFetchEnabled = sharedPreferences.getBoolean(getApplicationContext().getString(R.string.dataFetchEnabledKey), true);
 
-			if (isConnected && isDataFetchEnabled) {
+			if (isConnected && isDataFetchEnabled && !LoginTaskFactory.getInstance(getApplicationContext()).isLocalLogin()) {
 
 				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch Locations...");
 				try {

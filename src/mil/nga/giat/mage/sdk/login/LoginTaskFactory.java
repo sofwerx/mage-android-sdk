@@ -31,6 +31,11 @@ public class LoginTaskFactory {
 		mContext = context;
 		return loginTaskFactory;
 	}
+	
+	public boolean isLocalLogin() {
+		String className = PreferenceHelper.getInstance(mContext).getValue(R.string.loginTaskKey, String.class, R.string.loginTaskDefaultValue);
+		return className.equals(LocalAuthLoginTask.class.getCanonicalName());
+	}
 
 	/**
 	 * Retrieves the correct login module from the configuration.

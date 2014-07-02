@@ -12,6 +12,7 @@ import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.event.IObservationEventListener;
 import mil.nga.giat.mage.sdk.http.post.MageServerPostRequests;
+import mil.nga.giat.mage.sdk.login.LoginTaskFactory;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
 import android.content.Intent;
 import android.util.Log;
@@ -39,7 +40,7 @@ public class ObservationPushIntentService extends ConnectivityAwareIntentService
 		ObservationHelper.getInstance(getApplicationContext()).addListener(this);
 		pushFrequency = getObservationPushFrequency();
 		while (!isCanceled) {
-			if (isConnected) {
+			if (isConnected && !LoginTaskFactory.getInstance(getApplicationContext()).isLocalLogin()) {
 				pushFrequency = getObservationPushFrequency();
 
 				// push dirty observations

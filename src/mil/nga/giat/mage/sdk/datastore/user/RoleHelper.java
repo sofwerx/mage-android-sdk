@@ -5,10 +5,12 @@ import java.util.List;
 
 import mil.nga.giat.mage.sdk.datastore.DaoHelper;
 import mil.nga.giat.mage.sdk.exceptions.RoleException;
+import mil.nga.giat.mage.sdk.exceptions.UserException;
 import android.content.Context;
 import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.DeleteBuilder;
 
 /**
  * 
@@ -74,6 +76,16 @@ public class RoleHelper extends DaoHelper<Role> {
 			throw new RoleException("There was a problem creating the role: " + pRole, sqle);
 		}
 		return createdRole;
+	}
+	
+	public void deleteAll() throws RoleException {
+		try {
+			DeleteBuilder<Role, Long> db = roleDao.deleteBuilder();
+			db.delete();
+		} catch (SQLException sqle) {
+			Log.e(LOG_NAME, "There was a problem deleting all roles.", sqle);
+			throw new RoleException("There was a problem deleting all roles.", sqle);
+		}
 	}
 
 	@Override
