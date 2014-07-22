@@ -135,16 +135,13 @@ public class MageServerPostRequests {
 			
 			Log.d(LOG_NAME, "Mime type is: " + mimeType);
 
-			FileBody fileBody = new FileBody(new File(attachment.getLocalPath()));
+			FileBody fileBody = new FileBody(new File(attachment.getLocalPath()), mimeType);
 			FormBodyPart fbp = new FormBodyPart("attachment", fileBody);
-			fbp.addField("Content-Type", mimeType);
 
 			MultipartEntity reqEntity = new MultipartEntity();
 			reqEntity.addPart(fbp);
 
 			request.setEntity(reqEntity);
-			
-			Log.d(LOG_NAME, "Sending request " + request);
 			HttpResponse response = httpClient.execute(request);
 			entity = response.getEntity();
 			if (entity != null) {
