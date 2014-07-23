@@ -86,13 +86,13 @@ public class AttachmentHelper {
 				out.flush();
 				out.close();
 				bitmap.recycle();
+				copyExifData(inFile, stagedFile);
 			} else {
 				Files.copy(inFile, stagedFile);
 			}
+		} else {
+			Files.copy(inFile, stagedFile);
 		}
-
-		copyExifData(inFile, stagedFile);
-
 		attachment.setLocalPath(stagedFile.getAbsolutePath());
 		DaoStore.getInstance(context).getAttachmentDao().update(attachment);
 	}
