@@ -75,15 +75,7 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 		String username = params[0];
 		String password = params[1];
 		String serverURL = params[2];
-
-		// build user-agent string
-		StringBuilder userAgent = new StringBuilder("Android::");
-		userAgent.append(Build.VERSION.RELEASE + "::");
-		userAgent.append(Build.MANUFACTURER + "/");
-		userAgent.append(Build.BRAND + "/");
-		userAgent.append(Build.PRODUCT + "/");
-		userAgent.append(Build.MODEL);
-		
+	
 		// Make sure you have connectivity
 		if (!ConnectivityUtility.isOnline(mApplicationContext)) {
 
@@ -164,7 +156,6 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 			nameValuePairs.add(new BasicNameValuePair("password", password));
 			nameValuePairs.add(new BasicNameValuePair("uid", macAddress));
 			nameValuePairs.add(new BasicNameValuePair("username", username));
-			nameValuePairs.add(new BasicNameValuePair("user-agent", userAgent.toString()));
 			UrlEncodedFormEntity authParams = new UrlEncodedFormEntity(nameValuePairs);
 			
 			// If we think we need to register, go do it
