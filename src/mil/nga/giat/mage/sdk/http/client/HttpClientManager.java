@@ -25,6 +25,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.protocol.HttpContext;
 
 import android.content.Context;
@@ -76,6 +77,9 @@ public class HttpClientManager implements IEventDispatcher<IUserEventListener> {
 			httpClient = new DefaultHttpClient(cm, params);
 			httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 25000);
 			httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 30000);
+			String userAgent = System.getProperty("http.agent");
+			userAgent = (userAgent == null) ? "" : userAgent;
+			httpClient.getParams().setParameter(CoreProtocolPNames.USER_AGENT, userAgent);
 			// add the token to every request!
 			httpClient.addRequestInterceptor(new HttpRequestInterceptor() {
 				@Override
