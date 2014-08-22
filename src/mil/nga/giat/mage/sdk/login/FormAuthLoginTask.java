@@ -35,6 +35,7 @@ import org.json.JSONObject;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -75,7 +76,7 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 		String username = params[0];
 		String password = params[1];
 		String serverURL = params[2];
-	
+		
 		// Make sure you have connectivity
 		if (!ConnectivityUtility.isOnline(mApplicationContext)) {
 
@@ -156,6 +157,16 @@ public class FormAuthLoginTask extends AbstractAccountTask {
 			nameValuePairs.add(new BasicNameValuePair("password", password));
 			nameValuePairs.add(new BasicNameValuePair("uid", macAddress));
 			nameValuePairs.add(new BasicNameValuePair("username", username));
+			
+			//adding MAGE version from AndroidManifest
+			try {
+				String version = mApplicationContext.getPackageManager().getPackageInfo(mApplicationContext.getPackageName(), 0).versionName;
+				nameValuePairs.add(new BasicNameValuePair("mageVersion", version));
+			}
+			catch (NameNotFoundException nnfe) {
+				Log.w(LOG_NAME, "Unable to read versionName from AndroidManifest.", nnfe);
+			}			
+			
 			UrlEncodedFormEntity authParams = new UrlEncodedFormEntity(nameValuePairs);
 			
 			// If we think we need to register, go do it
