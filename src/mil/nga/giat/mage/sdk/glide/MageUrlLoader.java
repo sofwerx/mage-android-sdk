@@ -73,6 +73,10 @@ public class MageUrlLoader extends VolleyUrlLoader {
 		String s = url.toString();
 		String token = PreferenceHelper.getInstance(context).getValue(R.string.tokenKey);
 		s += "?access_token=" + token + "&size=" + (width < height ? height : width);
+		if (s.contains("avatar")) {
+			// this is a user avatar, let's defeat the cache on them
+			s += "&_dc=" + System.currentTimeMillis();
+		}
 		Log.d("MageUrlLoader", "Loading image: " + s);
 		try {
 			url = new URL(s);
@@ -84,7 +88,7 @@ public class MageUrlLoader extends VolleyUrlLoader {
 
     @Override
     public String getId(URL url) {
-        return url.toString();
+    	return url.toString();
     }
 
 }

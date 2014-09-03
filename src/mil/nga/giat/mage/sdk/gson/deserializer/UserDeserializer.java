@@ -1,7 +1,11 @@
 package mil.nga.giat.mage.sdk.gson.deserializer;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
+import mil.nga.giat.mage.sdk.datastore.user.Phone;
 import mil.nga.giat.mage.sdk.datastore.user.Role;
 import mil.nga.giat.mage.sdk.datastore.user.RoleHelper;
 import mil.nga.giat.mage.sdk.datastore.user.User;
@@ -11,6 +15,7 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -85,8 +90,27 @@ public class UserDeserializer implements JsonDeserializer<User> {
 		} else {
 			Log.e(LOG_NAME, "User has no role!");
 		}
+		
+		Collection<Phone> phones = new ArrayList<Phone>();
+		String primaryPhone = null;
+		if (feature.has("phones")) {
+			JsonArray phoneArray = feature.get("phones").getAsJsonArray();
+			for (Iterator<JsonElement> i = phoneArray.iterator(); i.hasNext();) {
+				JsonElement e = i.next();
+				Phone phone = new Phone();
+				phone.setNumber(e.getAsJsonObject().get("number").getAsString());
+				phones.add(phone);
+				if (primaryPhone == null) {
+					primaryPhone = phone.getNumber();
+				}
+			}
+		}
+		String avatarUrl = null;
+		if (feature.has("avatarUrl")) {
+			avatarUrl = feature.get("avatarUrl").getAsString();
+		}
 
-		User user = new User(remoteId, email, firstname, lastname, username, role);
+		User user = new User(remoteId, email, firstname, lastname, username, role, primaryPhone, avatarUrl);
 		return user;
 	}
 }

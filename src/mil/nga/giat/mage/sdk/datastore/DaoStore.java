@@ -38,7 +38,7 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 
 	private static final String DATABASE_NAME = "mage.db";
 	private static final String LOG_NAME = DaoStore.class.getName();
-	private static final int DATABASE_VERSION = 4;
+	private static final int DATABASE_VERSION = 5;
 
 	// Observation DAOS
 	private Dao<Observation, Long> observationDao;

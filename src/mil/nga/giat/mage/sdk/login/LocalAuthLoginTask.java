@@ -83,7 +83,7 @@ public class LocalAuthLoginTask extends AbstractAccountTask {
 			defaultRole = roleHelper.create(defaultRole);
 			
 			// create new active user.
-			User currentUser = new User("NA", "unknown", username, "", username, defaultRole);
+			User currentUser = new User("NA", "unknown", username, "", username, defaultRole, null, null);
 			currentUser.setCurrentUser(Boolean.TRUE);
 			currentUser = userHelper.create(currentUser);
 		} catch (Exception e) {

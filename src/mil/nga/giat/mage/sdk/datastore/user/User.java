@@ -36,12 +36,18 @@ public class User {
 
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
 	private Role role;
-
+	
+	@DatabaseField
+	private String primaryPhone;
+	
+	@DatabaseField
+	private String avatarUrl;
+	
 	public User() {
 		// ORMLite needs a no-arg constructor
 	}
 
-	public User(String remoteId, String email, String firstname, String lastname, String username, Role role) {
+	public User(String remoteId, String email, String firstname, String lastname, String username, Role role, String primaryPhone, String avatarUrl) {
 		super();
 		this.remoteId = remoteId;
 		this.email = email;
@@ -49,6 +55,8 @@ public class User {
 		this.lastname = lastname;
 		this.username = username;
 		this.role = role;
+		this.primaryPhone = primaryPhone;
+		this.avatarUrl = avatarUrl;
 	}
 
 	public Long getId() {
@@ -105,6 +113,22 @@ public class User {
 
 	public void setFetchedDate(Date fetchedDate) {
 		this.fetchedDate = fetchedDate;
+	}
+	
+	public String getPrimaryPhone() {
+		return primaryPhone;
+	}
+	
+	public void setPrimaryPhone(String primaryPhone) {
+		this.primaryPhone = primaryPhone;
+	}
+	
+	public String getAvatarUrl() {
+		return avatarUrl;
+	}
+	
+	public void setAvatarUrl(String avatarUrl) {
+		this.avatarUrl = avatarUrl;
 	}
 
 	@Override
