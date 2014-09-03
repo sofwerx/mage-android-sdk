@@ -3,6 +3,7 @@ package mil.nga.giat.mage.sdk.http.post;
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
+import java.util.Date;
 import java.util.List;
 
 import mil.nga.giat.mage.sdk.R;
@@ -12,7 +13,9 @@ import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
 import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
+import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
+import mil.nga.giat.mage.sdk.gson.deserializer.UserDeserializer;
 import mil.nga.giat.mage.sdk.gson.serializer.LocationSerializer;
 import mil.nga.giat.mage.sdk.gson.serializer.ObservationSerializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
@@ -35,6 +38,7 @@ import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
 
 import android.content.Context;
 import android.util.Log;
@@ -171,6 +175,74 @@ public class MageServerPostRequests {
 		return attachment;
 	}
 
+	public static User postProfilePicture(User user, String abslutePath, Context context) {
+		DefaultHttpClient httpClient = HttpClientManager.getInstance(context).getHttpClient();
+		HttpEntity entity = null;
+		try {
+			Log.d(LOG_NAME, "Pushing profile picture for  " + user.getRemoteId());
+			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
+			URL endpoint = new URL(serverURL + "/api/users/" + user.getRemoteId());
+			
+			HttpPut request = new HttpPut(endpoint.toURI());
+			String mimeType = MediaUtility.getMimeType(abslutePath);
+			
+			Log.d(LOG_NAME, "Mime type is: " + mimeType);
+
+			FileBody fileBody = new FileBody(new File(abslutePath), mimeType);
+			FormBodyPart fbp = new FormBodyPart("avatar", fileBody);
+
+			MultipartEntity reqEntity = new MultipartEntity();
+			reqEntity.addPart(fbp);
+
+			request.setEntity(reqEntity);
+			HttpResponse response = httpClient.execute(request);
+			entity = response.getEntity();
+			if (entity != null) {
+				final Gson userDeserializer = UserDeserializer.getGsonBuilder(context);
+				String entityString = EntityUtils.toString(entity);
+				Log.e("asdf", entityString);
+				
+				JSONObject userJson = new JSONObject(entityString);
+				if (userJson != null) {
+					User newUser = userDeserializer.fromJson(userJson.toString(), User.class);
+					UserHelper userHelper = UserHelper.getInstance(context);
+					if (newUser != null) {
+						User oldUser = userHelper.read(newUser.getRemoteId());
+						if (oldUser == null) {
+							newUser.setCurrentUser(user.isCurrentUser());
+							newUser.setFetchedDate(new Date());
+							newUser = userHelper.create(newUser);
+							Log.d(LOG_NAME, "Created user with remote_id " + user.getRemoteId());
+						} else {
+							// perform update?
+							newUser.setId(oldUser.getId());
+							newUser.setCurrentUser(user.isCurrentUser());
+							newUser.setFetchedDate(new Date());
+							userHelper.update(newUser);
+							Log.d(LOG_NAME, "Updated user with remote_id " + newUser.getRemoteId());
+						}
+						return newUser;
+					}
+				}
+				return user;
+			} else {
+				Log.e(LOG_NAME, "Unable to save profile picture.");
+				return user;
+			}
+
+		} catch (Exception e) {
+			Log.e(LOG_NAME, "Failure pushing profile picture: " + abslutePath, e);
+		} finally {
+			try {
+				if (entity != null) {
+					entity.consumeContent();
+				}
+			} catch (Exception e) {
+			}
+		}
+		return user;
+	}
+	
 	public static Boolean postLocations(List<Location> locations, Context context) {
 		LocationHelper locationHelper = LocationHelper.getInstance(context);
 		
