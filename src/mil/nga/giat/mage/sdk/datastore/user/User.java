@@ -43,11 +43,21 @@ public class User {
 	@DatabaseField
 	private String avatarUrl;
 	
+	@DatabaseField
+	private String localAvatarPath;
+	
+	@DatabaseField
+	private String localIconPath;
+	
+	@DatabaseField
+	private String iconUrl;
+
+	
 	public User() {
 		// ORMLite needs a no-arg constructor
 	}
 
-	public User(String remoteId, String email, String firstname, String lastname, String username, Role role, String primaryPhone, String avatarUrl) {
+	public User(String remoteId, String email, String firstname, String lastname, String username, Role role, String primaryPhone, String avatarUrl, String iconUrl) {
 		super();
 		this.remoteId = remoteId;
 		this.email = email;
@@ -57,6 +67,7 @@ public class User {
 		this.role = role;
 		this.primaryPhone = primaryPhone;
 		this.avatarUrl = avatarUrl;
+		this.iconUrl = iconUrl;
 	}
 
 	public Long getId() {
@@ -129,6 +140,30 @@ public class User {
 	
 	public void setAvatarUrl(String avatarUrl) {
 		this.avatarUrl = avatarUrl;
+	}
+	
+	public String getLocalAvatarPath() {
+		return localAvatarPath;
+	}
+	
+	public void setLocalAvatarPath(String localAvatarPath) {
+		this.localAvatarPath = localAvatarPath;
+	}
+	
+	public String getIconUrl() {
+		return iconUrl;
+	}
+	
+	public void setIconUrl(String iconUrl) {
+		this.iconUrl = iconUrl;
+	}
+	
+	public String getLocalIconPath() {
+		return localIconPath;
+	}
+	
+	public void setLocalIconPath(String localIconPath) {
+		this.localIconPath = localIconPath;
 	}
 
 	@Override

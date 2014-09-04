@@ -109,8 +109,13 @@ public class UserDeserializer implements JsonDeserializer<User> {
 		if (feature.has("avatarUrl")) {
 			avatarUrl = feature.get("avatarUrl").getAsString();
 		}
+		
+		String iconUrl = null;
+		if (feature.has("iconUrl")) {
+			iconUrl = feature.get("iconUrl").getAsString();
+		}
 
-		User user = new User(remoteId, email, firstname, lastname, username, role, primaryPhone, avatarUrl);
+		User user = new User(remoteId, email, firstname, lastname, username, role, primaryPhone, avatarUrl, iconUrl);
 		return user;
 	}
 }

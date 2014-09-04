@@ -81,6 +81,28 @@ public class MediaUtility {
 		return mediaFolder;
 	}
 	
+	public static File getAvatarDirectory() {
+		File sd = Environment.getExternalStorageDirectory();
+		File mediaFolder = new File(sd, "/MAGE/Media/user/avatars");
+		if (sd.canWrite()) {
+			if (!mediaFolder.exists()) {
+				mediaFolder.mkdirs();
+			}
+		}
+		return mediaFolder;
+	}
+	
+	public static File getUserIconDirectory() {
+		File sd = Environment.getExternalStorageDirectory();
+		File mediaFolder = new File(sd, "/MAGE/Media/user/icons");
+		if (sd.canWrite()) {
+			if (!mediaFolder.exists()) {
+				mediaFolder.mkdirs();
+			}
+		}
+		return mediaFolder;
+	}
+	
     /**
      * @param uri The Uri to check.
      * @return Whether the Uri authority is ExternalStorageProvider.
@@ -303,6 +325,27 @@ public class MediaUtility {
         Bitmap bitmap = MediaUtility.orientBitmap(BitmapFactory.decodeStream(input, null, bitmapOptions), absoluteFilePath);
         input.close();
         return bitmap;
+	}
+	
+	public static Bitmap getThumbnail(InputStream input, int thumbsize) throws IOException {
+		BitmapFactory.Options onlyBoundsOptions = new BitmapFactory.Options();
+        onlyBoundsOptions.inJustDecodeBounds = true;
+        onlyBoundsOptions.inDither=true;//optional
+        onlyBoundsOptions.inPreferredConfig=Bitmap.Config.ARGB_8888;//optional
+        BitmapFactory.decodeStream(input, null, onlyBoundsOptions);
+        input.close();
+        if ((onlyBoundsOptions.outWidth == -1) || (onlyBoundsOptions.outHeight == -1))
+            return null;
+
+        int originalSize = (onlyBoundsOptions.outHeight > onlyBoundsOptions.outWidth) ? onlyBoundsOptions.outHeight : onlyBoundsOptions.outWidth;
+
+        double ratio = (originalSize > thumbsize) ? (originalSize / thumbsize) : 1.0;
+
+        BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+        bitmapOptions.inSampleSize = getPowerOfTwoForSampleRatio(ratio);
+        bitmapOptions.inDither=true;//optional
+        bitmapOptions.inPreferredConfig=Bitmap.Config.ARGB_8888;//optional
+        return BitmapFactory.decodeStream(input, null, bitmapOptions);
 	}
 	
 	public static Bitmap orientBitmap(Bitmap bitmap, String absoluteFilePath) throws IOException {
