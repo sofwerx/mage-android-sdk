@@ -14,7 +14,14 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.Bitmap.Config;
+import android.graphics.PorterDuff.Mode;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
@@ -374,6 +381,45 @@ public class MediaUtility {
 		}
 		return null;
 	
+	}
+	
+	public static Bitmap resizeAndRoundCorners(Bitmap bitmap, int maxSize) {
+		boolean isLandscape = bitmap.getWidth() > bitmap.getHeight();
+
+        int newWidth, newHeight;
+        if (isLandscape)
+        {
+            newWidth = maxSize;
+            newHeight = Math.round(((float) newWidth / bitmap.getWidth()) * bitmap.getHeight());
+        } else
+        {
+            newHeight = maxSize;
+            newWidth = Math.round(((float) newHeight / bitmap.getHeight()) * bitmap.getWidth());
+        }
+
+        Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, false);
+
+        if (resizedBitmap != bitmap)
+        	bitmap.recycle();
+    	
+        Bitmap roundedProfile = Bitmap.createBitmap(resizedBitmap.getWidth(), resizedBitmap
+                .getHeight(), Config.ARGB_8888);
+        
+        Canvas roundedCanvas = new Canvas(roundedProfile);
+        final int color = 0xff424242;
+        final Paint paint = new Paint();
+        final Rect rect = new Rect(0, 0, roundedProfile.getWidth(), roundedProfile.getHeight());
+        final RectF rectF = new RectF(rect);
+        final float roundPx = 7.0f;
+        
+        paint.setAntiAlias(true);
+        roundedCanvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(color);
+        roundedCanvas.drawRoundRect(rectF, roundPx, roundPx, paint);
+
+        paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
+        roundedCanvas.drawBitmap(resizedBitmap, rect, rect, paint);
+        return roundedProfile;
 	}
 
 }
