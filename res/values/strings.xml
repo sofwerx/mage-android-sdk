@@ -2,6 +2,7 @@
 
     <string name="app_name">MAGE SDK</string>
     <!-- mdkprivatepreferences.xml -->
+    <string name="databaseVersionKey">databaseVersion</string>
     <string name="buildVersionKey">buildVersion</string>
     <string name="usernameKey">username</string>
     <string name="passwordHashKey">passwordHash</string>

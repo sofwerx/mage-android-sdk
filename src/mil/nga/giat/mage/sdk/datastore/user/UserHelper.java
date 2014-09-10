@@ -155,4 +155,22 @@ public class UserHelper extends DaoHelper<User> {
 			throw new UserException("There was a problem deleting active users.", sqle);
 		}
 	}
+	
+	public User createOrUpdate(User user) {
+		try {
+			User oldUser = read(user.getRemoteId());
+			if (oldUser == null) {
+				user = create(user);
+				Log.d(LOG_NAME, "Created user with remote_id " + user.getRemoteId());
+			} else {
+				// perform update?
+				user.setId(oldUser.getId());
+				update(user);
+				Log.d(LOG_NAME, "Updated user with remote_id " + user.getRemoteId());
+			}
+		} catch (UserException ue) {
+			Log.e(LOG_NAME, "There was a problem reading user: " + user, ue);
+		}
+		return user;
+	}
 }

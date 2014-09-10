@@ -15,7 +15,9 @@ import mil.nga.giat.mage.sdk.datastore.location.Location;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.datastore.staticfeature.StaticFeature;
+import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.gson.deserializer.LayerDeserializer;
+import mil.nga.giat.mage.sdk.gson.deserializer.UserDeserializer;
 import mil.nga.giat.mage.sdk.http.client.HttpClientManager;
 import mil.nga.giat.mage.sdk.jackson.deserializer.LocationDeserializer;
 import mil.nga.giat.mage.sdk.jackson.deserializer.ObservationDeserializer;
@@ -390,5 +392,47 @@ public class MageServerGetRequests {
 		}
 
 		return locations;
+	}
+	
+	public static Collection<User> getAllUsers(Context context) {
+		final Gson userDeserializer = UserDeserializer.getGsonBuilder(context);
+		Collection<User> users = new ArrayList<User>();
+		HttpEntity entity = null;
+		try {
+			URL serverURL = new URL(PreferenceHelper.getInstance(context).getValue(R.string.serverURLKey));
+			URL locationURL = new URL(serverURL, "/api/users");
+
+			DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
+			HttpGet get = new HttpGet(locationURL.toURI());
+			HttpResponse response = httpclient.execute(get);
+
+			if (HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
+				entity = response.getEntity();
+				JSONArray featureArray = new JSONArray(EntityUtils.toString(entity));
+				for (int i = 0; i < featureArray.length(); i++) {
+					JSONObject feature = featureArray.getJSONObject(i);
+					if (feature != null) {
+						users.add(userDeserializer.fromJson(feature.toString(), User.class));
+					}
+				}
+			} else {
+				entity = response.getEntity();
+				String error = EntityUtils.toString(entity);
+				Log.e(LOG_NAME, "Bad request.");
+				Log.e(LOG_NAME, error);
+			}
+		} catch (Exception e) {
+			Log.e(LOG_NAME, "There was a failure while performing an User Fetch opperation.", e);
+		} finally {
+			try {
+				if (entity != null) {
+					entity.consumeContent();
+				}
+			} catch (Exception e) {
+				Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
+			}
+		}
+
+		return users;
 	}
 }

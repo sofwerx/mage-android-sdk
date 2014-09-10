@@ -67,7 +67,7 @@ public class UserDeserializer implements JsonDeserializer<User> {
 		String username = feature.get("username").getAsString();
 
 		Role role = null;
-		if (feature.get("role") != null) {
+		if (feature.get("role") != null && feature.get("role").isJsonObject()) {
 			JsonObject roleJSON = feature.get("role").getAsJsonObject();
 			if (roleJSON != null) {
 				String roleId = roleJSON.get("_id").getAsString();

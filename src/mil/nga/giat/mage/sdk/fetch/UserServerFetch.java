@@ -34,7 +34,6 @@ public class UserServerFetch extends AbstractServerFetch {
 
 	public void fetch(String... userids) throws Exception {
 
-		// TODO : account for deserialization when no userids are given!
 		URL serverURL = new URL(PreferenceHelper.getInstance(mContext).getValue(R.string.serverURLKey));
 
 		HttpEntity entity = null;
@@ -79,20 +78,9 @@ public class UserServerFetch extends AbstractServerFetch {
 					if (userJson != null) {
 						User user = userDeserializer.fromJson(userJson.toString(), User.class);
 						if (user != null) {
-							User oldUser = userHelper.read(user.getRemoteId());
-							if (oldUser == null) {
-								user.setCurrentUser(isCurrentUser);
-								user.setFetchedDate(new Date());
-								user = userHelper.create(user);
-								Log.d(LOG_NAME, "Created user with remote_id " + user.getRemoteId());
-							} else {
-								// perform update?
-								user.setId(oldUser.getId());
-								user.setCurrentUser(isCurrentUser);
-								user.setFetchedDate(new Date());
-								userHelper.update(user);
-								Log.d(LOG_NAME, "Updated user with remote_id " + user.getRemoteId());
-							}
+							user.setCurrentUser(isCurrentUser);
+							user.setFetchedDate(new Date());
+							userHelper.createOrUpdate(user);
 						}
 					}
 				} else {
