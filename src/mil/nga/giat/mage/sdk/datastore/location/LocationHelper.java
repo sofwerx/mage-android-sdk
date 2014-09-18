@@ -109,9 +109,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
                 public Location call() throws Exception {
 					// create Location geometry.
 					locationGeometryDao.create(pLocation.getLocationGeometry());
-		
 					Location createdLocation = locationDao.createIfNotExists(pLocation);
-		
 					// create Location properties.
 					Collection<LocationProperty> locationProperties = pLocation.getProperties();
 					if (locationProperties != null) {
@@ -251,7 +249,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 			e.printStackTrace();
 		}
 		if (currentUser != null) {
-			getUserLocations(currentUser.getId(), context, limit, includeRemote);
+			locations = getUserLocations(currentUser.getId(), context, limit, includeRemote);
 		}
 		return locations;
 	}
