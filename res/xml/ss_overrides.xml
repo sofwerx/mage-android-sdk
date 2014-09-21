@@ -5,5 +5,9 @@
     <EditTextPreference
         android:defaultValue="https://magess.geointapps.org"
         android:key="@string/serverURLKey" />
+        
+    <EditTextPreference
+        android:defaultValue="false"
+        android:key="@string/reportLocationKey" />
     
 </PreferenceScreen>
