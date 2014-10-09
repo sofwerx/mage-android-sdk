@@ -5,5 +5,11 @@
     <EditTextPreference
         android:defaultValue="https://mage.geointapps.org"
         android:key="@string/serverURLKey" />
+        
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="@string/reportLocationKey"
+        android:summary="Track and report device location"
+        android:title="Report Location" />
     
 </PreferenceScreen>
