@@ -70,8 +70,8 @@ public class HttpClientManager implements IEventDispatcher<IUserEventListener> {
 			SchemeRegistry schemeRegistry = new SchemeRegistry();
 			// register http?
 			schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-			final SSLSocketFactory sslSocketFactory = SSLSocketFactory.getSocketFactory();
-			schemeRegistry.register(new Scheme("https", sslSocketFactory, 443));
+//			final SSLSocketFactory sslSocketFactory = SSLSocketFactory.getSocketFactory();
+//			schemeRegistry.register(new Scheme("https", sslSocketFactory, 443));
 			// needs to be thread safe!
 			ClientConnectionManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
 			httpClient = new DefaultHttpClient(cm, params);

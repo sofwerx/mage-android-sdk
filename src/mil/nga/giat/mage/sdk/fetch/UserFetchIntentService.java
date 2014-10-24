@@ -29,6 +29,13 @@ public class UserFetchIntentService extends ConnectivityAwareIntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		super.onHandleIntent(intent);
 		Log.d(LOG_NAME, "Going to fetch all the users");
 		UserHelper userHelper = UserHelper.getInstance(getApplicationContext());

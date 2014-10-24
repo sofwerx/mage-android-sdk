@@ -17,6 +17,7 @@ import mil.nga.giat.mage.sdk.event.IEventDispatcher;
 import mil.nga.giat.mage.sdk.exceptions.LocationException;
 import mil.nga.giat.mage.sdk.exceptions.UserException;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
@@ -33,6 +34,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Log;
@@ -368,19 +370,36 @@ public class LocationService extends Service implements LocationListener, OnShar
 		saveLocation(location, null);
 	}
 
+	@SuppressLint("NewApi") 
 	private void saveLocation(Location location, Long echoTime) {
 		if (location != null && location.getTime() > 0) {
+			Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();
+			long currentTimeMillis = System.currentTimeMillis();
+			locationProperties.add(new LocationProperty("systemClockRealTimeNanos", SystemClock.elapsedRealtimeNanos()));
+			locationProperties.add(new LocationProperty("newDate", new Date()));
+			locationProperties.add(new LocationProperty("newDateMillis", new Date().getTime()));
+			locationProperties.add(new LocationProperty("currentTimeMillis", currentTimeMillis));
+			locationProperties.add(new LocationProperty("locationTimeBefore", location.getTime()));
+			locationProperties.add(new LocationProperty("locationFromMockProvider", location.isFromMockProvider()));
 
-			if (location.getTime() > System.currentTimeMillis()) {
+			if (android.os.Build.VERSION.SDK_INT >= 17){
+				locationProperties.add(new LocationProperty("locationElapsedRealtimeNanosBefore", location.getElapsedRealtimeNanos()));
+			}
+			
+			if (location.getTime() > currentTimeMillis) {
+				locationProperties.add(new LocationProperty("timeInFuture", true));
 				Log.w(LOG_NAME, "Location was in future.  Setting location time to system current time.");
 				location.setTime(System.currentTimeMillis());
+				locationProperties.add(new LocationProperty("locationTimeAfter", location.getTime()));
+				if (android.os.Build.VERSION.SDK_INT >= 17){
+					locationProperties.add(new LocationProperty("locationElapsedRealtimeNanosAfter", location.getElapsedRealtimeNanos()));
+				}
 			}
 
 			// INTEGRATION WITH LOCATION DATASTORE
 			LocationHelper locationHelper = LocationHelper.getInstance(mContext);
 
 			// build properties
-			Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();
 			// locationProperties.add(new LocationProperty("timestamp", DateUtility.getISO8601().format(new Date(location.getTime()))));
 			if (echoTime != null) {
 				locationProperties.add(new LocationProperty("echoTime", echoTime));
@@ -410,6 +429,8 @@ public class LocationService extends Service implements LocationListener, OnShar
 			
 			// build location
 			mil.nga.giat.mage.sdk.datastore.location.Location loc = new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", currentUser, locationProperties, locationGeometry, new Date(location.getTime()));
+			locationProperties.add(new LocationProperty("locationDatabaseTime", loc.getTimestamp()));
+			locationProperties.add(new LocationProperty("locationDatabaseTimeMillis", loc.getTimestamp().getTime()));
 
 			loc.setLocationGeometry(locationGeometry);
 			loc.setProperties(locationProperties);

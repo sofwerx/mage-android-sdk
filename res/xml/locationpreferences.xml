@@ -3,7 +3,7 @@
     android:title="Location Services" >
     
     <CheckBoxPreference
-        android:defaultValue="true"
+        android:defaultValue="false"
         android:key="@string/reportLocationKey"
         android:summary="Track and report device location"
         android:title="Report Location" />

@@ -73,8 +73,8 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 							final long sixHoursInMillseconds = 6 * 60 * 60 * 1000;
 							if (user == null || (new Date()).after(new Date(user.getFetchedDate().getTime() + sixHoursInMillseconds))) {
 								// get any users that were not recognized or expired
-								userFetch.fetch(new String[] { userId });
-								user = userHelper.read(userId);
+//								userFetch.fetch(new String[] { userId });
+//								user = userHelper.read(userId);
 							}
 							location.setUser(user);
 
