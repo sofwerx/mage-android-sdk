@@ -381,6 +381,9 @@ public class LocationService extends Service implements LocationListener, OnShar
 			locationProperties.add(new LocationProperty("currentTimeMillis", currentTimeMillis));
 			locationProperties.add(new LocationProperty("locationTimeBefore", location.getTime()));
 			locationProperties.add(new LocationProperty("locationFromMockProvider", location.isFromMockProvider()));
+			
+			locationProperties.add(new LocationProperty("locationRealNetworkTime", locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER).getTime()));
+			
 
 			if (android.os.Build.VERSION.SDK_INT >= 17){
 				locationProperties.add(new LocationProperty("locationElapsedRealtimeNanosBefore", location.getElapsedRealtimeNanos()));
