@@ -53,10 +53,13 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 			if (isConnected && isDataFetchEnabled && !LoginTaskFactory.getInstance(getApplicationContext()).isLocalLogin()) {
 
 				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch Locations...");
+				Log.i(LOG_NAME, "LocationBug fetching");
 				try {
 					Collection<Location> locations = MageServerGetRequests.getLocations(getApplicationContext());
+					Log.i(LOG_NAME, "LocationBug fetched " + locations.size() + " locations");
 					for (Location location : locations) {
 						if (isCanceled) {
+							Log.i(LOG_NAME, "LocationBug is cancelled");
 							break;
 						}
 
@@ -66,29 +69,32 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 						if (userIdProperty != null) {
 							userId = userIdProperty.getValue().toString();
 						}
-
+						Log.i(LOG_NAME, "LocationBug user id: " + userId);
 						if (userId != null) {
 							User user = userHelper.read(userId);
 							// TODO : test the timer to make sure users are updated as needed!
 							final long sixHoursInMillseconds = 6 * 60 * 60 * 1000;
 							if (user == null || (new Date()).after(new Date(user.getFetchedDate().getTime() + sixHoursInMillseconds))) {
 								// get any users that were not recognized or expired
-//								userFetch.fetch(new String[] { userId });
-//								user = userHelper.read(userId);
+								userFetch.fetch(new String[] { userId });
+								user = userHelper.read(userId);
 							}
 							location.setUser(user);
 
 							// if there is no existing location, create one
-							if (locationHelper.read(location.getRemoteId()) == null) {
+							Location l = locationHelper.read(location.getRemoteId());
+							Log.i(LOG_NAME, "LocationBug location is " + l);
+							Log.i(LOG_NAME, "LocationBug user is: " + user);
+							if (l == null) {
 								// delete old location and create new one
 								if (user != null) {
 									// don't pull your own locations for now!
 									if (!user.isCurrentUser()) {
 										userId = String.valueOf(user.getId());
 										locationHelper.create(location);
-										Log.d(LOG_NAME, "Created location with remote_id " + location.getRemoteId() + " for user with id: " + userId);
+										Log.d(LOG_NAME, "LocationBug Created location with remote_id " + location.getRemoteId() + " for user with id: " + userId);
 										int numberOfLocationsDeleted = locationHelper.deleteUserLocations(userId, true);
-										Log.d(LOG_NAME, "Deleted " + numberOfLocationsDeleted + " locations for user with id: " + userId);
+										Log.d(LOG_NAME, "LocationBug Deleted " + numberOfLocationsDeleted + " locations for user with id: " + userId);
 									}
 								} else {
 									Log.w(LOG_NAME, "A location with no user was found and discarded.  Userid: " + userId);

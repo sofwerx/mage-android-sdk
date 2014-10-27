@@ -100,7 +100,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 
 	@Override
 	public Location create(final Location pLocation) throws LocationException {
-
+		Log.i(LOG_NAME, "LocationBug create location");
 		Location createdLocation;
 
 		try {
@@ -119,6 +119,7 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 						}
 					}
 		
+					Log.i(LOG_NAME, "LocationBug Notifying my " + listeners.size() + " listeners that a location was created");
 					for (ILocationEventListener listener : listeners) {
 						listener.onLocationCreated(Collections.singletonList(createdLocation));
 					}
