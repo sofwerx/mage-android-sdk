@@ -13,7 +13,7 @@
 
     <!-- Default server to connect to -->
     <EditTextPreference
-        android:defaultValue="http://198.168.1.3:4242"
+        android:defaultValue="https://mage.geointapps.org"
         android:key="@string/serverURLKey" />
 
     <!-- How often to push obersvations? -->
