@@ -1,7 +1,6 @@
 package mil.nga.giat.mage.sdk.glide;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.InputStream;
 
 import mil.nga.giat.mage.sdk.R;
 import mil.nga.giat.mage.sdk.preferences.PreferenceHelper;
@@ -11,56 +10,54 @@ import android.util.Log;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
-import com.bumptech.glide.loader.model.GenericLoaderFactory;
-import com.bumptech.glide.loader.model.ModelLoader;
-import com.bumptech.glide.loader.model.ModelLoaderFactory;
-import com.bumptech.glide.loader.stream.StreamLoader;
-import com.bumptech.glide.volley.VolleyUrlLoader;
+import com.bumptech.glide.integration.volley.VolleyUrlLoader;
+import com.bumptech.glide.load.data.DataFetcher;
+import com.bumptech.glide.load.model.GenericLoaderFactory;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.ModelLoader;
+import com.bumptech.glide.load.model.ModelLoaderFactory;
 
 public class MageUrlLoader extends VolleyUrlLoader {
-	
-	public static class Factory implements ModelLoaderFactory<URL> {
-        private RequestQueue requestQueue;
 
-        public Factory() { }
+	public static class Factory implements ModelLoaderFactory<GlideUrl, InputStream> {
+		private RequestQueue requestQueue;
 
-        public Factory(RequestQueue requestQueue) {
-            this.requestQueue = requestQueue;
-        }
+		public Factory() {
+		}
 
-        protected RequestQueue getRequestQueue(Context context) {
-            if (requestQueue == null) {
-                requestQueue = Volley.newRequestQueue(context);
-            }
-            return requestQueue;
-        }
+		public Factory(RequestQueue requestQueue) {
+			this.requestQueue = requestQueue;
+		}
 
-        @Override
-        public ModelLoader<URL> build(Context context, GenericLoaderFactory factories) {
-            return new MageUrlLoader(getRequestQueue(context), context);
-        }
+		protected RequestQueue getRequestQueue(Context context) {
+			if (requestQueue == null) {
+				requestQueue = Volley.newRequestQueue(context);
+			}
+			return requestQueue;
+		}
 
-        @Override
-        public Class<? extends ModelLoader<URL>> loaderClass() {
-            return MageUrlLoader.class;
-        }
+		@Override
+		public ModelLoader<GlideUrl, InputStream> build(Context context, GenericLoaderFactory factories) {
+			return new MageUrlLoader(getRequestQueue(context), context);
+		}
 
-        @Override
-        public void teardown() {
-            if (requestQueue != null) {
-                requestQueue.stop();
-                requestQueue.cancelAll(new RequestQueue.RequestFilter() {
-					
-                    @Override
-                    public boolean apply(Request<?> request) {
-                        return true; 
-                    }
-                });
-                requestQueue = null;
-            }
-        }
-    }
-	
+		@Override
+		public void teardown() {
+			if (requestQueue != null) {
+				requestQueue.stop();
+				requestQueue.cancelAll(new RequestQueue.RequestFilter() {
+
+					@Override
+					public boolean apply(Request<?> request) {
+						return true;
+					}
+				});
+				requestQueue = null;
+			}
+
+		}
+	}
+
 	private Context context;
 
 	public MageUrlLoader(RequestQueue requestQueue, Context context) {
@@ -68,8 +65,9 @@ public class MageUrlLoader extends VolleyUrlLoader {
 		this.context = context.getApplicationContext();
 	}
 	
+	
 	@Override
-    public StreamLoader getStreamLoader(URL url, int width, int height) {
+	public DataFetcher<InputStream> getResourceFetcher(GlideUrl url, int width, int height) {
 		String s = url.toString();
 		String token = PreferenceHelper.getInstance(context).getValue(R.string.tokenKey);
 		s += "?access_token=" + token + "&size=" + (width < height ? height : width);
@@ -78,17 +76,8 @@ public class MageUrlLoader extends VolleyUrlLoader {
 			s += "&_dc=" + System.currentTimeMillis();
 		}
 		Log.d("MageUrlLoader", "Loading image: " + s);
-		try {
-			url = new URL(s);
-		} catch (MalformedURLException mue) {
-			mue.printStackTrace();
-		}
-		return super.getStreamLoader(url, width, height);
-    }
-
-    @Override
-    public String getId(URL url) {
-    	return url.toString();
-    }
+		url = new GlideUrl(s);
+		return super.getResourceFetcher(url, width, height);
+	}
 
 }
