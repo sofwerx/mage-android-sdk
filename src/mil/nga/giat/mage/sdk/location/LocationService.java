@@ -391,7 +391,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 			if (location.getTime() > currentTimeMillis) {
 				locationProperties.add(new LocationProperty("timeInFuture", true));
 				Log.w(LOG_NAME, "Location was in future.  Setting location time to system current time.");
-				location.setTime(System.currentTimeMillis());
+				location.setTime(currentTimeMillis);
 				locationProperties.add(new LocationProperty("locationTimeAfter", location.getTime()));
 				if (android.os.Build.VERSION.SDK_INT >= 17){
 					locationProperties.add(new LocationProperty("locationElapsedRealtimeNanosAfter", location.getElapsedRealtimeNanos()));
