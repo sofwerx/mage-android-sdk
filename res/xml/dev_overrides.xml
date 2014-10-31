@@ -3,7 +3,7 @@
 
     <!-- Default server to connect to -->
     <EditTextPreference
-        android:defaultValue="https://magedev.geointapps.org"
+        android:defaultValue="https://magedemo.geointapps.org"
         android:key="@string/serverURLKey" />
     
 </PreferenceScreen>
