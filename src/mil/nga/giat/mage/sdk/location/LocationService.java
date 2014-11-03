@@ -375,7 +375,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 		if (location != null && location.getTime() > 0) {
 			Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();
 			long currentTimeMillis = System.currentTimeMillis();
-			locationProperties.add(new LocationProperty("systemClockRealTimeNanos", SystemClock.elapsedRealtimeNanos()));
+			//locationProperties.add(new LocationProperty("systemClockRealTimeNanos", SystemClock.elapsedRealtimeNanos()));
 			locationProperties.add(new LocationProperty("newDate", new Date()));
 			locationProperties.add(new LocationProperty("newDateMillis", new Date().getTime()));
 			locationProperties.add(new LocationProperty("currentTimeMillis", currentTimeMillis));
