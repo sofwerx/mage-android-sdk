@@ -48,8 +48,8 @@ public class UserUtility {
 
 			try {
 				return new Date().after(DateUtility.getISO8601().parse(tokenExpirationDateString));
-			} catch (ParseException e) {
-				Log.e(LOG_NAME, "Problem paring token date.");
+			} catch (ParseException pe) {
+				Log.e(LOG_NAME, "Problem paring token date.", pe);
 			}
 
 		}

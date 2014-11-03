@@ -42,7 +42,7 @@ public class UserAvatarFetchTask extends AsyncTask<User, Void, Void> {
 	    		    user.setLocalAvatarPath(localPath);
 	    		    UserHelper.getInstance(context).update(user);
 	    		} catch (Exception e) {
-	    		    e.printStackTrace();
+		            Log.e(LOG_NAME, e.getMessage());
 	    		} finally {
 	    		    try {
 	    		        if (out != null) {
@@ -53,8 +53,7 @@ public class UserAvatarFetchTask extends AsyncTask<User, Void, Void> {
 	    		    }
 	    		}
 	        } catch (Exception e) {
-	            Log.e("Error", e.getMessage());
-	            e.printStackTrace();
+	            Log.e(LOG_NAME, e.getMessage());
 	        }
     	}
     	return null;

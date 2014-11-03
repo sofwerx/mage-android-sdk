@@ -23,7 +23,7 @@ public class UpdateProfileTask extends AsyncTask<String, Void, User> {
 	
 	private static final SecureRandom random = new SecureRandom();
 	
-	private static final String LOG_NAME = "UpdateProfileTask";
+	private static final String LOG_NAME = UpdateProfileTask.class.getName();
 	
 	public UpdateProfileTask(User user, Context context) {
 		this.user = user;
@@ -70,8 +70,6 @@ public class UpdateProfileTask extends AsyncTask<String, Void, User> {
 		}
 		bitmap = Bitmap.createScaledBitmap(bitmap, outWidth, outHeight, true);
 
-		// FIXME : should we rotate images?
-		// Bitmap rotated = ImageResizer.orientImage(attachment.getLocalPath(), ));
 		try {
 			OutputStream out = new FileOutputStream(stagedFile);
 			bitmap.compress(CompressFormat.JPEG, 100, out);
@@ -83,7 +81,7 @@ public class UpdateProfileTask extends AsyncTask<String, Void, User> {
 			Log.e(LOG_NAME, "failed to upload file", e);
 		}
 		
-		Log.e("update profile task", "Pushing new picture " + stagedFile);
+		Log.e(LOG_NAME, "Pushing new picture " + stagedFile);
 		return MageServerPostRequests.postProfilePicture(user, stagedFile.getAbsolutePath(), context);
 	}
 

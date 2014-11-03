@@ -200,7 +200,6 @@ public class MageServerPostRequests {
 			if (entity != null) {
 				final Gson userDeserializer = UserDeserializer.getGsonBuilder(context);
 				String entityString = EntityUtils.toString(entity);
-				Log.e("asdf", entityString);
 				
 				JSONObject userJson = new JSONObject(entityString);
 				if (userJson != null) {

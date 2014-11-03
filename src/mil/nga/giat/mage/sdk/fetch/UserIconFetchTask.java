@@ -42,7 +42,7 @@ public class UserIconFetchTask extends AsyncTask<User, Void, Void> {
 	    		    user.setLocalIconPath(localPath);
 	    		    UserHelper.getInstance(context).update(user);
 	    		} catch (Exception e) {
-	    		    e.printStackTrace();
+		            Log.e(LOG_NAME, e.getMessage(), e);
 	    		} finally {
 	    		    try {
 	    		        if (out != null) {
@@ -53,8 +53,7 @@ public class UserIconFetchTask extends AsyncTask<User, Void, Void> {
 	    		    }
 	    		}
 	        } catch (Exception e) {
-	            Log.e("Error", e.getMessage());
-	            e.printStackTrace();
+	            Log.e(LOG_NAME, e.getMessage(), e);
 	        }
     	}
     	return null;

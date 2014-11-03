@@ -10,5 +10,5 @@ public interface ILocationEventListener extends IEventListener {
 	
 	public void onLocationUpdated(final Location location);
 	
-	public void onLocationDeleted(final Location location);
+	public void onLocationDeleted(final Collection<Location> location);
 }

@@ -19,6 +19,8 @@ import com.bumptech.glide.load.model.ModelLoaderFactory;
 
 public class MageUrlLoader extends VolleyUrlLoader {
 
+	private static final String LOG_NAME = MageUrlLoader.class.getName();
+	
 	public static class Factory implements ModelLoaderFactory<GlideUrl, InputStream> {
 		private RequestQueue requestQueue;
 
@@ -75,7 +77,7 @@ public class MageUrlLoader extends VolleyUrlLoader {
 			// this is a user avatar, let's defeat the cache on them
 			s += "&_dc=" + System.currentTimeMillis();
 		}
-		Log.d("MageUrlLoader", "Loading image: " + s);
+		Log.d(LOG_NAME, "Loading image: " + s);
 		url = new GlideUrl(s);
 		return super.getResourceFetcher(url, width, height);
 	}

@@ -36,7 +36,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Build;
 import android.preference.PreferenceManager;
 import android.util.Log;
 

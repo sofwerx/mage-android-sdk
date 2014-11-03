@@ -13,15 +13,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Bitmap.Config;
-import android.graphics.PorterDuff.Mode;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
@@ -32,6 +32,8 @@ import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 public class MediaUtility {
+
+	private static final String LOG_NAME = MediaUtility.class.getName();
 	
 	private static int getPowerOfTwoForSampleRatio(double ratio){
         int k = Integer.highestOneBit((int)Math.floor(ratio));
@@ -377,7 +379,7 @@ public class MediaUtility {
 			Bitmap bitmap = BitmapFactory.decodeStream(new FileInputStream(original), null, null);
 			return orientBitmap(bitmap, original.getAbsolutePath());
 		} catch (Exception e) {
-			Log.e("MediaUtils", "Error loading bitmap from " + original.getAbsolutePath());
+			Log.e(LOG_NAME, "Error loading bitmap from " + original.getAbsolutePath(), e);
 		}
 		return null;
 	

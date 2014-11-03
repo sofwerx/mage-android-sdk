@@ -22,6 +22,8 @@ import com.fasterxml.jackson.core.JsonToken;
 
 public class LocationDeserializer extends Deserializer {
 
+    private static final String LOG_NAME = LocationDeserializer.class.getName();
+	
 	private GeometryDeserializer geometryDeserializer = new GeometryDeserializer();
 
 	public List<Location> parseUserLocations(InputStream is) throws JsonParseException, IOException {
@@ -118,7 +120,7 @@ public class LocationDeserializer extends Deserializer {
 				Date d = DateUtility.getISO8601().parse(timestamp.getValue().toString());
 				location.setTimestamp(d);
 			} catch (ParseException pe) {
-				Log.w("Unable to parse date: " + timestamp + " for location: " + location.getRemoteId(), pe);
+				Log.w(LOG_NAME, "Unable to parse date: " + timestamp + " for location: " + location.getRemoteId(), pe);
 			}
 		}
 		return location;

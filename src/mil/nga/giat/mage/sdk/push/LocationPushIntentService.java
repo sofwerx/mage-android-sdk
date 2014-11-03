@@ -3,6 +3,7 @@ package mil.nga.giat.mage.sdk.push;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.Stack;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.j256.ormlite.dao.Dao;
@@ -82,12 +83,22 @@ public class LocationPushIntentService extends ConnectivityAwareIntentService {
 								where.and().isNotNull("remote_id");
 								queryBuilder.orderBy("timestamp", false);
 								List<Location> locationsToDelete = queryBuilder.query();
+								Stack<Long> locationIDsToDelete = new Stack<Long>(); 
 
 								for (int i = minNumberOfLocationsToKeep; i < locationsToDelete.size(); i++) {
-									try {
-										LocationHelper.getInstance(getApplicationContext()).delete(locationsToDelete.get(i).getId());
-									} catch (LocationException e) {
-										Log.e(LOG_NAME, "Could not delete the location.", e);
+									locationIDsToDelete.push(locationsToDelete.get(i).getId());
+								}
+								try {
+									LocationHelper.getInstance(getApplicationContext()).delete(locationIDsToDelete.toArray(new Long[locationIDsToDelete.size()]));
+								} catch (LocationException e) {
+									Log.e(LOG_NAME, "Could not delete locations.", e);
+									for (int i = 0; i < locationIDsToDelete.size(); i++) {
+										try {
+											LocationHelper.getInstance(getApplicationContext()).delete(locationIDsToDelete.pop());
+										} catch (LocationException e1) {
+											Log.e(LOG_NAME, "Could not delete the location.", e);
+											continue;
+										}
 									}
 								}
 							}

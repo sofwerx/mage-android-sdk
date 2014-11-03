@@ -270,7 +270,6 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 			}
 			locations = locationDao.query(queryBuilder.prepare());
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			Log.e(LOG_NAME, "Could not get current users Locations.");
 		}
 		return locations;
@@ -293,9 +292,6 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 			QueryBuilder<Location, Long> qb = locationDao.queryBuilder().orderBy("timestamp", false);
 			qb.where().eq("user_id", userLocalId);
 			
-			//deleting one at a time ensures that all child records are cleaned up and
-			//events are fired at the correct granularity.
-			//TODO: is this performant enough?
 			List<Location> locations = qb.query();
 			
 			// if we should keep the most recent record, then skip one record.
@@ -303,12 +299,14 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 			if(keepMostRecent) {
 				i = 1;
 			}
+			List<Long> locationIdsToDelete = new ArrayList<Long>();
 			
 			for (; i < locations.size(); i++) {
 				Location location = locations.get(i);
-				delete(location.getId());
+				locationIdsToDelete.add(location.getId());
 				numberLocationsDeleted++;	
 			}
+			delete(locationIdsToDelete.toArray(new Long[locationIdsToDelete.size()]));
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to delete user's locations", sqle);
 			throw new LocationException("Unable to delete user's locations", sqle);
@@ -323,37 +321,42 @@ public class LocationHelper extends DaoHelper<Location> implements IEventDispatc
 	 * @param pPrimaryKey
 	 * @throws OrmException
 	 */
-	public void delete(final Long pPrimaryKey) throws LocationException {
+	public void delete(final Long ... pPrimaryKey) throws LocationException {
+		List<Location> deletedLocations = new ArrayList<Location>();
 		try {
-			TransactionManager.callInTransaction(DaoStore.getInstance(context).getConnectionSource(), new Callable<Void>() {
+			deletedLocations = TransactionManager.callInTransaction(DaoStore.getInstance(context).getConnectionSource(), new Callable<List<Location>>() {
 				@Override
-				public Void call() throws Exception {
+				public List<Location> call() throws Exception {
 					// read the full Location in
-					Location location = locationDao.queryForId(pPrimaryKey);
+					List<Location> deletedLocations = new ArrayList<Location>();
+					for(Long pk : pPrimaryKey) {
+						Location location = locationDao.queryForId(pk);
 
-					// delete Location properties.
-					Collection<LocationProperty> properties = location.getProperties();
-					if (properties != null) {
-						for (LocationProperty property : properties) {
-							locationPropertyDao.deleteById(property.getId());
+						// delete Location properties.
+						Collection<LocationProperty> properties = location.getProperties();
+						if (properties != null) {
+							for (LocationProperty property : properties) {
+								locationPropertyDao.deleteById(property.getId());
+							}
 						}
+
+						// delete Geometry (but not corresponding GeometryType).
+						locationGeometryDao.deleteById(location.getLocationGeometry().getPk_id());
+
+						// finally, delete the Location.
+						locationDao.deleteById(pk);
+						deletedLocations.add(location);
 					}
-
-					// delete Geometry (but not corresponding GeometryType).
-					locationGeometryDao.deleteById(location.getLocationGeometry().getPk_id());
-
-					// finally, delete the Location.
-					locationDao.deleteById(pPrimaryKey);
-
-					for (ILocationEventListener listener : listeners) {
-						listener.onLocationDeleted(location);
-					}
-					return null;
+					return deletedLocations;
 				}
 			});
 		} catch (SQLException sqle) {
 			Log.e(LOG_NAME, "Unable to delete Location: " + pPrimaryKey, sqle);
 			throw new LocationException("Unable to delete Location: " + pPrimaryKey, sqle);
+		} finally {
+			for (ILocationEventListener listener : listeners) {
+				listener.onLocationDeleted(deletedLocations);
+			}
 		}
 	}
 	
