@@ -143,7 +143,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 		Location lastLocation = getLocation();
 	    if (lastLocation != null) {        
 	        Log.d(LOG_NAME, "location service added listener, pushing last known location to listener");
-	        listener.onLocationChanged(lastLocation);
+	        listener.onLocationChanged(new Location(lastLocation));
 	    }
 	}
 	
@@ -375,27 +375,12 @@ public class LocationService extends Service implements LocationListener, OnShar
 		if (location != null && location.getTime() > 0) {
 			Collection<LocationProperty> locationProperties = new ArrayList<LocationProperty>();
 			long currentTimeMillis = System.currentTimeMillis();
-			//locationProperties.add(new LocationProperty("systemClockRealTimeNanos", SystemClock.elapsedRealtimeNanos()));
-			locationProperties.add(new LocationProperty("newDate", new Date()));
-			locationProperties.add(new LocationProperty("newDateMillis", new Date().getTime()));
 			locationProperties.add(new LocationProperty("currentTimeMillis", currentTimeMillis));
-			locationProperties.add(new LocationProperty("locationTimeBefore", location.getTime()));
-			
-			locationProperties.add(new LocationProperty("locationRealNetworkTime", locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER).getTime()));
-			
-
-			if (android.os.Build.VERSION.SDK_INT >= 17){
-				locationProperties.add(new LocationProperty("locationElapsedRealtimeNanosBefore", location.getElapsedRealtimeNanos()));
-			}
 			
 			if (location.getTime() > currentTimeMillis) {
 				locationProperties.add(new LocationProperty("timeInFuture", true));
 				Log.w(LOG_NAME, "Location was in future.  Setting location time to system current time.");
 				location.setTime(currentTimeMillis);
-				locationProperties.add(new LocationProperty("locationTimeAfter", location.getTime()));
-				if (android.os.Build.VERSION.SDK_INT >= 17){
-					locationProperties.add(new LocationProperty("locationElapsedRealtimeNanosAfter", location.getElapsedRealtimeNanos()));
-				}
 			}
 
 			// INTEGRATION WITH LOCATION DATASTORE
@@ -431,8 +416,7 @@ public class LocationService extends Service implements LocationListener, OnShar
 			
 			// build location
 			mil.nga.giat.mage.sdk.datastore.location.Location loc = new mil.nga.giat.mage.sdk.datastore.location.Location("Feature", currentUser, locationProperties, locationGeometry, new Date(location.getTime()));
-			locationProperties.add(new LocationProperty("locationDatabaseTime", loc.getTimestamp()));
-			locationProperties.add(new LocationProperty("locationDatabaseTimeMillis", loc.getTimestamp().getTime()));
+			locationProperties.add(new LocationProperty("locationObjectTime", loc.getTimestamp()));
 
 			loc.setLocationGeometry(locationGeometry);
 			loc.setProperties(locationProperties);
