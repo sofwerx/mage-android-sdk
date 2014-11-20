@@ -78,8 +78,24 @@ public class AttachmentHelper {
 				}
 				bitmap = Bitmap.createScaledBitmap(bitmap, outWidth, outHeight, true);
 
-				// FIXME : should we rotate images?
-				// Bitmap rotated = ImageResizer.orientImage(attachment.getLocalPath(), ));
+				// rotate the image and then remove exif rotation info
+//			      ExifInterface exif = new ExifInterface(inFile.getAbsolutePath());
+//			            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
+//			            Matrix matrix = new Matrix();
+//			      if (orientation == 6) {
+//			        matrix.postRotate(30);
+//			      } else if (orientation == 3) {
+//			        matrix.postRotate(30);
+//			      } else if (orientation == 8) {
+//			        matrix.postRotate(30);
+//			      }
+//			            bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true); // rotating bitmap
+//			      bitmap.compress(CompressFormat.JPEG, 100, out);
+//			      
+//			      // modify rotation exif
+//			            exif.setAttribute(ExifInterface.TAG_ORIENTATION, "1");
+//			            exif.saveAttributes();			
+				
 				OutputStream out = new FileOutputStream(stagedFile);
 				bitmap.compress(CompressFormat.JPEG, 100, out);
 
