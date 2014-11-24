@@ -39,5 +39,6 @@ dependencies {
     compile 'com.github.bumptech.glide:volley-integration:1.0.1'
     compile 'com.vividsolutions:jts:1.8'
     compile 'com.j256.ormlite:ormlite-android:4.48'
-    compile 'org.apache.sanselan:sanselan:0.97-incubator'
+    compile files('libs/sanselanandroid.jar')
+
 }
