@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 
 group 'mil.nga.giat.mage'
-version '3.0.12'
+version '3.0.13'
 
 android {
     compileSdkVersion 19
@@ -29,7 +29,6 @@ android {
 
 dependencies {
     compile 'com.android.support:support-v4:21.0.2'
-    compile 'com.google.code.gson:gson:2.3'
     compile 'com.google.code.gson:gson:2.3'
     compile 'com.google.guava:guava:17.0'
     compile 'org.apache.commons:commons-lang3:3.3.2'
