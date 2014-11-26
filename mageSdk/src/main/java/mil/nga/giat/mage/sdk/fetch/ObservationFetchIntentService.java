@@ -88,11 +88,6 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 							Log.d(LOG_NAME, "Deleted observation with remote_id " + observation.getRemoteId());
 						} else if (!observation.getState().equals(State.ARCHIVE) && oldObservation == null) {
 							observation = observationHelper.create(observation);
-							// FIXME : a simple proto-type for vibrations
-							if (!firstTimeToRun) {
-								Vibrator vibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
-								vibrator.vibrate(50);
-							}
 							Log.d(LOG_NAME, "Created observation with remote_id " + observation.getRemoteId());
 						} else if (!observation.getState().equals(State.ARCHIVE) && oldObservation != null && !oldObservation.isDirty()) {
 							observation.setId(oldObservation.getId());
