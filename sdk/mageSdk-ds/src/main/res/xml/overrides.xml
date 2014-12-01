@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <!-- Default server to connect to -->
+    <EditTextPreference
+        android:defaultValue="https://mageds.geointapps.org"
+        android:key="@string/serverURLKey" />
+    
+</PreferenceScreen>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <!-- Default server to connect to -->
+    <EditTextPreference
+        android:defaultValue="https://mage.geointapps.org"
+        android:key="@string/serverURLKey" />
+        
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="@string/reportLocationKey"
+        android:summary="Track and report device location"
+        android:title="Report Location" />
+    
+</PreferenceScreen>
