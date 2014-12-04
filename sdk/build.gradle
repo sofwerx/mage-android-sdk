@@ -34,11 +34,19 @@ subprojects {
             }
         }
 
+        task sourceJar(type: Jar) {
+            classifier = 'sources'
+            from sourceSets.main.java.srcDirs
+        }
+
         uploadArchives {
             repositories {
                 mavenDeployer {
                     repository url: 'file://' + new File(System.getProperty('user.home'), '.m2/repository')
                 }
+            }
+            artifacts {
+                archives sourceJar
             }
         }
 
