@@ -7,7 +7,7 @@
         android:key="@string/serverURLKey" />
         
     <CheckBoxPreference
-        android:defaultValue="false"
+        android:defaultValue="true"
         android:key="@string/reportLocationKey"
         android:summary="Track and report device location"
         android:title="Report Location" />
