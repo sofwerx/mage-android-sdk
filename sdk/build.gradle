@@ -10,7 +10,6 @@ subprojects {
         buildToolsVersion "21.1.1"
 
         defaultConfig {
-            applicationId "mil.nga.giat.mage.sdk"
             minSdkVersion 14
             targetSdkVersion 19
         }
