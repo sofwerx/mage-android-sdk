@@ -1,14 +1,14 @@
-MAGE Android SDK README
-03/11/2014
+MAGE Android SDK
+03/16/2015
 
-This is the client MAGE SDK.
+This is the MAGE SDK for Android.
 
 ## Licenses
 
 Portions of MediaUtils.java:
 
     Copyright (C) 2007-2008 OpenIntents.org
- 
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
