@@ -1,4 +1,6 @@
 MAGE Android SDK
+================
+
 03/16/2015
 
 This is the MAGE SDK for Android.
