@@ -1,9 +1,15 @@
 MAGE Android SDK
 ================
 
-03/16/2015
+03/30/2015
 
-This is the MAGE SDK for Android devices.
+This is the MAGE SDK for Android devices. See the [MAGE client](http://github.com/) for more information.
+
+## How to Build
+
+./gradlew clean
+
+./gradlew uploadArchives
 
 ## License
 
