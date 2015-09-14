@@ -14,7 +14,7 @@ The MAGE Android SDK was developed at the National Geospatial-Intelligence Agenc
 
 ./gradlew uploadArchives
 
-##Pull Requests
+## Pull Requests
 
 If you'd like to contribute to this project, please make a pull request. We'll review the pull request and discuss the changes. All pull request contributions to this project will be released under the Apache license.
 
