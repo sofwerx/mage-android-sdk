@@ -1,7 +1,6 @@
-MAGE Android SDK
-================
+# MAGE Android SDK
 
-09/14/2015
+09/18/2015
 
 This is the MAGE SDK for Android devices. See the [MAGE client](https://github.com/ngageoint/mage-android) for more information.
 
