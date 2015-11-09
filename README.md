@@ -1,6 +1,6 @@
 # MAGE Android SDK
 
-11/04/2015
+11/09/2015
 
 This is the MAGE SDK for Android devices. See the [MAGE Android client](https://github.com/ngageoint/mage-android) for more information.
 
@@ -8,6 +8,8 @@ The MAGE Android SDK was developed at the National Geospatial-Intelligence Agenc
 
 
 ## How to Build
+
+See the [build directions in the MAGE Android client](https://github.com/ngageoint/mage-android) for details on how to set up your build environment.
 
 ```bash
 ./gradlew clean
