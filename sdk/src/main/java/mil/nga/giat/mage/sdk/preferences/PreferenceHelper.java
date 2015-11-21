@@ -188,13 +188,11 @@ public class PreferenceHelper implements SharedPreferences.OnSharedPreferenceCha
 										int serverMajorVersion = sharedPreferences.getInt(mContext.getString(R.string.serverVersionMajorKey), 0);
 										int serverMinorVersion = sharedPreferences.getInt(mContext.getString(R.string.serverVersionMinorKey), 0);
 
-										Log.d("BILLY", "server major version: " + serverMajorVersion);
-										Log.d("BILLY", "server minor version: " + serverMinorVersion);
+										Log.d(LOG_NAME, "server major version: " + serverMajorVersion);
+										Log.d(LOG_NAME, "server minor version: " + serverMinorVersion);
 
-										Log.d("BILLY", "compatibleMajorVersion: " + compatibleMajorVersion);
-										Log.d("BILLY", "compatibleMinorVersion: " + compatibleMinorVersion);
-
-
+										Log.d(LOG_NAME, "compatibleMajorVersion: " + compatibleMajorVersion);
+										Log.d(LOG_NAME, "compatibleMinorVersion: " + compatibleMinorVersion);
 
 										if (!compatibleMajorVersion.equals(serverMajorVersion)) {
 											return callback.apply(new Exception("This app is not compatible with this server"));
