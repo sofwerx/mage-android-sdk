@@ -296,18 +296,31 @@ public class PreferenceHelper implements SharedPreferences.OnSharedPreferenceCha
 			}
 		}
 
+		private void removeValues(String sharedPreferenceName) {
+			SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+			SharedPreferences.Editor editor = sharedPreferences.edit();
+			for (String key : sharedPreferences.getAll().keySet()) {
+				if (key.startsWith(sharedPreferenceName)) {
+					editor.remove(key);
+				}
+			}
+
+			editor.commit();
+		}
+
 		private Exception initializeApi(String url) {
 			ApiResource apiResource = new ApiResource(mContext);
 			try {
 				String api = apiResource.getApi(url);
 				JSONObject apiJson = new JSONObject(api);
+				removeValues("g");
 				populateValues("g", apiJson);
 			} catch (Exception e) {
 				Log.e(LOG_NAME, "Problem reading server api settings: " + url, e);
-                return e;
+				return e;
 			}
 
-            return null;
+			return null;
 		}
 	}
 }
