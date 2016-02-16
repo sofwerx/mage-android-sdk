@@ -114,51 +114,46 @@ public class MediaUtility {
 	    mediaScanIntent.setData(contentUri);
 	    c.sendBroadcast(mediaScanIntent);
 	}
-	
-	public static File createImageFile() throws IOException {
-	    // Create an image file name
-	    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-	    String imageFileName = "MAGE_" + timeStamp;
-	    File storageDir = Environment.getExternalStoragePublicDirectory(
-				Environment.DIRECTORY_PICTURES);
-	    return File.createTempFile(
-				imageFileName,  /* prefix */
-				".jpg",         /* suffix */
-				storageDir      /* directory */
-		);
+
+	public static File createMediaFile(Context context, String extension) throws IOException {
+		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+		String fileName = "MAGE_" + timeStamp + extension;
+		File directory = getMediaStageDirectory(context);
+
+		if (!directory.exists()) {
+			directory.mkdirs();
+		}
+
+		return new File(directory, fileName);
 	}
 	
-	public static File getMediaStageDirectory() {
-		File sd = Environment.getExternalStorageDirectory();
-		File mediaFolder = new File(sd, "/MAGE/Media");
-		if (sd.canWrite()) {
-			if (!mediaFolder.exists()) {
-				mediaFolder.mkdirs();
-			}
+	public static File getMediaStageDirectory(Context context) {
+		File directory = context.getExternalFilesDir("Media");
+		if (!directory.exists()) {
+			directory.mkdirs();
 		}
-		return mediaFolder;
+
+		return directory;
 	}
 	
-	public static File getAvatarDirectory() {
-		File ms = getMediaStageDirectory();
-		File mediaFolder = new File(ms, "/user/avatars");
-		if (ms.canWrite()) {
-			if (!mediaFolder.exists()) {
-				mediaFolder.mkdirs();
-			}
+	public static File getAvatarDirectory(Context context) {
+		File directory = getMediaStageDirectory(context);
+		File avatarDirectory = new File(directory, "/user/avatars");
+		if (!avatarDirectory.exists()) {
+			avatarDirectory.mkdirs();
 		}
-		return mediaFolder;
+
+		return avatarDirectory;
 	}
 	
-	public static File getUserIconDirectory() {
-		File ms = getMediaStageDirectory();
-		File mediaFolder = new File(ms, "/user/icons");
-		if (ms.canWrite()) {
-			if (!mediaFolder.exists()) {
-				mediaFolder.mkdirs();
-			}
+	public static File getUserIconDirectory(Context context) {
+		File directory = getMediaStageDirectory(context);
+		File iconDirectory = new File(directory, "/user/icons");
+		if (!iconDirectory.exists()) {
+			iconDirectory.mkdirs();
 		}
-		return mediaFolder;
+
+		return iconDirectory;
 	}
 	
     /**
@@ -220,7 +215,9 @@ public class MediaUtility {
                 final int column_index = cursor.getColumnIndexOrThrow(column);
                 return cursor.getString(column_index);
             }
-        } finally {
+        } catch (Exception e) {
+			Log.e(LOG_NAME, "Error getting data column", e);
+		} finally {
             if (cursor != null)
                 cursor.close();
         }
@@ -484,7 +481,9 @@ public class MediaUtility {
 	    	    int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
 	    	    cursor.moveToFirst();
 	    	    return cursor.getString(column_index);
-	    	  } finally {
+	    	  } catch (Exception e) {
+				  Log.e(LOG_NAME, "Error reading content URI", e);
+			  } finally {
 	    	    if (cursor != null) {
 	    	      cursor.close();
 	    	    }

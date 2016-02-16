@@ -5,8 +5,9 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -24,14 +25,13 @@ import mil.nga.giat.mage.sdk.utils.DateFormatFactory;
 /**
  * Performs login to specified oauth server.
  *
- * @author wnewmanw
+ * @author newmanw
+ *
  */
 public class OAuthLoginTask extends AbstractAccountTask {
 
 	private static final String LOG_NAME = OAuthLoginTask.class.getName();
 	private DateFormat iso8601Format = DateFormatFactory.ISO8601();
-
-	private volatile AccountStatus callbackStatus = null;
 
 	public OAuthLoginTask(AccountDelegate delegate, Context context) {
 		super(delegate, context);
@@ -52,15 +52,15 @@ public class OAuthLoginTask extends AbstractAccountTask {
 		SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(mApplicationContext).edit();
 
 		try {
-			JSONObject jsonObject = new JSONObject(json);
+			JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
 
 			if (jsonObject.has("token") && jsonObject.has("user")) {
 				// put the token information in the shared preferences
-				String token = jsonObject.getString("token");
+				String token = jsonObject.get("token").getAsString();
 				Log.d(LOG_NAME, "Storing token: " + token);
 				editor.putString(mApplicationContext.getString(mil.nga.giat.mage.sdk.R.string.tokenKey), token.trim());
 				try {
-					Date tokenExpiration = iso8601Format.parse(jsonObject.getString("expirationDate").trim());
+					Date tokenExpiration = iso8601Format.parse(jsonObject.get("expirationDate").getAsString().trim());
 					long tokenExpirationLength = tokenExpiration.getTime() - (new Date()).getTime();
 					editor.putString(mApplicationContext.getString(mil.nga.giat.mage.sdk.R.string.tokenExpirationDateKey), iso8601Format.format(tokenExpiration));
 					editor.putLong(mApplicationContext.getString(mil.nga.giat.mage.sdk.R.string.tokenExpirationLengthKey), tokenExpirationLength);
@@ -68,20 +68,23 @@ public class OAuthLoginTask extends AbstractAccountTask {
 					Log.e(LOG_NAME, "Problem parsing token expiration date.", e);
 				}
 
-				JSONObject userJson = jsonObject.getJSONObject("user");
+				JsonObject userJson = jsonObject.getAsJsonObject("user");
 
 				// if user id is different, then clear the db
 				String oldUserId = sharedPreferences.getString(mApplicationContext.getString(R.string.userIdKey), null);
-				String newUserId = userJson.getString("id");
+				String newUserId = userJson.get("id").getAsString();
 				if (oldUserId == null || !oldUserId.equals(newUserId)) {
 					DaoStore.getInstance(mApplicationContext).resetDatabase();
 				}
 
-				User user = UserDeserializer.getGsonBuilder(mApplicationContext).fromJson(userJson.toString(), User.class);
+				Gson userDeserializer = UserDeserializer.getGsonBuilder(mApplicationContext);
+				User user = userDeserializer.fromJson(userJson.toString(), User.class);
 				if (user != null) {
-					user.setCurrentUser(true);
 					user.setFetchedDate(new Date());
-					user = UserHelper.getInstance(mApplicationContext).createOrUpdate(user);
+					UserHelper userHelper = UserHelper.getInstance(mApplicationContext);
+					user = userHelper.createOrUpdate(user);
+
+					userHelper.setCurrentUser(user);
 				} else {
 					Log.e(LOG_NAME, "Unable to Deserializer user.");
 					List<Integer> errorIndices = new ArrayList<Integer>();
@@ -93,7 +96,6 @@ public class OAuthLoginTask extends AbstractAccountTask {
 
 				editor.putString(mApplicationContext.getString(R.string.userIdKey), newUserId);
 				editor.putString(mApplicationContext.getString(R.string.displayNameKey), user.getDisplayName());
-				editor.commit();
 
 				PreferenceHelper.getInstance(mApplicationContext).logKeyValuePairs();
 
@@ -101,10 +103,10 @@ public class OAuthLoginTask extends AbstractAccountTask {
 				return new AccountStatus(AccountStatus.Status.SUCCESSFUL_LOGIN, new ArrayList<Integer>(), new ArrayList<String>(), jsonObject);
 			} else {
 				if (jsonObject.has("device")) {
-					JSONObject device = jsonObject.getJSONObject("device");
-					if (device != null && !device.getBoolean("registered")) {
-						JSONObject userJson = jsonObject.getJSONObject("user");
-						String userId = userJson.getString("id");
+					JsonObject device = jsonObject.getAsJsonObject("device");
+					if (device != null && !device.get("registered").getAsBoolean()) {
+						JsonObject userJson = jsonObject.getAsJsonObject("user");
+						String userId = userJson.get("id").getAsString();
 
 						editor.putString(mApplicationContext.getString(R.string.userIdKey), userId);
 
@@ -114,7 +116,7 @@ public class OAuthLoginTask extends AbstractAccountTask {
 
 				return new AccountStatus(AccountStatus.Status.FAILED_LOGIN);
 			}
-		} catch (JSONException e) {
+		} catch (Exception e) {
 			Log.e(LOG_NAME, "Problem with oauth login attempt", e);
 			return new AccountStatus(AccountStatus.Status.FAILED_LOGIN);
 		}

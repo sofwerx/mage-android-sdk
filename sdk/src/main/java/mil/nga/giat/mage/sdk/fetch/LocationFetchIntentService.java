@@ -16,26 +16,28 @@ import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.datastore.location.Location;
 import mil.nga.giat.mage.sdk.datastore.location.LocationHelper;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
+import mil.nga.giat.mage.sdk.datastore.user.Event;
+import mil.nga.giat.mage.sdk.datastore.user.EventHelper;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.event.IEventEventListener;
 import mil.nga.giat.mage.sdk.event.IScreenEventListener;
-import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
+import mil.nga.giat.mage.sdk.exceptions.UserException;
 import mil.nga.giat.mage.sdk.login.LoginTaskFactory;
+import mil.nga.giat.mage.sdk.http.resource.LocationResource;
 import mil.nga.giat.mage.sdk.screen.ScreenChangeReceiver;
 
 public class LocationFetchIntentService extends ConnectivityAwareIntentService implements OnSharedPreferenceChangeListener, IScreenEventListener, IEventEventListener {
 
 	private static final String LOG_NAME = LocationFetchIntentService.class.getName();
 
-	public LocationFetchIntentService() {
-		super(LOG_NAME);
-	}
-
 	protected final AtomicBoolean fetchSemaphore = new AtomicBoolean(false);
 
 	protected final synchronized long getLocationFetchFrequency() {
 		return PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getInt(getString(R.string.userFetchFrequencyKey), getResources().getInteger(R.integer.userFetchFrequencyDefaultValue));
+	}
+	public LocationFetchIntentService() {
+		super(LOG_NAME);
 	}
 
 	@Override
@@ -49,6 +51,14 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 		UserServerFetch userFetch = new UserServerFetch(getApplicationContext());
 		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
+		User currentUser = null;
+		try {
+			currentUser = userHelper.readCurrentUser();
+		} catch (UserException e) {
+			e.printStackTrace();
+		}
+
+		LocationResource locationResource = new LocationResource(getApplicationContext());
 		while (!isCanceled) {
 			Boolean isDataFetchEnabled = sharedPreferences.getBoolean(getString(R.string.dataFetchEnabledKey), getResources().getBoolean(R.bool.dataFetchEnabledDefaultValue));
 
@@ -56,7 +66,8 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 
 				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch Locations...");
 				try {
-					Collection<Location> locations = MageServerGetRequests.getLocations(getApplicationContext());
+					Event event = EventHelper.getInstance(getApplicationContext()).getCurrentEvent();
+					Collection<Location> locations = locationResource.getLocations(event);
 					for (Location location : locations) {
 						if (isCanceled) {
 							break;
@@ -86,7 +97,7 @@ public class LocationFetchIntentService extends ConnectivityAwareIntentService i
 								// delete old location and create new one
 								if (user != null) {
 									// don't pull your own locations for now!
-									if (!user.isCurrentUser()) {
+									if (!user.equals(currentUser)) {
 										userId = String.valueOf(user.getId());
 										location = locationHelper.create(location);
 										int numberOfLocationsDeleted = locationHelper.deleteUserLocations(userId, true, location.getEvent());

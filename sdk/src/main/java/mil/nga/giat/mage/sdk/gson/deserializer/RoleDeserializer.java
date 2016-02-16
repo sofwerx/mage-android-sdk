@@ -4,7 +4,6 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -44,18 +43,16 @@ public class RoleDeserializer implements JsonDeserializer<Role> {
 
 	@Override
 	public Role deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+		JsonObject jsonRole = json.getAsJsonObject();
 
-		JsonObject feature = json.getAsJsonObject();
+		String remoteId = jsonRole.get("id").getAsString();
+		String name = jsonRole.get("name").getAsString();
+		String description = jsonRole.get("description").getAsString();
 
-		String remoteId = feature.get("id").getAsString();
-		String name = feature.get("name").getAsString();
-		String description = feature.get("description").getAsString();
-		
-		JsonArray jsonPermissions = feature.get("permissions").getAsJsonArray();
-		
-		Collection<Permission> permissions = new ArrayList<Permission>();
-		for (int i = 0; i < jsonPermissions.size(); i++) {
-			String jsonPermission = jsonPermissions.get(i).getAsString();
+
+		Collection<Permission> permissions = new ArrayList<>();
+		for (JsonElement element : jsonRole.get("permissions").getAsJsonArray()) {
+			String jsonPermission = element.getAsString();
 			if (jsonPermission != null) {
 				jsonPermission = jsonPermission.toUpperCase(Locale.US);
 				try {
@@ -66,8 +63,7 @@ public class RoleDeserializer implements JsonDeserializer<Role> {
 				}
 			}
 		}
-		
-		Role role = new Role(remoteId, name, description, new Permissions(permissions));
-		return role;
+
+		return new Role(remoteId, name, description, new Permissions(permissions));
 	}
 }

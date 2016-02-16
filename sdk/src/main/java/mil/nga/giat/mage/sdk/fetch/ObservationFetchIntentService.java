@@ -6,8 +6,8 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import mil.nga.giat.mage.sdk.ConnectivityAwareIntentService;
@@ -16,12 +16,14 @@ import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationHelper;
 import mil.nga.giat.mage.sdk.datastore.observation.State;
+import mil.nga.giat.mage.sdk.datastore.user.Event;
+import mil.nga.giat.mage.sdk.datastore.user.EventHelper;
 import mil.nga.giat.mage.sdk.datastore.user.User;
 import mil.nga.giat.mage.sdk.datastore.user.UserHelper;
 import mil.nga.giat.mage.sdk.event.IEventEventListener;
 import mil.nga.giat.mage.sdk.event.IScreenEventListener;
-import mil.nga.giat.mage.sdk.http.get.MageServerGetRequests;
 import mil.nga.giat.mage.sdk.login.LoginTaskFactory;
+import mil.nga.giat.mage.sdk.http.resource.ObservationResource;
 import mil.nga.giat.mage.sdk.screen.ScreenChangeReceiver;
 
 public class ObservationFetchIntentService extends ConnectivityAwareIntentService implements OnSharedPreferenceChangeListener, IScreenEventListener, IEventEventListener {
@@ -45,6 +47,7 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 	@Override
 	protected void onHandleIntent(Intent intent) {
 		super.onHandleIntent(intent);
+
 		ScreenChangeReceiver.getInstance().addListener(this);
 		PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).registerOnSharedPreferenceChangeListener(this);
 		ObservationHelper observationHelper = ObservationHelper.getInstance(getApplicationContext());
@@ -54,19 +57,21 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 
 		needToFetchIcons.set(true);
 
+		ObservationResource observationResource = new ObservationResource(getApplicationContext());
 		while (!isCanceled) {
 			Boolean isDataFetchEnabled = sharedPreferences.getBoolean(getString(R.string.dataFetchEnabledKey), getResources().getBoolean(R.bool.dataFetchEnabledDefaultValue));
 
 			if (isConnected && isDataFetchEnabled && !LoginTaskFactory.getInstance(getApplicationContext()).isLocalLogin()) {
+				Event event = EventHelper.getInstance(getApplicationContext()).getCurrentEvent();
+				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch Observations for event " + event.getName());
 
 				// Pull the icons here
 				if(needToFetchIcons.get()) {
-					new ObservationBitmapFetch(getApplicationContext()).fetch();
+					new ObservationBitmapFetch(getApplicationContext()).fetch(event);
 					needToFetchIcons.set(false);
 				}
 
-				Log.d(LOG_NAME, "The device is currently connected. Attempting to fetch Observations...");
-				List<Observation> observations = MageServerGetRequests.getObservations(getApplicationContext());
+				Collection<Observation> observations = observationResource.getObservations(event);
 				Log.d(LOG_NAME, "Fetched " + observations.size() + " new observations");
 				for (Observation observation : observations) {
 					try {
@@ -81,7 +86,7 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 							final long sixHoursInMilliseconds = 6 * 60 * 60 * 1000;
 							if (user == null || (new Date()).after(new Date(user.getFetchedDate().getTime() + sixHoursInMilliseconds))) {
 								// get any users that were not recognized or expired
-								new UserServerFetch(getApplicationContext()).fetch(new String[] { userId });
+								new UserServerFetch(getApplicationContext()).fetch(userId);
 							}
 						}
 
@@ -99,7 +104,6 @@ public class ObservationFetchIntentService extends ConnectivityAwareIntentServic
 						}
 					} catch (Exception e) {
 						Log.e(LOG_NAME, "There was a failure while performing an Observation Fetch opperation.", e);
-						continue;
 					}
 				}
 			} else {

@@ -3,15 +3,16 @@ package mil.nga.giat.mage.sdk.login;
 import android.content.Context;
 import android.util.Log;
 
-import org.json.JSONObject;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
 
 /**
- * Creates a user
- * 
+ * Performs signup to specified oauth server.
+ *
  * @author newmanw
- * 
+ *
  */
 public class OAuthSignupTask extends AbstractAccountTask {
 
@@ -34,7 +35,7 @@ public class OAuthSignupTask extends AbstractAccountTask {
 		String json = params[0];
 
 		try {
-			JSONObject jsonObject = new JSONObject(json);
+			JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
 			if (jsonObject.has("user")) {
 				return new AccountStatus(AccountStatus.Status.SUCCESSFUL_SIGNUP, new ArrayList<Integer>(), new ArrayList<String>(), jsonObject);
 			} else {

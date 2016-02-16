@@ -15,13 +15,14 @@ import java.security.SecureRandom;
 
 import mil.nga.giat.mage.sdk.connectivity.ConnectivityUtility;
 import mil.nga.giat.mage.sdk.datastore.user.User;
-import mil.nga.giat.mage.sdk.http.post.MageServerPostRequests;
+import mil.nga.giat.mage.sdk.http.resource.UserResource;
 import mil.nga.giat.mage.sdk.utils.MediaUtility;
 
 public class UpdateProfileTask extends AsyncTask<String, Void, User> {
 	
 	private User user;
 	private Context context;
+	private UserResource userResource;
 	
 	private static final SecureRandom random = new SecureRandom();
 	
@@ -30,6 +31,7 @@ public class UpdateProfileTask extends AsyncTask<String, Void, User> {
 	public UpdateProfileTask(User user, Context context) {
 		this.user = user;
 		this.context = context;
+		userResource = new UserResource(context);
 	}
 
 
@@ -45,7 +47,7 @@ public class UpdateProfileTask extends AsyncTask<String, Void, User> {
 			return user;
 		}
 		
-		File stageDir = MediaUtility.getMediaStageDirectory();
+		File stageDir = MediaUtility.getMediaStageDirectory(context);
 		File inFile = new File(fileToUpload);
 		// add random string to the front of the filename to avoid conflicts
 		File stagedFile = new File(stageDir, new BigInteger(30, random).toString(32) + new File(fileToUpload).getName());
@@ -90,7 +92,16 @@ public class UpdateProfileTask extends AsyncTask<String, Void, User> {
 		}
 		
 		Log.i(LOG_NAME, "Pushing profile picture " + stagedFile);
-		return MageServerPostRequests.postProfilePicture(user, stagedFile.getAbsolutePath(), context);
+
+		User user = userResource.createAvatar(stagedFile.getAbsolutePath());
+		return user;
 	}
 
+
+	@Override
+	protected void onPostExecute(User user) {
+		super.onPostExecute(user);
+
+		Log.i(LOG_NAME, "updated user avatar");
+	}
 }
