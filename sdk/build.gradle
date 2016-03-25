@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven'
 
 group 'mil.nga.giat.mage'
-version '5.0.1'
+version '5.0.2'
 
 android {
     compileSdkVersion 22
