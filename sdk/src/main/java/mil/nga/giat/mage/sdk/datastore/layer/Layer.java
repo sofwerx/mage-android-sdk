@@ -30,6 +30,9 @@ public class Layer implements Comparable<Layer> {
 	private String name;
 
 	@DatabaseField
+	private String url;
+
+	@DatabaseField
 	private boolean loaded = false;
 
 	@DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
@@ -46,11 +49,12 @@ public class Layer implements Comparable<Layer> {
 		// ORMLite needs a no-arg constructor
 	}
 
-	public Layer(String remoteId, String type, String name, Event event) {
+	public Layer(String remoteId, String type, String name, String url, Event event) {
 		super();
 		this.remoteId = remoteId;
 		this.type = type;
 		this.name = name;
+		this.url = url;
 		this.event = event;
 	}
 
@@ -81,6 +85,12 @@ public class Layer implements Comparable<Layer> {
 	public void setName(String name) {
 		this.name = name;
 	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) { this.url = url; }
 
 	public Event getEvent() {
 		return event;

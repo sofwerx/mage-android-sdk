@@ -170,6 +170,49 @@ public class MageServerGetRequests {
 		return layers;
 	}
 
+	public static List<Layer> getSensorLayers(Context context) {
+		Event currentEvent = EventHelper.getInstance(context).getCurrentEvent();
+		final Gson layerDeserializer = LayerDeserializer.getGsonBuilder(currentEvent);
+		List<Layer> layers = new ArrayList<Layer>();
+		DefaultHttpClient httpclient = HttpClientManager.getInstance(context).getHttpClient();
+		HttpEntity entity = null;
+		try {
+			String currentEventId = currentEvent.getRemoteId();
+			// FIXME : not sure the server is respecting the type flag anymore!
+			Uri uri = Uri.parse(PreferenceManager.getDefaultSharedPreferences(context).getString(context.getString(R.string.serverURLKey), context.getString(R.string.serverURLDefaultValue))).buildUpon().appendPath("api").appendPath("events").appendPath(currentEventId).appendPath("layers").appendQueryParameter("type", "Sensor").build();
+
+			HttpGet get = new HttpGet(uri.toString());
+			HttpResponse response = httpclient.execute(get);
+			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+				entity = response.getEntity();
+				JSONArray featureArray = new JSONArray(EntityUtils.toString(entity));
+				for (int i = 0; i < featureArray.length(); i++) {
+					JSONObject feature = featureArray.getJSONObject(i);
+					if (feature != null) {
+						layers.add(layerDeserializer.fromJson(feature.toString(), Layer.class));
+					}
+				}
+			} else {
+				entity = response.getEntity();
+				String error = EntityUtils.toString(entity);
+				Log.e(LOG_NAME, "Bad request.");
+				Log.e(LOG_NAME, error);
+			}
+		} catch (Exception e) {
+			// this block should never flow exceptions up! Log for now.
+			Log.e(LOG_NAME, "Failure parsing layer information.", e);
+		} finally {
+			try {
+				if (entity != null) {
+					entity.consumeContent();
+				}
+			} catch (Exception e) {
+				Log.w(LOG_NAME, "Trouble cleaning up after GET request.", e);
+			}
+		}
+		return layers;
+	}
+
 	public static Collection<StaticFeature> getStaticFeatures(Context context, Layer layer) {
 		long start = 0;
 

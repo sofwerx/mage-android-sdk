@@ -54,6 +54,8 @@ public class StaticFeatureServerFetch extends AbstractServerFetch {
 
 		Log.d(LOG_NAME, "Pulling static layers.");
 		Collection<Layer> layers = MageServerGetRequests.getStaticLayers(mContext);
+		Collection<Layer> sensorLayers = MageServerGetRequests.getSensorLayers(mContext);
+
 		try {
 			if (deleteLocal) {
 				layerHelper.deleteAll();
@@ -66,6 +68,10 @@ public class StaticFeatureServerFetch extends AbstractServerFetch {
 
 			for(Layer layer : layers) {
 				layerHelper.create(layer);
+			}
+
+			for(Layer sensorLayer: sensorLayers) {
+				layerHelper.create(sensorLayer);
 			}
 
 			for (Layer layer : layerHelper.readAll()) {
