@@ -8,9 +8,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
@@ -25,6 +23,8 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
+import com.google.common.io.ByteStreams;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sanselan.Sanselan;
 import org.apache.sanselan.common.IImageMetadata;
@@ -38,7 +38,6 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -71,6 +70,7 @@ public class MediaUtility {
 	
 	private static int getPowerOfTwoForSampleRatio(double ratio){
         int k = Integer.highestOneBit((int)Math.floor(ratio));
+
         if(k==0) return 1;
         else return k;
     }
@@ -113,6 +113,39 @@ public class MediaUtility {
 	    Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
 	    mediaScanIntent.setData(contentUri);
 	    c.sendBroadcast(mediaScanIntent);
+	}
+
+	public static File copyImageFromGallery(InputStream is) throws IOException {
+		OutputStream os = null;
+		try {
+			String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+			String imageFileName = "MAGE_" + timeStamp;
+			File directory  = new File(Environment.getExternalStorageDirectory(), "MAGE");
+			File file =  File.createTempFile(
+					imageFileName,  /* prefix */
+					".jpeg",         /* suffix */
+					directory      /* directory */
+			);
+
+			os = new FileOutputStream(file);
+			ByteStreams.copy(is, os);
+
+			return file;
+		}  finally {
+			if (is != null) {
+				try {
+					is.close();
+				} catch (IOException e) {
+				}
+			}
+
+			if (os != null) {
+				try {
+					os.close();
+				} catch (IOException e) {
+				}
+			}
+		}
 	}
 
 	public static File createImageFile() throws IOException {
@@ -525,92 +558,6 @@ public class MediaUtility {
 	    	  }
 	    }
 	    return fileName;
-	}
-	
-	public static Bitmap getFullSizeOrientedBitmap(Uri uri, Context c) throws FileNotFoundException, IOException {
-		InputStream is = c.getContentResolver().openInputStream(uri);
-		return MediaUtility.orientBitmap(BitmapFactory.decodeStream(is, null, null), getFileAbsolutePath(uri, c), false);
-	}
-	
-	public static Bitmap getThumbnailFromContent(Uri uri, int thumbsize, Context c) throws FileNotFoundException, IOException {
-		InputStream is = c.getContentResolver().openInputStream(uri);
-		return MediaUtility.getThumbnail(is, thumbsize, getFileAbsolutePath(uri, c));
-	}
-	
-	public static Bitmap getThumbnail(File file, int thumbsize) throws FileNotFoundException, IOException {
-		FileInputStream input = new FileInputStream(file);
-		return MediaUtility.getThumbnail(input, thumbsize, file.getAbsolutePath());
-    }
-	
-	// TODO: this will only allow thumbnails based on the max of width or height.  We should allow choosing either height or width.
-	// Be aware that this method also rotates the image so height/width potentially could change and I think we should probably
-	// not rotate until it is resized to save memory
-	public static Bitmap getThumbnail(InputStream input, int thumbsize, String absoluteFilePath) throws FileNotFoundException, IOException {
-		BitmapFactory.Options onlyBoundsOptions = new BitmapFactory.Options();
-        onlyBoundsOptions.inJustDecodeBounds = true;
-        onlyBoundsOptions.inDither=true;//optional
-        onlyBoundsOptions.inPreferredConfig=Bitmap.Config.ARGB_8888;//optional
-        BitmapFactory.decodeStream(input, null, onlyBoundsOptions);
-        input.close();
-        if ((onlyBoundsOptions.outWidth == -1) || (onlyBoundsOptions.outHeight == -1))
-            return null;
-
-        int originalSize = (onlyBoundsOptions.outHeight > onlyBoundsOptions.outWidth) ? onlyBoundsOptions.outHeight : onlyBoundsOptions.outWidth;
-
-        double ratio = (originalSize > thumbsize) ? (originalSize / thumbsize) : 1.0;
-
-        BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
-        bitmapOptions.inSampleSize = getPowerOfTwoForSampleRatio(ratio);
-        bitmapOptions.inDither=true;//optional
-        bitmapOptions.inPreferredConfig=Bitmap.Config.ARGB_8888;//optional
-        input = new FileInputStream(absoluteFilePath);
-        
-        Bitmap bitmap = MediaUtility.orientBitmap(BitmapFactory.decodeStream(input, null, bitmapOptions), absoluteFilePath, false);
-        input.close();
-        return bitmap;
-	}
-	
-	public static Bitmap getThumbnail(InputStream input, int thumbsize) throws IOException {
-		BitmapFactory.Options onlyBoundsOptions = new BitmapFactory.Options();
-        onlyBoundsOptions.inJustDecodeBounds = true;
-        onlyBoundsOptions.inDither=true;//optional
-        onlyBoundsOptions.inPreferredConfig=Bitmap.Config.ARGB_8888;//optional
-        BitmapFactory.decodeStream(input, null, onlyBoundsOptions);
-        input.close();
-        if ((onlyBoundsOptions.outWidth == -1) || (onlyBoundsOptions.outHeight == -1))
-            return null;
-
-        int originalSize = (onlyBoundsOptions.outHeight > onlyBoundsOptions.outWidth) ? onlyBoundsOptions.outHeight : onlyBoundsOptions.outWidth;
-
-        double ratio = (originalSize > thumbsize) ? (originalSize / thumbsize) : 1.0;
-
-        BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
-        bitmapOptions.inSampleSize = getPowerOfTwoForSampleRatio(ratio);
-        bitmapOptions.inDither=true;//optional
-        bitmapOptions.inPreferredConfig=Bitmap.Config.ARGB_8888;//optional
-        return BitmapFactory.decodeStream(input, null, bitmapOptions);
-	}
-
-	// FIXME : phone will run out of memory on big images...
-	public static Bitmap orientBitmap(Bitmap bitmap, String absoluteFilePath, boolean setOrientationOnFile) throws IOException {
-		// Rotate the picture based on the exif data
-        ExifInterface exif = new ExifInterface(absoluteFilePath);
-        int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
-        Matrix matrix = new Matrix();
-        if (orientation == 6) {
-            matrix.postRotate(90);
-        } else if (orientation == 3) {
-            matrix.postRotate(180);
-        } else if (orientation == 8) {
-            matrix.postRotate(270);
-        }
-
-        Bitmap newBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true); // rotating bitmap
-		if(setOrientationOnFile) {
-			exif.setAttribute(ExifInterface.TAG_ORIENTATION, "1");
-			exif.saveAttributes();
-		}
-		return newBitmap;
 	}
 
 	public static void copyExifData(File sourceFile, File destFile) {
