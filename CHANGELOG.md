@@ -8,8 +8,10 @@ Adheres to [Semantic Versioning](http://semver.org/).
 * TBD
 
 ##### Features
+* Optimize static layer delete by batch deleting.
 
 ##### Bug Fixes
+* Delete icon file if static fetaure icon fails to download
 
 ## [5.1.1](https://github.com/ngageoint/mage-android-sdk/releases/tag/5.1.1) (11-10-2016)
 
