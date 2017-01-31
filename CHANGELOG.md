@@ -3,13 +3,18 @@ All notable changes to this project will be documented in this file.
 Adheres to [Semantic Versioning](http://semver.org/).
 
 ---
-## 5.2.1 (TBD)
-
-* TBD
+## 5.3.0 (TBD)
 
 ##### Features
+* Updates preferences to appcompat to support material design
+* Remove current event preference key.  Clients should Use current event in stored in database
+* Added method in EventHelper to remove current event
+* Added method in EventHelper to get most recent event for a user
+* Consolidate OAuth and FormAuth usernames
 
 ##### Bug Fixes
+* Only send token expired notifcation once to listeners
+* Fix a bug in the user deserializer when deserializing a single user
 
 ## [5.2.0](https://github.com/ngageoint/mage-android-sdk/releases/tag/5.2.0) (11-04-2016)
 
