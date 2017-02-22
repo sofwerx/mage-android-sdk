@@ -11,6 +11,7 @@ Adheres to [Semantic Versioning](http://semver.org/).
 * Added method in EventHelper to remove current event
 * Added method in EventHelper to get most recent event for a user
 * Consolidate OAuth and FormAuth usernames
+* Added refresh intent services for observations and locations.
 
 ##### Bug Fixes
 * Only send token expired notifcation once to listeners
