@@ -13,7 +13,7 @@ See the [build directions in the MAGE Android client](https://github.com/ngageoi
 
 ```bash
 ./gradlew clean
-./gradlew uploadArchives
+./gradlew assembleRelease publishToMavenLocal
 ```
 
 ## Pull Requests
