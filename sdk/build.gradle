@@ -1,3 +1,7 @@
+
+plugins {
+    id 'net.linguica.maven-settings' version '0.5'
+}
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
@@ -33,6 +37,19 @@ publishing {
             }
             artifact sourceJar, {
                 classifier = 'sources'
+            }
+        }
+    }
+    repositories {
+        maven {
+            name 'build'
+            url project.properties['repositories.build.url'] ?: "${buildDir}/m2"
+        }
+        // assuming a maven settings.xml defining credentials for a server with id equal to repositories.shared.name property value
+        if (project.hasProperty('repositories.shared.name')) {
+            maven {
+                name project.properties['repositories.shared.name']
+                url "${project.properties['repositories.shared.url']}"
             }
         }
     }
