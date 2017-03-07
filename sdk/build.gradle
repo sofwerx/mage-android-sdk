@@ -4,7 +4,6 @@ plugins {
 }
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
-apply plugin: 'maven'
 
 group 'mil.nga.giat.mage'
 archivesBaseName = 'mage-android-sdk'
@@ -67,18 +66,21 @@ publishing {
             }
         }
     }
-    repositories {
-        maven {
-            name 'build'
-            url project.properties['repositories.build.url'] ?: "${buildDir}/m2"
+}
+
+repositories {
+    def buildRepo = maven {
+        name 'build'
+        url project.properties['repositories.build.url'] ?: "${buildDir}/m2"
+    }
+    publishing.repositories.add buildRepo
+
+    if (project.hasProperty('repositories.shared.name')) {
+        def sharedRepo = maven {
+            name project.properties['repositories.shared.name']
+            url "${project.properties['repositories.shared.url']}"
         }
-        // assuming a maven settings.xml defining credentials for a server with id equal to repositories.shared.name property value
-        if (project.hasProperty('repositories.shared.name')) {
-            maven {
-                name project.properties['repositories.shared.name']
-                url "${project.properties['repositories.shared.url']}"
-            }
-        }
+        publishing.repositories.add sharedRepo
     }
 }
 
