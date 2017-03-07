@@ -4,8 +4,10 @@ plugins {
 }
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
+apply plugin: 'maven'
 
 group 'mil.nga.giat.mage'
+archivesBaseName = 'mage-android-sdk'
 version '5.3.0'
 
 android {
@@ -27,16 +29,41 @@ android {
 
 task sourceJar(type: Jar) {
     from project.android.sourceSets.main.java.srcDirs
+    classifier 'sources'
 }
 
 publishing {
     publications {
         aar(MavenPublication) {
-            artifact "${project.buildDir}/outputs/aar/${project.name}-release.aar", {
-                artifactId 'mage-android-sdk'
+            artifact "${project.buildDir}/outputs/aar/${archivesBaseName}-release.aar", {
+                artifactId archivesBaseName
             }
-            artifact sourceJar, {
-                classifier = 'sources'
+            artifact sourceJar
+            // the publication doesn't know about our dependencies, so we have to manually add them to the pom
+            // epic fail android
+            pom.withXml {
+                // for dependencies and exclusions
+                def dependenciesNode = asNode().appendNode('dependencies')
+                configurations.compile.allDependencies.each { Dependency dep ->
+                    if (dep instanceof SelfResolvingDependency) {
+                        // apparently the files() dependency results in a SelfResolvingDependency - skip it
+                        return;
+                    }
+                    def dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', dep.group)
+                    dependencyNode.appendNode('artifactId', dep.name)
+                    dependencyNode.appendNode('version', dep.version)
+
+                    // for exclusions
+                    if (dep.excludeRules.size() > 0) {
+                        def exclusions = dependencyNode.appendNode('exclusions')
+                        dep.excludeRules.each { ExcludeRule ex ->
+                            def exclusion = exclusions.appendNode('exclusion')
+                            exclusion.appendNode('groupId', ex.group)
+                            exclusion.appendNode('artifactId', ex.module)
+                        }
+                    }
+                }
             }
         }
     }
