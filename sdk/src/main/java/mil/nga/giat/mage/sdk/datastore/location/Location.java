@@ -6,7 +6,6 @@ import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
-import com.vividsolutions.jts.geom.Geometry;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -21,6 +20,7 @@ import java.util.Map;
 import mil.nga.giat.mage.sdk.Temporal;
 import mil.nga.giat.mage.sdk.datastore.user.Event;
 import mil.nga.giat.mage.sdk.datastore.user.User;
+import mil.nga.wkb.geom.Geometry;
 
 @DatabaseTable(tableName = "locations")
 public class Location implements Comparable<Location>, Temporal {

@@ -4,7 +4,6 @@ import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
-import com.vividsolutions.jts.geom.Geometry;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -16,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import mil.nga.giat.mage.sdk.datastore.layer.Layer;
+import mil.nga.wkb.geom.Geometry;
 
 @DatabaseTable(tableName = "staticfeatures")
 public class StaticFeature implements Comparable<StaticFeature> {
