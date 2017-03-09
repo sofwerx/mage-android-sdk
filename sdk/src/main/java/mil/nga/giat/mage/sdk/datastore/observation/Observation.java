@@ -21,6 +21,7 @@ import java.util.Map;
 
 import mil.nga.giat.mage.sdk.Temporal;
 import mil.nga.giat.mage.sdk.datastore.user.Event;
+import mil.nga.giat.mage.sdk.utils.GeometryUtility;
 import mil.nga.wkb.geom.Geometry;
 import mil.nga.wkb.geom.GeometryType;
 import mil.nga.wkb.geom.Point;
@@ -65,8 +66,8 @@ public class Observation implements Comparable<Observation>, Temporal {
     @DatabaseField(canBeNull = false)
     private State state = State.ACTIVE;
 
-	@DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
-    private Geometry geometry;
+	@DatabaseField(columnName = "geometry", canBeNull = false, dataType = DataType.BYTE_ARRAY)
+    private byte[] geometryBytes;
 
     @DatabaseField(canBeNull = false, foreign = true, foreignAutoRefresh = true)
     private Event event;
@@ -96,7 +97,7 @@ public class Observation implements Comparable<Observation>, Temporal {
         super();
         this.remoteId = remoteId;
         this.lastModified = lastModified;
-        this.geometry = geometry;
+        this.geometryBytes = GeometryUtility.toGeometryBytes(geometry);
         this.properties = pProperties;
         this.attachments = pAttachments;
         this.dirty = false;
@@ -152,13 +153,21 @@ public class Observation implements Comparable<Observation>, Temporal {
         this.state = state;
     }
 
-	public Geometry getGeometry() {
-		return geometry;
+	public byte[] getGeometryBytes() {
+		return geometryBytes;
 	}
 
-	public void setGeometry(Geometry geometry) {
-		this.geometry = geometry;
+	public void setGeometryBytes(byte[] geometryBytes) {
+		this.geometryBytes = geometryBytes;
 	}
+
+    public Geometry getGeometry() {
+        return GeometryUtility.toGeometry(getGeometryBytes());
+    }
+
+    public void setGeometry(Geometry geometry) {
+        this.geometryBytes = GeometryUtility.toGeometryBytes(geometry);
+    }
 
     public Event getEvent() {
         return event;
@@ -314,4 +323,5 @@ public class Observation implements Comparable<Observation>, Temporal {
 	public void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
 	}
+
 }
