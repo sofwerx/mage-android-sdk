@@ -25,6 +25,7 @@ import mil.nga.giat.mage.sdk.utils.GeometryUtility;
 import mil.nga.wkb.geom.Geometry;
 import mil.nga.wkb.geom.GeometryType;
 import mil.nga.wkb.geom.Point;
+import mil.nga.wkb.util.GeometryUtils;
 
 @DatabaseTable(tableName = "observations")
 public class Observation implements Comparable<Observation>, Temporal {
@@ -276,10 +277,8 @@ public class Observation implements Comparable<Observation>, Temporal {
         String uriString = "http://maps.google.com/maps";
 
         Geometry geometry = getGeometry();
-        if (geometry.getGeometryType() == GeometryType.POINT) {
-            Point point = (Point) geometry;
-            uriString += String.format("?daddr=%1$s,%2$s",  latLngFormat.format(point.getY()), latLngFormat.format(point.getX()));
-        }
+        Point point = GeometryUtils.getCentroid(geometry);
+        uriString += String.format("?daddr=%1$s,%2$s",  latLngFormat.format(point.getY()), latLngFormat.format(point.getX()));
 
         return Uri.parse(uriString);
     }
