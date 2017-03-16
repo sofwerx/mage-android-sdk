@@ -86,7 +86,7 @@ public class GeometrySerializer implements JsonSerializer<Geometry> {
 	private JsonArray toJson(Polygon polygon) {
 		JsonArray result = new JsonArray();
 		result.add(toJson(polygon.getRings().get(0)));
-		for (int i = 0; i < polygon.numRings(); i++) {
+		for (int i = 1; i < polygon.numRings(); i++) {
 			result.add(toJson(polygon.getRings().get(i)));
 		}
 		return result;
