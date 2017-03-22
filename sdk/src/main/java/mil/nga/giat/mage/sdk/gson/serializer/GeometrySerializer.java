@@ -80,22 +80,33 @@ public class GeometrySerializer implements JsonSerializer<Geometry> {
 	}
 
 	private JsonArray toJson(LineString geometry) {
-		return toJson(geometry.getPoints());
+		return toJson(geometry.getPoints(), false);
+	}
+
+	private JsonArray toJson(LineString geometry, boolean close) {
+		return toJson(geometry.getPoints(), close);
 	}
 
 	private JsonArray toJson(Polygon polygon) {
 		JsonArray result = new JsonArray();
-		result.add(toJson(polygon.getRings().get(0)));
+		result.add(toJson(polygon.getRings().get(0), true));
 		for (int i = 1; i < polygon.numRings(); i++) {
-			result.add(toJson(polygon.getRings().get(i)));
+			result.add(toJson(polygon.getRings().get(i), true));
 		}
 		return result;
 	}
 
-	private JsonArray toJson(List<Point> points) {
+	private JsonArray toJson(List<Point> points, boolean close) {
 		JsonArray result = new JsonArray();
 		for (Point point : points) {
 			result.add(toJson(point));
+		}
+		if(close) {
+			Point firstPoint = points.get(0);
+			Point lastPoint = points.get(points.size() - 1);
+			if (firstPoint.getX() != lastPoint.getX() || firstPoint.getY() != lastPoint.getY()) {
+				result.add(toJson(firstPoint));
+			}
 		}
 		return result;
 	}
