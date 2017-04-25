@@ -175,7 +175,7 @@ public class GeometryDeserializer extends Deserializer {
 
         MultiPolygon multiPolygon = new MultiPolygon();
 
-        for (int i = 1; i < node.size(); i++) {
+        for (int i = 0; i < node.size(); i++) {
             Polygon polygon = toPolygon(node.get(i));
             multiPolygon.addPolygon(polygon);
         }
@@ -194,7 +194,7 @@ public class GeometryDeserializer extends Deserializer {
 
         GeometryCollection<Geometry> geometryCollection = new GeometryCollection();
 
-        for (int i = 1; i < node.size(); i++) {
+        for (int i = 0; i < node.size(); i++) {
             Geometry geometry = parseGeometry(node.get(i).traverse());
             geometryCollection.addGeometry(geometry);
         }
