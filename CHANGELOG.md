@@ -2,8 +2,14 @@
 All notable changes to this project will be documented in this file.
 Adheres to [Semantic Versioning](http://semver.org/).
 
+## 5.3.1 (TBD)
+
+##### Features
+
+##### Bug Fixes
+
 ---
-## 5.3.0 (TBD)
+## [5.3.0](https://github.com/ngageoint/mage-android-sdk/releases/tag/5.3.0) (03-28-2017)
 
 ##### Features
 * Updates preferences to appcompat to support material design
@@ -12,6 +18,7 @@ Adheres to [Semantic Versioning](http://semver.org/).
 * Added method in EventHelper to get most recent event for a user
 * Consolidate OAuth and FormAuth usernames
 * Added refresh intent services for observations and locations.
+* DateFormatFactory changed to ISO8601DateFormatFactory
 
 ##### Bug Fixes
 * Only send token expired notifcation once to listeners
