@@ -82,6 +82,9 @@ public class Observation implements Comparable<Observation>, Temporal {
     @DatabaseField(canBeNull = true, foreign = true, foreignAutoRefresh = true, foreignAutoCreate = true)
     private ObservationImportant important;
 
+    @DatabaseField(persisterClass = ObservationErrorClassPersister.class, columnName = "error")
+    private ObservationError error;
+
     @ForeignCollectionField(eager = true)
     private Collection<ObservationFavorite> favorites = new ArrayList<>();
 
@@ -176,6 +179,14 @@ public class Observation implements Comparable<Observation>, Temporal {
 
     public void setEvent(Event event) {
         this.event = event;
+    }
+
+    public ObservationError getError() {
+        return error;
+    }
+
+    public void setError(ObservationError error) {
+        this.error = error;
     }
 
     public Date getLastModified() {

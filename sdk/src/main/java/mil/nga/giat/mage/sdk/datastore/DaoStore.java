@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.field.DataPersisterManager;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
@@ -16,6 +17,7 @@ import mil.nga.giat.mage.sdk.datastore.location.Location;
 import mil.nga.giat.mage.sdk.datastore.location.LocationProperty;
 import mil.nga.giat.mage.sdk.datastore.observation.Attachment;
 import mil.nga.giat.mage.sdk.datastore.observation.Observation;
+import mil.nga.giat.mage.sdk.datastore.observation.ObservationErrorClassPersister;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationFavorite;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationImportant;
 import mil.nga.giat.mage.sdk.datastore.observation.ObservationProperty;
@@ -164,6 +166,8 @@ public class DaoStore extends OrmLiteSqliteOpenHelper {
 		TableUtils.createTable(connectionSource, Layer.class);
 		TableUtils.createTable(connectionSource, StaticFeature.class);
 		TableUtils.createTable(connectionSource, StaticFeatureProperty.class);
+
+		DataPersisterManager.registerDataPersisters(ObservationErrorClassPersister.getSingleton());
 	}
 
 	@Override
