@@ -2,13 +2,20 @@
 All notable changes to this project will be documented in this file.
 Adheres to [Semantic Versioning](http://semver.org/).
 
-## 5.3.1 (TBD)
+---
+## 5.3.2 (TBD)
 
 ##### Features
 
 ##### Bug Fixes
 
----
+## [5.3.1](https://github.com/ngageoint/mage-android-sdk/releases/tag/5.3.1) (09-01-2017)
+
+##### Features
+* Allow description to be null in teams and events
+
+##### Bug Fixes
+
 ## [5.3.0](https://github.com/ngageoint/mage-android-sdk/releases/tag/5.3.0) (03-28-2017)
 
 ##### Features
