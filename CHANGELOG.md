@@ -3,11 +3,18 @@ All notable changes to this project will be documented in this file.
 Adheres to [Semantic Versioning](http://semver.org/).
 
 ---
-## 5.3.2 (TBD)
+## 5.3.3 (TBD)
 
 ##### Features
 
 ##### Bug Fixes
+
+## [5.3.2](https://github.com/ngageoint/mage-android-sdk/releases/tag/5.3.2) (10-05-2017)
+
+##### Features
+
+##### Bug Fixes
+* Parse mulitple select choices with spaces correctly
 
 ## [5.3.1](https://github.com/ngageoint/mage-android-sdk/releases/tag/5.3.1) (09-01-2017)
 
