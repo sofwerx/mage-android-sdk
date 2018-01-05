@@ -103,9 +103,13 @@ repositories {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:25.2.0'
-    compile 'com.android.support:appcompat-v7:25.2.0'
-    compile 'com.android.support:preference-v7:25.2.0'
+    ext {
+        support_library_version = '25.3.1'
+    }
+
+    compile "com.android.support:support-v13:$support_library_version"
+    compile "com.android.support:appcompat-v7:$support_library_version"
+    compile "com.android.support:preference-v7:$support_library_version"
     compile 'mil.nga.geopackage:geopackage-android:1.4.1'
     compile 'com.squareup.retrofit:retrofit:2.0.0-beta2'
     compile 'com.squareup.retrofit:converter-gson:2.0.0-beta2'
