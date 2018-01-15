@@ -9,7 +9,7 @@ Adheres to [Semantic Versioning](http://semver.org/).
 
 ##### Bug Fixes
 
-## [6.0.0](https://github.com/ngageoint/mage-android-sdk/releases/tag/6.0.0) (11-22-2017)
+## [6.0.0](https://github.com/ngageoint/mage-android-sdk/releases/tag/6.0.0) (01-15-2017)
 
 ##### Features
 * Observation geometry support for lines and polygons
