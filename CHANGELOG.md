@@ -3,11 +3,19 @@ All notable changes to this project will be documented in this file.
 Adheres to [Semantic Versioning](http://semver.org/).
 
 ---
-## 6.0.1 (TBD)
+## 6.0.2 (TBD)
 
 ##### Features
 
 ##### Bug Fixes
+
+## [6.0.1](https://github.com/ngageoint/mage-android-sdk/releases/tag/6.0.1) (01-23-2017)
+
+##### Features
+
+##### Bug Fixes
+* Query for all events when querying for current users events.  This is ok because the server will only ever return the events that
+a given user can see.
 
 ## [6.0.0](https://github.com/ngageoint/mage-android-sdk/releases/tag/6.0.0) (01-15-2017)
 
