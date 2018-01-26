@@ -9,6 +9,14 @@ Adheres to [Semantic Versioning](http://semver.org/).
 
 ##### Bug Fixes
 
+## [6.0.2](https://github.com/ngageoint/mage-android-sdk/releases/tag/6.0.2) (01-25-2017)
+
+##### Features
+
+##### Bug Fixes
+* Query for events that user is a part of.  This will differentiate between read only and write events.
+* Move event fetch back into intial fetch and perform before we show events
+
 ## [6.0.1](https://github.com/ngageoint/mage-android-sdk/releases/tag/6.0.1) (01-23-2017)
 
 ##### Features
