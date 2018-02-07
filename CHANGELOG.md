@@ -8,6 +8,7 @@ Adheres to [Semantic Versioning](http://semver.org/).
 ##### Features
 
 ##### Bug Fixes
+* Add appVersion and user-agent on device registration request
 
 ## [6.0.2](https://github.com/ngageoint/mage-android-sdk/releases/tag/6.0.2) (01-25-2017)
 
