@@ -3,9 +3,10 @@ All notable changes to this project will be documented in this file.
 Adheres to [Semantic Versioning](http://semver.org/).
 
 ---
-## 6.0.2 (TBD)
+## 6.0.3 (TBD)
 
 ##### Features
+* Added api method to get non archived forms.
 
 ##### Bug Fixes
 * Add appVersion and user-agent on device registration request
