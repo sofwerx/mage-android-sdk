@@ -3,7 +3,21 @@ All notable changes to this project will be documented in this file.
 Adheres to [Semantic Versioning](http://semver.org/).
 
 ---
-## 6.0.3 (TBD)
+## 6.1.1 (TBD)
+
+##### Features
+
+##### Bug Fixes
+
+## [6.1.0](https://github.com/ngageoint/mage-android-sdk/releases/tag/6.1.0) (04-16-2018)
+
+##### Features
+* New task to pull teams, users and icons for a specific event.
+* Store login/auth strategies coming from server in shared preferences.
+
+##### Bug Fixes
+
+## [6.0.3](https://github.com/ngageoint/mage-android-sdk/releases/tag/6.0.3) (02-14-2018)
 
 ##### Features
 * Added api method to get non archived forms.
